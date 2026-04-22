@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffdbd2",
+                    "surface-dim": "#d9d9e7",
+                    "on-tertiary-fixed-variant": "#891e00",
+                    "on-surface": "#191b25",
+                    "tertiary": "#952200",
+                    "on-error": "#ffffff",
+                    "background": "#fbf8ff",
+                    "surface": "#fbf8ff",
+                    "on-secondary-fixed": "#001452",
+                    "primary-container": "#0052ff",
+                    "inverse-surface": "#2e303a",
+                    "on-error-container": "#93000a",
+                    "outline": "#737688",
+                    "on-primary-fixed": "#001452",
+                    "surface-container": "#ededfb",
+                    "secondary": "#4459a8",
+                    "on-primary-fixed-variant": "#0038b6",
+                    "primary-fixed-dim": "#b7c4ff",
+                    "primary-fixed": "#dde1ff",
+                    "on-primary-container": "#dfe3ff",
+                    "on-background": "#191b25",
+                    "on-secondary-fixed-variant": "#2b418f",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#f0effe",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e7e7f5",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#bf3003",
+                    "outline-variant": "#c3c5d9",
+                    "on-tertiary-fixed": "#3c0800",
+                    "inverse-primary": "#b7c4ff",
+                    "on-secondary-container": "#253b89",
+                    "surface-container-low": "#f3f2ff",
+                    "primary": "#003ec7",
+                    "tertiary-fixed-dim": "#ffb4a1",
+                    "on-surface-variant": "#434656",
+                    "secondary-container": "#95aafe",
+                    "secondary-fixed-dim": "#b7c4ff",
+                    "surface-tint": "#004ced",
+                    "secondary-fixed": "#dde1ff",
+                    "surface-variant": "#e1e1ef",
+                    "surface-container-highest": "#e1e1ef",
+                    "on-tertiary-container": "#ffddd5",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#fbf8ff",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {},
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tonal-transition {
+            background: linear-gradient(to bottom, transparent, rgba(237, 237, 251, 0.5));
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(195, 197, 217, 0.15);
+        }
+        details.mobile-nav > summary {
+            list-style: none;
+        }
+        details.mobile-nav > summary::-webkit-details-marker {
+            display: none;
+        }
+        details.mobile-nav[open] summary .icon-menu {
+            display: none;
+        }
+        details.mobile-nav:not([open]) summary .icon-close {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary-container selection:text-on-primary-container">
+<div id="site-header"></div>
+<main class="pt-20 sm:pt-32 pb-16 sm:pb-24">
+<!-- Hero Section -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-14 sm:mb-24">
+<div class="grid lg:grid-cols-12 gap-8 sm:gap-12 items-center">
+<div class="lg:col-span-7">
+<span class="inline-block py-1.5 px-4 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant text-xs sm:text-sm font-bold tracking-wide uppercase">Наш процесс</span>
+<h1 class="text-4xl sm:text-5xl md:text-7xl font-headline font-extrabold tracking-tighter text-on-surface mb-6 sm:mb-8 leading-[1.1]">
+                        Как мы ведем вас к резиденции в Испании
+                    </h1>
+<p class="text-base sm:text-lg md:text-2xl text-on-surface-variant max-w-2xl font-light leading-relaxed">
+                        Четкая юридическая стратегия и сопровождение на каждом этапе. Мы берем на себя сложные бюрократические процедуры, чтобы вы спокойно получили статус резидента.
+                    </p>
+</div>
+<div class="lg:col-span-5 relative mt-2 lg:mt-0">
+<div class="aspect-square rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden shadow-2xl">
+<img class="w-full h-full object-cover" data-alt="Modern architectural detail of a luxury minimalist villa with sharp lines and blue sky reflecting in large glass windows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmq4lm3sqNYYVQCIObN5wE_FSV619ISnzB8in4iIH-YyvaAsEjc0-DiivIW2f2ksVpCvQjGR_4lnN70gCqUoMKxG79hT8ffChoAvqxkTBN4TLxr__He9NY0R2oBvIcTRmln4Mt8w89lSQN_mHh3-70au18xGvaxeatd_wz2z_mjCzoX6FycoHeVb5ETQBh1YZ7R9FoACKCAv55Wlv4Yb5EvTAHB1dLiTdjtb22IgrGIEsp7-VEcwi2_raBFIni5uNLW9pRrqzFjXQ"/>
+</div>
+<!-- Decorative element -->
+<div class="absolute -bottom-4 sm:-bottom-6 -left-4 sm:-left-6 w-20 h-20 sm:w-32 sm:h-32 bg-primary-container rounded-2xl flex items-center justify-center shadow-xl">
+<span class="material-symbols-outlined text-on-primary-container text-3xl sm:text-4xl">verified_user</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Vertical Roadmap -->
+<section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="relative">
+<!-- Vertical Line -->
+<div class="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary/20 via-primary/40 to-transparent hidden md:block"></div>
+<div class="space-y-12 sm:space-y-24">
+<!-- Step 1 -->
+<div class="relative flex flex-col md:flex-row items-start gap-6 sm:gap-12 group">
+<div class="absolute left-8 -ml-[13px] w-7 h-7 rounded-full border-4 border-background bg-primary-container z-10 hidden md:block group-hover:scale-125 transition-transform duration-300"></div>
+<div class="md:pl-20 w-full">
+<div class="glass-card p-6 sm:p-8 md:p-12 rounded-[2rem] transition-all duration-500 hover:shadow-xl hover:translate-x-2">
+<div class="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+<span class="text-primary font-headline text-lg font-black opacity-40">01</span>
+<h3 class="text-xl sm:text-2xl md:text-3xl font-headline font-bold tracking-tight text-on-surface">Персональная консультация</h3>
+</div>
+<p class="text-base sm:text-lg text-on-surface-variant leading-relaxed mb-6 sm:mb-8">
+                                    Формируем индивидуальную стратегию переезда: учитываем ваши цели, структуру активов и семейные обстоятельства, чтобы составить реалистичный и безопасный план.
+                                </p>
+<div class="flex flex-wrap gap-3">
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium">Анализ кейса</span>
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium">Комплаенс</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="relative flex flex-col md:flex-row items-start gap-6 sm:gap-12 group">
+<div class="absolute left-8 -ml-[13px] w-7 h-7 rounded-full border-4 border-background bg-primary-container z-10 hidden md:block group-hover:scale-125 transition-transform duration-300"></div>
+<div class="md:pl-20 w-full">
+<div class="glass-card p-6 sm:p-8 md:p-12 rounded-[2rem] transition-all duration-500 hover:shadow-xl hover:translate-x-2">
+<div class="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+<span class="text-primary font-headline text-lg font-black opacity-40">02</span>
+<h3 class="text-xl sm:text-2xl md:text-3xl font-headline font-bold tracking-tight text-on-surface">Подготовка документов</h3>
+</div>
+<p class="text-base sm:text-lg text-on-surface-variant leading-relaxed mb-6 sm:mb-8">
+                                    Собираем и проверяем полный пакет документов. Следим, чтобы каждая справка и форма соответствовала требованиям испанских ведомств.
+                                </p>
+<div class="flex flex-wrap gap-3">
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium">Легализация</span>
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium">Апостиль</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="relative flex flex-col md:flex-row items-start gap-6 sm:gap-12 group">
+<div class="absolute left-8 -ml-[13px] w-7 h-7 rounded-full border-4 border-background bg-primary-container z-10 hidden md:block group-hover:scale-125 transition-transform duration-300"></div>
+<div class="md:pl-20 w-full">
+<div class="glass-card p-6 sm:p-8 md:p-12 rounded-[2rem] transition-all duration-500 hover:shadow-xl hover:translate-x-2">
+<div class="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+<span class="text-primary font-headline text-lg font-black opacity-40">03</span>
+<h3 class="text-xl sm:text-2xl md:text-3xl font-headline font-bold tracking-tight text-on-surface">Подача заявления</h3>
+</div>
+<p class="text-base sm:text-lg text-on-surface-variant leading-relaxed mb-6 sm:mb-8">
+                                    Подаем заявление по официальной процедуре и сопровождаем процесс до решения. Контролируем сроки и коммуникацию с испанскими органами.
+                                </p>
+<div class="flex flex-wrap gap-3">
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium">Приоритетная обработка</span>
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium">UGE-CE</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="relative flex flex-col md:flex-row items-start gap-6 sm:gap-12 group">
+<div class="absolute left-8 -ml-[13px] w-7 h-7 rounded-full border-4 border-background bg-primary-container z-10 hidden md:block group-hover:scale-125 transition-transform duration-300"></div>
+<div class="md:pl-20 w-full">
+<div class="glass-card p-6 sm:p-8 md:p-12 rounded-[2rem] transition-all duration-500 hover:shadow-xl hover:translate-x-2">
+<div class="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+<span class="text-primary font-headline text-lg font-black opacity-40">04</span>
+<h3 class="text-xl sm:text-2xl md:text-3xl font-headline font-bold tracking-tight text-on-surface">Биометрия и регистрация</h3>
+</div>
+<p class="text-base sm:text-lg text-on-surface-variant leading-relaxed mb-6 sm:mb-8">
+                                    Организуем ваш первый визит после одобрения: сопровождаем на сдаче отпечатков пальцев и помогаем с оформлением необходимых идентификационных документов.
+                                </p>
+<div class="flex flex-wrap gap-3">
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium">Консьерж-сервис</span>
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium">Биометрия</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 5 -->
+<div class="relative flex flex-col md:flex-row items-start gap-6 sm:gap-12 group">
+<div class="absolute left-8 -ml-[13px] w-7 h-7 rounded-full border-4 border-background bg-primary-container z-10 hidden md:block group-hover:scale-125 transition-transform duration-300"></div>
+<div class="md:pl-20 w-full">
+<div class="glass-card p-6 sm:p-8 md:p-12 rounded-[2rem] transition-all duration-500 hover:shadow-xl hover:translate-x-2">
+<div class="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+<span class="text-primary font-headline text-lg font-black opacity-40">05</span>
+<h3 class="text-xl sm:text-2xl md:text-3xl font-headline font-bold tracking-tight text-on-surface">Получение карты TIE</h3>
+</div>
+<p class="text-base sm:text-lg text-on-surface-variant leading-relaxed mb-6 sm:mb-8">
+                                    Получаете карту резидента TIE и завершаете оформление статуса. После этого вы можете полноценно пользоваться всеми правами резидента в Испании.
+                                </p>
+<div class="flex flex-wrap gap-3">
+<span class="px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container text-sm font-bold">Завершено</span>
+<span class="px-4 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium">Международная мобильность</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid Call to Action -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20 sm:mt-48">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+<div class="md:col-span-2 bg-slate-900 rounded-[2rem] p-6 sm:p-12 relative overflow-hidden flex flex-col justify-between">
+<img class="absolute inset-0 w-full h-full object-cover opacity-30" data-alt="Elegant office interior with dark wood paneling, designer furniture, and a panoramic view of Madrid skyline at dusk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAa6jmZ1SlKiREXld8FymkeCwnYquyhr-lGLCdQe-z2qdezkRBZPH9D35QdXmg3kf9ohGT00fublvSjyqUvtxf05nKmULOT-RgmgvsASDZbH31KUGLasCJP5xddP5rOtjmJJBQPYeoqwWCJ88j8SltfSBB7NuQckCPghZNc_hHKSGwG2cN8asVcgFJl5jf7PMjtcGTBRaiG5PezZH9m8zQwuRjZ162XS6ZX02_TZbzVrGdFpNs8Go6wJUgwKkSva8jhtt4M_V2bwig"/>
+<div class="relative z-10">
+<h2 class="text-3xl sm:text-4xl font-headline font-bold text-white mb-4 sm:mb-6 tracking-tight">Готовы начать путь к резиденции?</h2>
+<p class="text-slate-300 text-base sm:text-lg max-w-md leading-relaxed">
+                            Все начинается с первой консультации. Обсудим вашу ситуацию, ответим на вопросы и предложим оптимальный план действий.
+                        </p>
+</div>
+<div class="relative z-10 pt-8 sm:pt-12">
+<a class="bg-white text-slate-900 px-8 py-4 rounded-xl font-headline font-bold tracking-tight hover:scale-105 transition-transform w-full sm:w-auto inline-block text-center" href="./contact.html">
+                            Записаться на консультацию
+                        </a>
+</div>
+</div>
+<div class="bg-blue-600 rounded-[2rem] p-8 sm:p-12 flex flex-col justify-center items-center text-center">
+<span class="material-symbols-outlined text-white text-5xl sm:text-6xl mb-4 sm:mb-6">workspace_premium</span>
+<h3 class="text-xl sm:text-2xl font-headline font-bold text-white mb-3 sm:mb-4 tracking-tight">99% успешных кейсов</h3>
+<p class="text-blue-100 font-light">Наш результат — ваша уверенность в будущем.</p>
+</div>
+</div>
+</section>
+</main>
+<div id="site-footer"></div>
+<script src="../../shared/layout.js"></script>
+</body></html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffdbd2",
+                    "surface-dim": "#d9d9e7",
+                    "on-tertiary-fixed-variant": "#891e00",
+                    "on-surface": "#191b25",
+                    "tertiary": "#952200",
+                    "on-error": "#ffffff",
+                    "background": "#fbf8ff",
+                    "surface": "#fbf8ff",
+                    "on-secondary-fixed": "#001452",
+                    "primary-container": "#0052ff",
+                    "inverse-surface": "#2e303a",
+                    "on-error-container": "#93000a",
+                    "outline": "#737688",
+                    "on-primary-fixed": "#001452",
+                    "surface-container": "#ededfb",
+                    "secondary": "#4459a8",
+                    "on-primary-fixed-variant": "#0038b6",
+                    "primary-fixed-dim": "#b7c4ff",
+                    "primary-fixed": "#dde1ff",
+                    "on-primary-container": "#dfe3ff",
+                    "on-background": "#191b25",
+                    "on-secondary-fixed-variant": "#2b418f",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#f0effe",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e7e7f5",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#bf3003",
+                    "outline-variant": "#c3c5d9",
+                    "on-tertiary-fixed": "#3c0800",
+                    "inverse-primary": "#b7c4ff",
+                    "on-secondary-container": "#253b89",
+                    "surface-container-low": "#f3f2ff",
+                    "primary": "#003ec7",
+                    "tertiary-fixed-dim": "#ffb4a1",
+                    "on-surface-variant": "#434656",
+                    "secondary-container": "#95aafe",
+                    "secondary-fixed-dim": "#b7c4ff",
+                    "surface-tint": "#004ced",
+                    "secondary-fixed": "#dde1ff",
+                    "surface-variant": "#e1e1ef",
+                    "surface-container-highest": "#e1e1ef",
+                    "on-tertiary-container": "#ffddd5",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#fbf8ff",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tonal-transition {
+            background-image: linear-gradient(to bottom, transparent, var(--tw-gradient-from));
+        }
+        details.mobile-nav > summary {
+            list-style: none;
+        }
+        details.mobile-nav > summary::-webkit-details-marker {
+            display: none;
+        }
+        details.mobile-nav[open] summary .icon-menu {
+            display: none;
+        }
+        details.mobile-nav:not([open]) summary .icon-close {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<div id="site-header"></div>
+<main class="pt-20 sm:pt-32 pb-16 sm:pb-24">
+<!-- Hero Section -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-14 sm:mb-24">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-center">
+<div class="space-y-8">
+<span class="inline-block py-1.5 px-4 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant text-xs sm:text-sm font-bold tracking-wide uppercase">Услуги</span>
+<h1 class="text-4xl sm:text-5xl md:text-7xl font-headline font-extrabold tracking-tighter text-on-surface leading-none">
+                        Глобальная мобильность. <span class="text-primary">Переосмысление.</span>
+</h1>
+<p class="text-base sm:text-xl text-on-surface-variant max-w-lg leading-relaxed">
+                        Spainza упрощает сложный ландшафт международной иммиграции с помощью набора элитных услуг для современного суверенного гражданина.
+                    </p>
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+<a class="bg-primary text-on-primary px-6 sm:px-8 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-105 transition-transform duration-300 w-full sm:w-auto" href="./contact.html">
+                            Начать процесс
+                            <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+<!-- <button class="text-primary font-bold px-6 sm:px-8 py-4 rounded-xl border border-primary/10 hover:bg-primary/5 transition-colors w-full sm:w-auto">
+                            Наши кейсы
+                        </button>-->
+</div>
+</div>
+<div class="relative group">
+<div class="absolute -inset-4 bg-primary/10 rounded-2xl blur-3xl group-hover:bg-primary/20 transition-all duration-700"></div>
+<img alt="Global Connectivity" class="relative rounded-2xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-700 w-full aspect-[4/3] object-cover border border-white/20" data-alt="Modern minimalist workspace with a large window overlooking a sleek urban skyline at sunset, soft warm light reflecting off glass surfaces" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXDQCwiaKGnDOzrL3TJ6ZSfgnPV54UW7D88wTQWw6I4xFh4KD0Hlb3pEc2fY6uvZDG7jEuegCojKuNc57dZHbGuGVlpzuheAsTVqUArn8dAZdnQ97nDQqF-42jk7OBwiVBwtImgCfGW5F4JGLu7LxsKcCX9JsUYifWkHecXVLq4bMpPrJeNCJWuvv3B8w_36emmVhhGm33eoY3vXatZEgDX0QPKnKXl3k3iuV0shijRbK8nwGoD0WueSKCF6njkd1fvzyVxI8fRNs"/>
+</div>
+</div>
+</section>
+<!-- Services Bento Grid -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8">
+<!-- Digital Nomad Visa -->
+<div class="md:col-span-8 group relative overflow-hidden bg-white dark:bg-slate-900 rounded-[24px] shadow-[0_20px_40px_rgba(117,118,130,0.04)] border border-outline-variant/10 p-6 sm:p-12 flex flex-col justify-between min-h-[420px] sm:min-h-[480px]">
+<div class="absolute top-0 right-0 p-4 sm:p-8">
+<span class="material-symbols-outlined text-6xl text-primary/20 group-hover:scale-110 group-hover:text-primary transition-all duration-500" data-icon="travel_explore">travel_explore</span>
+</div>
+<div class="max-w-md">
+<h3 class="text-2xl sm:text-3xl font-headline font-bold text-on-surface mb-4">Виза цифрового кочевника</h3>
+<p class="text-on-surface-variant leading-relaxed text-base sm:text-lg mb-8">
+                            Свобода работать из любой точки мира. Мы берем на себя всю бюрократию, от налогового планирования до получения ВНЖ, чтобы вы могли сосредоточиться на своем деле.
+                        </p>
+<ul class="space-y-4 mb-8">
+<li class="flex items-center gap-3 text-sm font-medium">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                Ускоренное оформление за 4 недели
+                            </li>
+<li class="flex items-center gap-3 text-sm font-medium">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                Полная налоговая оптимизация
+                            </li>
+</ul>
+</div>
+<button class="w-fit flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all">
+                        Подробнее о программе <span class="material-symbols-outlined">chevron_right</span>
+</button>
+<div class="absolute -bottom-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+</div>
+<!-- Family Reunion -->
+<div class="md:col-span-4 bg-surface-container-low rounded-[24px] p-6 sm:p-8 flex flex-col items-center text-center justify-center relative overflow-hidden group">
+<img alt="Family" class="absolute inset-0 w-full h-full object-cover opacity-10 grayscale group-hover:scale-110 transition-transform duration-700" data-alt="A warm and joyful candid portrait of a modern multi-generational family embracing in a sun-drenched minimalist living room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMV58nRy1fKhqOv0HC3GsijlaZWnXPeWlzOB5uAj9IzR9b2vRUiLpx5kI6XrJYj8WjoKstC0bZBREyW-tKKANKOYlR7EFilQXOeOoNCm-FNqtZG_KDLxB0RO-nXB-_cg7O3O76sLVneshDuQwJUXfbwSwAcB0j5TPbs1x7-zje16c8wLPrz4JYE4RIlkYpdl4Qg-m1sU2y7mDqLc5icDroMKFzzK89i-7llJfV63Zqtc8mybZwUMNA7ZC28XNb2wVf9mGuGpoD0SM"/>
+<div class="relative z-10 space-y-6">
+<div class="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-lg mx-auto">
+<span class="material-symbols-outlined text-3xl text-tertiary-container" data-icon="family_history">family_history</span>
+</div>
+<h3 class="text-2xl font-headline font-bold text-on-surface">Воссоединение семьи</h3>
+<p class="text-on-surface-variant text-sm px-4">
+                            Сохраняйте самое важное. Мы помогаем семьям объединиться в новой стране без лишнего стресса и задержек.
+                        </p>
+<button class="bg-white/50 backdrop-blur-md px-6 py-2 rounded-xl text-sm font-bold border border-white/50 hover:bg-white transition-colors">
+                            Узнать больше
+                        </button>
+</div>
+</div>
+<!-- Business Immigration -->
+<div class="md:col-span-12 lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+<div class="bg-primary text-on-primary rounded-[24px] p-6 sm:p-12 flex flex-col justify-center">
+<h3 class="text-3xl sm:text-4xl font-headline font-bold mb-6">Бизнес-иммиграция</h3>
+<p class="text-primary-fixed leading-relaxed text-base sm:text-lg mb-8">
+                            Стратегическое расширение вашего влияния. Полное сопровождение инвестиционных программ и релокации бизнеса в юрисдикции с высоким уровнем жизни и низким налогообложением.
+                        </p>
+<div class="grid grid-cols-2 gap-4 sm:gap-8">
+<div>
+<div class="text-3xl font-black mb-1">15+</div>
+<div class="text-xs uppercase tracking-widest font-bold opacity-70">Юрисдикций</div>
+</div>
+<div>
+<div class="text-3xl font-black mb-1">100%</div>
+<div class="text-xs uppercase tracking-widest font-bold opacity-70">Конфиденциальность</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
+<div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 sm:p-8 border border-outline-variant/10">
+<span class="material-symbols-outlined text-4xl text-primary mb-4" data-icon="corporate_fare">corporate_fare</span>
+<h4 class="font-bold text-on-surface mb-2">Регистрация компаний</h4>
+<p class="text-sm text-on-surface-variant">Открытие счетов и юридическая обвязка бизнеса за рубежом.</p>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 sm:p-8 border border-outline-variant/10">
+<span class="material-symbols-outlined text-4xl text-primary mb-4" data-icon="account_balance">account_balance</span>
+<h4 class="font-bold text-on-surface mb-2">Налоговый консалтинг</h4>
+<p class="text-sm text-on-surface-variant">Разработка эффективных структур владения активами.</p>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 sm:p-8 border border-outline-variant/10">
+<span class="material-symbols-outlined text-4xl text-primary mb-4" data-icon="real_estate_agent">real_estate_agent</span>
+<h4 class="font-bold text-on-surface mb-2">Золотая виза</h4>
+<p class="text-sm text-on-surface-variant">Получение резидентства через инвестиции в недвижимость.</p>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-[24px] p-6 sm:p-8 border border-outline-variant/10">
+<span class="material-symbols-outlined text-4xl text-primary mb-4" data-icon="language">language</span>
+<h4 class="font-bold text-on-surface mb-2">Второе гражданство</h4>
+<p class="text-sm text-on-surface-variant">Расширение глобального безвизового доступа для вас.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 sm:mt-24">
+<div class="relative bg-slate-900 rounded-[24px] sm:rounded-[32px] p-6 sm:p-12 md:p-20 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent"></div>
+<div class="relative z-10 max-w-2xl">
+<h2 class="text-3xl sm:text-4xl md:text-5xl font-headline font-extrabold text-white mb-4 sm:mb-6 leading-tight">Готовы к следующему шагу к глобальной свободе?</h2>
+<p class="text-slate-400 text-base sm:text-lg mb-8 sm:mb-10">Наши эксперты готовы провести персональную консультацию и разработать дорожную карту вашей иммиграции.</p>
+<a class="bg-white text-slate-900 px-8 sm:px-10 py-4 rounded-xl font-bold hover:scale-105 transition-transform duration-300 w-full sm:w-auto inline-block text-center" href="./contact.html">
+                        Записаться на консультацию
+                    </a>
+</div>
+<div class="absolute right-0 bottom-0 top-0 w-1/3 hidden lg:block">
+<img alt="Success" class="h-full w-full object-cover opacity-40 grayscale mix-blend-overlay" data-alt="Abstract dynamic architectural close-up of modern curved glass and steel skyscraper reaching into clear blue sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJep6pnzm6aNSVrVLNxgZwD3N_h0S_ScHzni35mwzmyvxkrHtXBJ7iHJwLp9PTteAJ3X0OTxPHT2t_Rb5ECDMVsHEira7fFYyn4xjwjoyWjShp6RYQcPE0K6bPjVpK9019hZMSve3DRjo3VeeKc83_zrmq3KkNS-hS7DX4y8O5ujcGd0ukUmgEDUj1RCBSxauYaImwE8soO2pjSXPLY3uwhqL6bm5yTVzwSWXVOX_FjVEogcEcuqx9oEOnIEDQAZAqD7m1E6NhumE"/>
+</div>
+</div>
+</section>
+</main>
+<div id="site-footer"></div>
+<script src="../../shared/layout.js"></script>
+</body></html>

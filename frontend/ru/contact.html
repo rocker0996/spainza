@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffdbd2",
+                    "surface-dim": "#d9d9e7",
+                    "on-tertiary-fixed-variant": "#891e00",
+                    "on-surface": "#191b25",
+                    "tertiary": "#952200",
+                    "on-error": "#ffffff",
+                    "background": "#fbf8ff",
+                    "surface": "#fbf8ff",
+                    "on-secondary-fixed": "#001452",
+                    "primary-container": "#0052ff",
+                    "inverse-surface": "#2e303a",
+                    "on-error-container": "#93000a",
+                    "outline": "#737688",
+                    "on-primary-fixed": "#001452",
+                    "surface-container": "#ededfb",
+                    "secondary": "#4459a8",
+                    "on-primary-fixed-variant": "#0038b6",
+                    "primary-fixed-dim": "#b7c4ff",
+                    "primary-fixed": "#dde1ff",
+                    "on-primary-container": "#dfe3ff",
+                    "on-background": "#191b25",
+                    "on-secondary-fixed-variant": "#2b418f",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#f0effe",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e7e7f5",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#bf3003",
+                    "outline-variant": "#c3c5d9",
+                    "on-tertiary-fixed": "#3c0800",
+                    "inverse-primary": "#b7c4ff",
+                    "on-secondary-container": "#253b89",
+                    "surface-container-low": "#f3f2ff",
+                    "primary": "#003ec7",
+                    "tertiary-fixed-dim": "#ffb4a1",
+                    "on-surface-variant": "#434656",
+                    "secondary-container": "#95aafe",
+                    "secondary-fixed-dim": "#b7c4ff",
+                    "surface-tint": "#004ced",
+                    "secondary-fixed": "#dde1ff",
+                    "surface-variant": "#e1e1ef",
+                    "surface-container-highest": "#e1e1ef",
+                    "on-tertiary-container": "#ffddd5",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#fbf8ff",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .tonal-transition { background-image: linear-gradient(to bottom, transparent, var(--tw-gradient-to)); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        details.mobile-nav > summary {
+            list-style: none;
+        }
+        details.mobile-nav > summary::-webkit-details-marker {
+            display: none;
+        }
+        details.mobile-nav[open] summary .icon-menu {
+            display: none;
+        }
+        details.mobile-nav:not([open]) summary .icon-close {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
+<div id="site-header"></div>
+  <main class="pt-16 sm:pt-20">
+<!-- Hero Section -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-14 sm:mb-24 relative overflow-hidden">
+<div class="relative z-10">
+<p class="text-primary font-bold tracking-[0.2em] uppercase text-xs mb-4">Spainza Elite Intelligence</p>
+<h1 class="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tighter text-on-surface max-w-4xl leading-[1.1]">
+                    Наша экспертность <br/>в вашей<span class="text-primary"> иммиграции</span>.
+                </h1>
+<p class="mt-6 sm:mt-8 text-base sm:text-xl text-on-surface-variant max-w-2xl leading-relaxed">
+  Строим ваш путь к жизни за границей: берём на себя весь процесс получения ВНЖ — от стратегии до результата.
+                </p>
+</div>
+<!-- Abstract background shape -->
+<div class="absolute -right-20 -top-20 w-[600px] h-[600px] bg-gradient-to-br from-primary/10 to-secondary/10 blur-[100px] rounded-full -z-10"></div>
+</section>
+<section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="text-center mb-12">
+  <h2 class="text-3xl font-extrabold text-on-surface mb-4">Начните свой путь</h2>
+  <p class="text-on-surface-variant">Готовы к следующему шагу? Наша команда экспертов ждет вашего запроса.</p>
+  </div>
+  <form class="space-y-6" id="contact-form">
+  <div class="space-y-2">
+  <label class="text-sm font-bold text-on-surface ml-1">Имя</label>
+  <input class="w-full bg-surface-container-highest border-none rounded-xl p-4 focus:ring-2 focus:ring-primary transition-all" placeholder="Александр Петров" type="text"/>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="space-y-2">
+    <label class="text-sm font-bold text-on-surface ml-1">Телефон</label>
+    <input class="w-full bg-surface-container-highest border-none rounded-xl p-4 focus:ring-2 focus:ring-primary transition-all" id="contact-phone" placeholder="+1 (234) 567-8900" type="tel"/>
+    </div>
+  <div class="space-y-2">
+  <label class="text-sm font-bold text-on-surface ml-1">E-mail</label>
+  <input class="w-full bg-surface-container-highest border-none rounded-xl p-4 focus:ring-2 focus:ring-primary transition-all" id="contact-email" placeholder="alex@company.com" type="email"/>
+    </div>
+  </div>
+  <div class="space-y-2">
+  <label class="text-sm font-bold text-on-surface ml-1">Тип запроса</label>
+  <select class="w-full bg-surface-container-highest border-none rounded-xl p-4 focus:ring-2 focus:ring-primary transition-all">
+  <option>Виза цифрового кочевника</option>
+  <option>ВНЖ для ведения бизнеса</option>
+  <option>Воссоединение семьи</option>
+  <option>Вопросы гражданства</option>
+  </select>
+  </div>
+  <button class="w-full py-4 sm:py-5 bg-primary text-on-primary rounded-xl font-bold text-base sm:text-lg hover:bg-primary-container transition-all shadow-lg shadow-primary/20" type="submit">
+                      Инициировать защищенное соединение
+                  </button>
+  </form>
+  </section>
+<!-- Team Section (Profiles) -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 mb-16 sm:mb-32">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
+<!-- Dr. Julian Sterling -->
+<div class="group">
+<div class="relative mb-6 overflow-hidden rounded-[12px] bg-surface-container-high aspect-[4/5]">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="portrait of a distinguished male lawyer in a sharp navy suit, neutral professional studio background, soft cinematic lighting, authoritative expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6WnSTrsgRJ7EK2A5EjR_82fs51sLV2WdvTY1G5wLVy7T5N8zSIybfdm7AaIyO6j9po68QXR1xqNrahgOEJx3TOGo18Dk_MwJENzUEeRFnAyaQnLuqc13Q90HihRkJJzshh7hqym-zKIg0VDNjWLwvGNmVF1qmNaMx_SPQWNSQsWFK8tDW0JIm_Pb3s7DRvdbIli2Flt6RTkOmCTqTuRbQclC2XkDKt5gzFhr7uFjQ2rAtGhkUJiWweOHgWLrCgq_VrTqtBvFxyoc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
+<span class="text-white font-semibold text-sm">Юридический надзор высшего уровня</span>
+</div>
+</div>
+<h3 class="text-xl sm:text-2xl font-bold text-on-surface">Dr. Julian Sterling</h3>
+<p class="text-primary font-medium mb-4">Ведущий юрист</p>
+<p class="text-on-surface-variant text-sm leading-relaxed">Специализируется на сложных трансграничных юрисдикциях и защите частного капитала.</p>
+</div>
+<!-- Elena Rodriguez -->
+<div class="group">
+<div class="relative mb-6 overflow-hidden rounded-[12px] bg-surface-container-high aspect-[4/5]">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="professional woman executive in a modern white office environment, minimalist aesthetic, natural window lighting, confident and warm expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASP2V5cPiN8Pw5hBrpZO6lRoUiYMdJpwCj8FGc17Z2baJWzwcNVsPCQve3trd582iTWHaqA4eeJBIwTvmy2MSOWp4iHxj-tfeGA6oKfd6xyDVOyCTkp-AzmZikPgdScvKX0K94aZxELc7rX5CyZ2vl2Oiwo3w2ls3qsDr5k1Mu2Ky9BD88Skrxykz9yQv99QN17QroHJfqS9f_miZYD9hQjwkpHB7NKdCTQBeATDHAkzmUgZ1xFvTvGKhkgwsVgHhxwqiRALZ9Mr0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
+<span class="text-white font-semibold text-sm">Оптимизация операционных потоков</span>
+</div>
+</div>
+<h3 class="text-xl sm:text-2xl font-bold text-on-surface">Elena Rodriguez</h3>
+<p class="text-primary font-medium mb-4">Операции</p>
+<p class="text-on-surface-variant text-sm leading-relaxed">Координирует глобальные процессы Spainza, обеспечивая безупречную логистику каждого кейса.</p>
+</div>
+<!-- Markus Chen -->
+<div class="group">
+<div class="relative mb-6 overflow-hidden rounded-[12px] bg-surface-container-high aspect-[4/5]">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="asian male technology professional in modern smart casual attire, contemporary office glass background, soft neon blue accents, high-tech vibe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCak0q33xpkB-h1H11s-iP_He-8LOWvRUJX-0aLGYzsWWdPerZRzzqC9AeRNBMemBzVXtF5wC2InU6PlYJ2FxHUV8m0hY9veUNacibDgmkRpC9wXtFdMISg5rv3KaQz62yzA-ySBOw9xrJMr0Z7h8Y_a-E2ZfJGE9IX9xl7pkJnXz0CQkuGlTXXr_idrSFH25wdbpnmi2lu9J-m2_yJXrS9geyB6wYkGh2rt1CD5NM819QbUpX03iIjJ3B301uvSykQ8XxT6pVt9hQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
+<span class="text-white font-semibold text-sm">Интеграция систем комплаенса</span>
+</div>
+</div>
+<h3 class="text-xl sm:text-2xl font-bold text-on-surface">Markus Chen</h3>
+<p class="text-primary font-medium mb-4">Комплаенс-тех</p>
+<p class="text-on-surface-variant text-sm leading-relaxed">Разрабатывает запатентованные алгоритмы проверки, минимизируя риски до того, как они возникнут.</p>
+</div>
+</div>
+</section>
+<!-- Trust Dashboard Section -->
+<!--<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 sm:mb-32">
+<div class="bg-surface-container-low rounded-[24px] p-6 sm:p-12 relative overflow-hidden">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-16 items-center">
+<div>
+<h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-on-surface mb-4 sm:mb-6">
+                            Доверие на данных, исполнение с точностью
+                        </h2>
+<div class="space-y-6">
+<div class="flex gap-4 items-start">
+<div class="bg-primary/10 p-3 rounded-lg text-primary">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Прозрачный комплаенс</h4>
+<p class="text-on-surface-variant text-sm">Мониторинг вашего дела в режиме реального времени с помощью защищенных дашбордов.</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<div class="bg-primary/10 p-3 rounded-lg text-primary">
+<span class="material-symbols-outlined">query_stats</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Статистический успех</h4>
+<p class="text-on-surface-variant text-sm">99.4% одобрений по сложным категориям виз для высококвалифицированных кадров.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 sm:gap-4">
+<div class="bg-white p-5 sm:p-8 rounded-[12px] shadow-sm border border-outline-variant/15">
+<span class="text-3xl font-black text-primary mb-2 block">12.5k+</span>
+<span class="text-xs uppercase tracking-wider font-bold text-outline">Успешных кейсов</span>
+</div>
+<div class="bg-white p-5 sm:p-8 rounded-[12px] shadow-sm border border-outline-variant/15">
+<span class="text-3xl font-black text-tertiary-container mb-2 block">45</span>
+<span class="text-xs uppercase tracking-wider font-bold text-outline">Страны охвата</span>
+</div>
+<div class="col-span-2 bg-primary text-on-primary p-5 sm:p-8 rounded-[12px]">
+<span class="text-sm font-semibold opacity-80 block mb-2">Надежность инфраструктуры</span>
+<div class="h-2 w-full bg-on-primary/20 rounded-full overflow-hidden">
+<div class="h-full bg-on-primary w-[98%]"></div>
+</div>
+<span class="text-xs mt-2 block">ISO 27001 Сертифицировано</span>
+</div>
+</div>
+</div>
+</div>
+</section>-->
+<!-- Contact Form Section -->
+</main>
+<div id="site-footer"></div>
+<script src="../../shared/layout.js"></script>
+<script>
+  (function () {
+    var form = document.getElementById('contact-form');
+    var phone = document.getElementById('contact-phone');
+    var email = document.getElementById('contact-email');
+    if (!form || !phone || !email) return;
+
+    function syncContactRequired() {
+      var phoneFilled = phone.value.trim().length > 0;
+      var emailFilled = email.value.trim().length > 0;
+      var contactMissing = !phoneFilled && !emailFilled;
+
+      phone.required = contactMissing;
+      email.required = contactMissing;
+
+      var message = 'Укажите телефон или E-mail.';
+      phone.setCustomValidity(contactMissing ? message : '');
+      email.setCustomValidity(contactMissing ? message : '');
+    }
+
+    phone.addEventListener('input', syncContactRequired);
+    email.addEventListener('input', syncContactRequired);
+    form.addEventListener('submit', syncContactRequired);
+    syncContactRequired();
+  })();
+</script>
+</body></html>
