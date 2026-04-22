@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Spainza - Client Portal Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-container": "#ffddd5",
+                      "on-background": "#191b25",
+                      "tertiary-fixed-dim": "#ffb4a1",
+                      "outline": "#737688",
+                      "tertiary-fixed": "#ffdbd2",
+                      "surface-bright": "#fbf8ff",
+                      "on-error": "#ffffff",
+                      "surface": "#fbf8ff",
+                      "on-error-container": "#93000a",
+                      "on-primary-container": "#dfe3ff",
+                      "secondary-fixed": "#dde1ff",
+                      "surface-tint": "#004ced",
+                      "on-tertiary-fixed": "#3c0800",
+                      "on-primary-fixed": "#001452",
+                      "surface-container-highest": "#e1e1ef",
+                      "on-surface-variant": "#434656",
+                      "background": "#fbf8ff",
+                      "error-container": "#ffdad6",
+                      "on-surface": "#191b25",
+                      "surface-container-high": "#e7e7f5",
+                      "secondary-container": "#95aafe",
+                      "on-secondary-fixed": "#001452",
+                      "on-primary-fixed-variant": "#0038b6",
+                      "surface-container": "#ededfb",
+                      "secondary": "#4459a8",
+                      "on-secondary-container": "#253b89",
+                      "on-secondary-fixed-variant": "#2b418f",
+                      "inverse-primary": "#b7c4ff",
+                      "tertiary-container": "#bf3003",
+                      "outline-variant": "#c3c5d9",
+                      "on-secondary": "#ffffff",
+                      "inverse-surface": "#2e303a",
+                      "on-tertiary-fixed-variant": "#891e00",
+                      "secondary-fixed-dim": "#b7c4ff",
+                      "surface-container-low": "#f3f2ff",
+                      "inverse-on-surface": "#f0effe",
+                      "surface-variant": "#e1e1ef",
+                      "on-tertiary": "#ffffff",
+                      "tertiary": "#952200",
+                      "surface-dim": "#d9d9e7",
+                      "primary-fixed": "#dde1ff",
+                      "primary-container": "#0052ff",
+                      "error": "#ba1a1a",
+                      "primary-fixed-dim": "#b7c4ff",
+                      "on-primary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "primary": "#003ec7"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {},
+              "fontFamily": {
+                      "headline": [
+                              "Manrope"
+                      ],
+                      "body": [
+                              "Inter"
+                      ],
+                      "label": [
+                              "Inter"
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+          .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;  /* Preferred icon size */
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            -moz-osx-font-smoothing: grayscale;
+          }
+          
+          /* Ambient shadow for cards */
+          .ambient-shadow {
+              box-shadow: 0px 20px 40px rgba(117, 118, 130, 0.06);
+          }
+      </style>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen flex">
+<!-- Mobile Top App Bar (Hidden on md+) -->
+<header class="md:hidden flex justify-between items-center px-6 h-16 w-full fixed top-0 z-50 bg-surface/90 backdrop-blur-md shadow-[0_2px_10px_rgba(117,118,130,0.06)]">
+<div class="text-2xl font-black tracking-tighter text-primary-container font-headline">Spainza</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-outline">notifications</span>
+<span class="material-symbols-outlined text-outline">menu</span>
+</div>
+</header>
+<!-- Side Navigation (Visible on md+) -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 pt-10 pb-8 bg-surface-container-lowest border-r border-outline-variant/15 z-40">
+<div class="px-8 mb-12">
+<div class="text-2xl font-black tracking-tighter text-primary-container font-headline mb-1">Spainza</div>
+<div class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant font-label">Elite Intelligence</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6">
+<!-- Active Tab -->
+<a class="flex items-center gap-4 text-primary-container bg-primary-fixed/30 rounded-r-xl border-l-4 border-primary-container px-6 py-3 transition-transform active:scale-[0.98]" href="./dashboard.html">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                Главная
+            </a>
+<!-- Inactive Tabs -->
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./status.html">
+<span class="material-symbols-outlined">folder_shared</span>
+                Заявка
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./documents.html">
+<span class="material-symbols-outlined">description</span>
+                Документы
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./messages.html">
+<span class="material-symbols-outlined">chat_bubble</span>
+                Сообщения
+            </a>
+</nav>
+<div class="px-6 mb-8">
+<button class="w-full py-3 px-4 bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline text-sm font-semibold rounded-[12px] flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                Новая заявка
+            </button>
+</div>
+<nav class="flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6 border-t border-outline-variant/15 pt-6">
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./profile.html">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+                Настройки
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="../ru/contact.html">
+<span class="material-symbols-outlined text-[20px]">help_center</span>
+                Поддержка
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all mt-4" href="../login.html" id="logout-btn">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                Выход
+            </a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 pt-24 md:pt-12 px-6 md:px-12 pb-24 max-w-7xl mx-auto w-full">
+<!-- Header Section -->
+<header class="mb-12 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
+<div>
+<h1 class="text-[3.5rem] leading-none font-headline font-bold text-on-surface tracking-[-0.02em] mb-3">Welcome back, <span id="user-name-title"> </span></h1>
+<div class="flex items-center gap-3 text-on-surface-variant font-label text-sm uppercase tracking-[0.05em]">
+<span class="material-symbols-outlined text-[18px] text-tertiary-container">public</span>
+<span id="user-role-name">Пользователь</span> — <span class="text-tertiary-container font-semibold" id="user-role-level">Не начат</span>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-surface-container-lowest p-2 pr-6 rounded-full ambient-shadow">
+<img alt="Profile avatar" class="w-10 h-10 rounded-full object-cover" data-alt="Close up professional headshot of a man with short hair against a neutral gray background, well lit, natural look" id="user-avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWaxo2zb6eb4vAnCllT9BFKo3-B1kUyyBKnJsKOryG-83Ei1Aki_i-4mfF0Or6AXCsBHR7kzwlnxOPKVFqIuOQYwAueATj5sEaGT1oQe1FUgUdkC804wI3oYGG4WtbxobWEeFXEo-KW0e8Kiop68qXvdwdK0g3dEGiHoTcijhIPOkZaU-rRfja2RGlmSMNUar-mKZCiBJcRG0S3g-0MI5ctoY6HckcVVAGyfmSHpwDGZn9FFXCHZY2x4txr8O1i4_2QpIZuEF5FVQ"/>
+<div class="flex flex-col">
+<span class="text-sm font-semibold font-headline text-on-surface" id="user-name-card">Client</span>
+<span class="text-xs text-outline font-label" id="user-email">Email unavailable</span>
+</div>
+</div>
+<p class="text-xs text-outline font-label uppercase tracking-[0.04em]" id="user-created-at">Member since —</p>
+</header>
+<!-- Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column: Progress & Overview -->
+<div class="lg:col-span-7 flex flex-col gap-8">
+<!-- Case Progress Tracker (Bento style card) -->
+<section class="bg-surface-container-lowest rounded-[12px] p-8 ambient-shadow relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 rounded-bl-full pointer-events-none"></div>
+<h2 class="text-xl font-headline font-bold text-on-surface mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container">timeline</span>
+                        Application Timeline
+                    </h2>
+<div class="flex flex-col gap-6 relative pl-6">
+<!-- Vertical line connecting steps -->
+<div class="absolute left-[31px] top-4 bottom-8 w-[2px] bg-outline-variant/20"></div>
+<!-- Step 1: Completed -->
+<div class="flex gap-6 relative">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center z-10 shrink-0">
+<span class="material-symbols-outlined text-primary-container text-[16px]">check</span>
+</div>
+<div>
+<h3 class="text-base font-semibold font-headline text-on-surface">Initial Consultation &amp; Strategy</h3>
+<p class="text-sm text-on-surface-variant font-body mt-1">Completed on Oct 12, 2023</p>
+</div>
+</div>
+<!-- Step 2: Completed -->
+<div class="flex gap-6 relative">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center z-10 shrink-0">
+<span class="material-symbols-outlined text-primary-container text-[16px]">check</span>
+</div>
+<div>
+<h3 class="text-base font-semibold font-headline text-on-surface">Document Gathering</h3>
+<p class="text-sm text-on-surface-variant font-body mt-1">All required documents verified by legal team.</p>
+</div>
+</div>
+<!-- Step 3: Completed -->
+<div class="flex gap-6 relative">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center z-10 shrink-0">
+<span class="material-symbols-outlined text-primary-container text-[16px]">check</span>
+</div>
+<div>
+<h3 class="text-base font-semibold font-headline text-on-surface">Legal Review &amp; Translation</h3>
+<p class="text-sm text-on-surface-variant font-body mt-1">Sworn translations completed.</p>
+</div>
+</div>
+<!-- Step 4: Active -->
+<div class="flex gap-6 relative">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest border-2 border-tertiary-container flex items-center justify-center z-10 shrink-0">
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary-container animate-pulse"></div>
+</div>
+<div class="bg-surface-container-low p-5 rounded-[12px] flex-1">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-base font-semibold font-headline text-on-surface">Submission to Ministry</h3>
+<span class="bg-tertiary-container text-on-tertiary px-2 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider font-label">Action Required</span>
+</div>
+<p class="text-sm text-on-surface-variant font-body mb-4">Your application is ready for formal submission. Please review the final dossier and sign the authorization form.</p>
+<button class="bg-primary-container text-on-primary px-5 py-2 rounded-[12px] text-sm font-semibold font-headline hover:bg-primary transition-colors flex items-center gap-2">
+                                    Review &amp; Sign Dossier
+                                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Step 5: Pending -->
+<div class="flex gap-6 relative opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center z-10 shrink-0">
+<span class="material-symbols-outlined text-outline text-[16px]">schedule</span>
+</div>
+<div>
+<h3 class="text-base font-semibold font-headline text-on-surface">Government Processing</h3>
+<p class="text-sm text-on-surface-variant font-body mt-1">Estimated duration: 20-40 business days.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Documents & Comms -->
+<div class="lg:col-span-5 flex flex-col gap-8">
+<!-- Document Management -->
+<section class="bg-surface-container-lowest rounded-[12px] p-8 ambient-shadow">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-headline font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">folder_open</span>
+                            Key Documents
+                        </h2>
+<button class="text-primary-container text-sm font-semibold font-headline hover:text-primary transition-colors">View All</button>
+</div>
+<div class="flex flex-col gap-4 mb-6">
+<!-- Doc Item -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-[12px] group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-[8px] bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<p class="font-semibold text-sm font-headline text-on-surface">Passport_Scan_Full.pdf</p>
+<p class="text-xs text-outline font-body mt-0.5">Verified • 4.2 MB</p>
+</div>
+</div>
+<button class="text-outline hover:text-primary-container transition-colors p-2">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+</div>
+<!-- Doc Item -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-[12px] group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-[8px] bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<p class="font-semibold text-sm font-headline text-on-surface">Bank_Statement_Q3.pdf</p>
+<p class="text-xs text-outline font-body mt-0.5">Verified • 1.8 MB</p>
+</div>
+</div>
+<button class="text-outline hover:text-primary-container transition-colors p-2">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</button>
+</div>
+</div>
+<button class="w-full py-3 border border-dashed border-outline-variant rounded-[12px] text-primary-container font-headline text-sm font-semibold hover:bg-surface-container-low transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">upload</span>
+                        Upload New Document
+                    </button>
+</section>
+<!-- Recent Messages Widget -->
+<section class="bg-surface-container-lowest rounded-[12px] p-8 ambient-shadow">
+<h2 class="text-xl font-headline font-bold text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">forum</span>
+                        Concierge Desk
+                    </h2>
+<div class="bg-surface p-5 rounded-[12px] border border-outline-variant/20 mb-4">
+<div class="flex items-center gap-3 mb-3">
+<img alt="Maria K. Concierge" class="w-8 h-8 rounded-full object-cover" data-alt="Professional headshot of a woman in a business suit smiling warmly against a bright office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxMjp7Gqyb5SngggNcc38Q5whXtseLYvKVEaFh4uSlgOs3oNanCzknairCZppNN3W1mTCGGXpQg6ekSo1WVxsFiXx2lNHQxl5uSJa4jqZnI-ZIs6eawcBmDmC8V0iGQB_WBVxASs-Jo0Lx97ydPgweblfsLQWi4HwTkalmxU1Ss7SN08D66tEcn7wXmz0ArxBIU-exzGtv5eyu_dTxCXnXfwkf3gqEGp9F0zxvnSBYcW-s56pXI-ALXrPW28r-5eh1eSayMwiFR_w"/>
+<div>
+<p class="text-sm font-semibold font-headline text-on-surface leading-tight">Maria K.</p>
+<p class="text-xs text-outline font-label">Senior Immigration Counsel • 2h ago</p>
+</div>
+</div>
+<p class="text-sm text-on-surface-variant font-body leading-relaxed">
+                            Hello Alexey, we have finished the translations for your bank statements. Everything looks solid for the income requirement. Please review the dossier when you have a moment so we can submit it tomorrow.
+                        </p>
+</div>
+<div class="flex gap-3">
+<input class="flex-1 bg-surface-container-low border-none rounded-[12px] text-sm font-body px-4 py-3 placeholder:text-outline focus:ring-1 focus:ring-primary-container focus:outline-none transition-shadow" placeholder="Type a quick reply..." type="text"/>
+<button class="w-12 h-12 bg-secondary text-on-secondary rounded-[12px] flex items-center justify-center hover:bg-secondary-container hover:text-on-secondary-container transition-colors shrink-0">
+<span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Nav Bar (Visible only on mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full bg-surface-container-lowest/90 backdrop-blur-md pb-safe border-t border-outline-variant/15 z-50">
+<div class="flex justify-around items-center h-16">
+<a class="flex flex-col items-center gap-1 text-primary-container px-4" href="./dashboard.html">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-label font-semibold">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-outline px-4" href="./documents.html">
+<span class="material-symbols-outlined">description</span>
+<span class="text-[10px] font-label font-semibold">Docs</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-outline px-4" href="./messages.html">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px] font-label font-semibold">Chat</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-outline px-4" href="./profile.html">
+<span class="material-symbols-outlined">tune</span>
+<span class="text-[10px] font-label font-semibold">Settings</span>
+</a>
+</div>
+</nav>
+<script src="../js/lk.js"></script>
+<script src="../../shared/layout.js"></script>
+</body></html>
