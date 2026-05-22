@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: spainza-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-spainza}
+      POSTGRES_USER: ${POSTGRES_USER:-spainza}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+
+  backend:
+    build:
+      context: ./backend
+    image: spainza/backend:local
+    container_name: spainza-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-spainza}:${POSTGRES_PASSWORD:?required}@postgres:5432/${POSTGRES_DB:-spainza}
+      JWT_SECRET: ${JWT_SECRET:?required}
+      SPAINZA_ADMIN_EMAIL: ${SPAINZA_ADMIN_EMAIL:-admin@spainza.com}
+      SPAINZA_ADMIN_PASSWORD: ${SPAINZA_ADMIN_PASSWORD:?required}
+      SPAINZA_ADMIN_NAME: ${SPAINZA_ADMIN_NAME:-Spainza Admin}
+    expose:
+      - "5000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5000/api/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+
+  site:
+    image: nginx:alpine
+    container_name: spainza-site
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./infra/site-nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+
+volumes:
+  postgres-data:
+
+networks:
+  default:
+    name: spainza_default
