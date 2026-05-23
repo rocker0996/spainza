@@ -20,7 +20,7 @@ def jwt_secret() -> str:
 def issue_token(user_id: int) -> str:
     now = datetime.now(tz=timezone.utc)
     payload = {
-        "sub": int(user_id),
+        "sub": str(int(user_id)),
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(days=7)).timestamp()),
     }
