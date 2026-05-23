@@ -1,0 +1,1516 @@
+/**
+ * Локализация личного кабинета (ru / en). Без дублирования HTML-страниц.
+ * Разметка: data-i18n="key", data-i18n-placeholder, data-i18n-title, data-i18n-aria.
+ */
+(function (global) {
+  "use strict";
+
+  var STRINGS = {
+    ru: {
+      "nav.dashboard": "Главная",
+      "nav.clients": "Клиенты",
+      "nav.documents": "Документы",
+      "nav.configurator": "Шаблоны кейсов",
+      "nav.messages": "Сообщения",
+      "adminAudit.title": "Аудит сообщений",
+      "adminAudit.subtitle": "Центр безопасности и контроля коммуникаций",
+      "adminAudit.banner": "Режим аудита · только просмотр · действия не отправляются от имени пользователя",
+      "adminAudit.userColumn": "Пользователь",
+      "adminAudit.userHint": "Чей аккаунт просматриваем",
+      "adminAudit.userSearch": "Поиск по ID или имени...",
+      "adminAudit.chats": "Чаты",
+      "adminAudit.convSearch": "Поиск по собеседнику",
+      "adminAudit.noUser": "Выберите пользователя слева",
+      "adminAudit.noChat": "Выберите диалог из списка чатов",
+      "adminAudit.noUsers": "Пользователи не найдены",
+      "adminAudit.noConversations": "Нет чатов",
+      "adminAudit.composeDisabled": "Отправка сообщений отключена в режиме аудита",
+      "adminAudit.hiddenChat": "Скрыт у пользователя",
+      "adminAudit.accessDenied": "404 Страница не найдена",
+      "adminAudit.notFoundText": "Кажется, вы заблудились. Вот кнопка, которая вернёт вас на главную страницу.",
+      "adminAudit.notFoundButton": "На главную",
+      "adminAudit.backUsers": "К пользователям",
+      "adminAudit.backChats": "К чатам",
+      "nav.profile": "Профиль",
+      "nav.support": "Поддержка",
+      "nav.logout": "Выход",
+      "common.interfaceLanguage": "Язык интерфейса",
+      "common.langRu": "Русский",
+      "common.langEn": "English",
+      "common.openMenu": "Открыть меню",
+      "common.closeMenu": "Закрыть меню",
+      "common.back": "Назад",
+      "common.history": "История",
+      "common.cancel": "Отмена",
+      "common.save": "Сохранить",
+      "common.apply": "Применить",
+      "common.reset": "Сбросить",
+      "common.filters": "Фильтры",
+      "common.viewAll": "Смотреть все",
+      "common.id": "ID",
+      "common.copied": "скопировано",
+      "common.copyId": "Скопировать ID {id}",
+      "common.memberSince": "Зарегистрирован:",
+      "common.memberSinceEmpty": "Зарегистрирован: —",
+      "common.avatar": "Аватар",
+      "common.defaultAvatar": "Стандартный аватар пользователя",
+      "common.avatarOf": "Аватар {name}",
+      "common.loading": "Загрузка…",
+      "common.noMessages": "Нет сообщений",
+      "common.justNow": "только что",
+      "common.minAgo": "{n} мин назад",
+      "common.hoursAgo": "{n} ч назад",
+      "common.daysAgo": "{n} д назад",
+      "dashboard.title": "Spainza — личный кабинет",
+      "dashboard.caseStatus": "Статус кейса",
+      "dashboard.documentPack": "Готовый пакет документов",
+      "dashboard.managerChat": "Чат с менеджером",
+      "dashboard.quickReplyPlaceholder": "Быстрый ответ…",
+      "dashboard.sendMessage": "Отправить сообщение",
+      "dashboard.timelineEmpty": "График заявки пока не заполнен.",
+      "dashboard.stepUntitled": "Без названия",
+      "dashboard.currentStage": "Текущий этап",
+      "dashboard.noDescription": "Без описания",
+      "dashboard.countryNotSet": "Не указана",
+      "dashboard.archiveNotUploaded": "Архив готового кейса пока не загружен.",
+      "dashboard.archiveLabel": "Архив готового кейса",
+      "dashboard.downloadArchive": "Скачать архив",
+      "dashboard.noInboundFrom": "Пока нет входящих сообщений от {who}. Раздел «Сообщения» — чтобы написать или посмотреть историю.",
+      "dashboard.whoManager": "менеджера",
+      "dashboard.whoSupport": "поддержки",
+      "dashboard.noInboundMeta": "{role} • нет входящих",
+      "dashboard.managerDefaultTitle": "Персональный менеджер",
+      "dashboard.supportName": "Поддержка",
+      "dashboard.noConversationMeta": "{title} • нет переписки",
+      "dashboard.chatAfterFirstMessage": "Чат с менеджером появится после первого сообщения в разделе «Сообщения».",
+      "dashboard.supportEmptyHint": "Как только придёт сообщение от поддержки, оно отобразится здесь. Написать можно в разделе «Сообщения».",
+      "dashboard.complaintPreview": "Жалоба на менеджера",
+      "dashboard.quickReplyManager": "Написать персональному менеджеру…",
+      "dashboard.quickReplySupport": "Написать в поддержку…",
+      "dashboard.sendToManager": "Отправить менеджеру",
+      "dashboard.sendToSupport": "Отправить в поддержку",
+      "dashboard.chatCreateFailed": "Не удалось создать чат",
+      "dashboard.profileNotLoaded": "Профиль не загружен. Обновите страницу.",
+      "dashboard.sendFailed": "Не удалось отправить сообщение. Попробуйте снова.",
+      "documents.title": "Список документов",
+      "documents.subtitle": "Обзор документов, ожидающих вашего действия",
+      "documents.summary": "Показано {shown} из {total} документов",
+      "documents.summaryRange": "Показано {from}–{to} из {total} документов",
+      "documents.empty": "Документы пока не загружены.",
+      "documents.filtersTitle": "Фильтры документов",
+      "documents.statusLabel": "Статус",
+      "documents.statusAll": "Все статусы",
+      "documents.statusRequest": "Запросы",
+      "documents.statusPending": "На проверке",
+      "documents.statusApproved": "Одобренные",
+      "documents.statusRejected": "Отклонённые",
+      "documents.priorityLabel": "Приоритет",
+      "documents.priorityAll": "Все приоритеты",
+      "documents.priorityUrgent": "Срочные",
+      "documents.priorityNormal": "Стандартные",
+      "documents.historyTitle": "История действий с документами",
+      "documents.historyLoading": "Загрузка истории…",
+      "documents.rejectTitle": "Отклонить документ",
+      "documents.rejectReason": "Причина отклонения",
+      "documents.rejectConfirm": "Отклонить",
+      "documents.rejectPlaceholder": "Укажите причину отклонения документа…",
+      "documents.card.badgeRequest": "Запрос",
+      "documents.card.badgeApproved": "Принято",
+      "documents.card.badgeReplace": "Заменить",
+      "documents.card.badgeReview": "Проверить",
+      "documents.card.labelManagerRequest": "Запрос от менеджера",
+      "documents.card.labelApproved": "Одобрено",
+      "documents.card.labelRejected": "Отклонено",
+      "documents.card.labelUploaded": "Загружено",
+      "documents.card.priorityUrgent": "Срочно",
+      "documents.card.priorityStandard": "Стандарт",
+      "documents.card.uploadDocument": "Загрузить документ",
+      "documents.card.download": "Скачать",
+      "documents.card.replace": "Заменить",
+      "documents.card.delete": "Удалить",
+      "documents.card.approve": "Одобрить",
+      "documents.card.reject": "Отклонить",
+      "documents.card.revoke": "Отозвать",
+      "documents.card.noAccess": "Нет доступа",
+      "documents.card.rejectionReason": "Причина отклонения:",
+      "documents.card.fileType": "Тип файла",
+      "documents.card.dateUnknown": "Дата не указана",
+      "documents.card.ownDocument": "свой документ",
+      "documents.requestDocument": "Запросить документ",
+      "documents.deleteModalTitle": "Удалить документ?",
+      "documents.deleteModalLead": "Это действие нельзя отменить.",
+      "documents.titleModal": "Название документа",
+      "documents.titleModalLabel": "Укажите название документа",
+      "documents.titleModalPlaceholder": "Например: Паспорт",
+      "documents.titleRequired": "Название документа обязательно",
+      "documents.historyClientOnly": "История доступна только при просмотре документов конкретного клиента",
+      "documents.historyLoadFailed": "Не удалось загрузить историю",
+      "documents.historyEmpty": "История изменений пуста",
+      "documents.historyError": "Ошибка загрузки истории",
+      "documents.history.byUser": "Пользователь: {name}",
+      "documents.history.uploaded": "Документ загружен",
+      "documents.history.approved": "Документ одобрен",
+      "documents.history.rejected": "Документ отклонён",
+      "documents.history.revoked": "Одобрение отозвано",
+      "documents.history.deleted": "Документ удалён",
+      "documents.history.replaced": "Файл документа заменён",
+      "documents.history.detailUploaded": "Документ «{title}» загружен",
+      "documents.history.detailApproved": "Документ «{title}» одобрен",
+      "documents.history.detailRejected": "Документ «{title}» отклонён. Причина: {reason}",
+      "documents.history.detailRevoked": "Одобрение документа «{title}» отозвано",
+      "documents.history.detailDeleted": "Документ «{title}» удалён",
+      "documents.history.detailReplaced": "Файл документа «{title}» заменён и отправлен на повторную проверку",
+      "documents.history.recently": "Недавно",
+      "documents.pageTitleClient": "Документы клиента: {name}",
+      "documents.accessDenied": "Доступ ограничен",
+      "documents.accessStaffHint": "Список личных документов для персонала недоступен. Откройте клиента в разделе «Клиенты» и перейдите к его документам.",
+      "documents.accessRoleHint": "Доступ к разделу документов ограничен для вашей роли.",
+      "documents.noClientAccess": "Нет доступа к документам этого клиента",
+      "documents.clientNotFound": "Клиент не найден",
+      "documents.uploading": "Загрузка…",
+      "documents.uploadSentReview": "Документ отправлен и поставлен на проверку",
+      "documents.uploadSuccess": "Документ успешно загружен",
+      "documents.uploadError": "Ошибка при загрузке файла: {error}",
+      "documents.toast.approved": "Документ одобрен",
+      "documents.toast.rejectFailed": "Не удалось отклонить документ",
+      "documents.toast.openFailed": "Не удалось открыть документ",
+      "documents.toast.approveFailed": "Не удалось одобрить документ",
+      "documents.toast.deleted": "Документ удалён",
+      "documents.toast.deleteFailed": "Не удалось удалить документ",
+      "documents.toast.revokeFailed": "Не удалось отозвать одобрение",
+      "documents.toast.replaceFailed": "Не удалось заменить файл",
+      "documents.toast.clientUnknown": "Не удалось определить клиента",
+      "documents.toast.rejectReasonRequired": "Укажите причину отклонения",
+      "documents.toast.rejected": "Документ отклонён",
+      "documents.toast.revoked": "Одобрение отозвано",
+      "documents.toast.replaced": "Файл заменён",
+      "documents.toast.replaceFileError": "Ошибка при замене файла: {error}",
+      "common.noDescription": "Без описания",
+      "common.manager": "Менеджер",
+      "common.user": "Пользователь",
+      "common.confirm": "Подтвердить",
+      "common.level": "Уровень {n}",
+      "common.verified": "Подтверждён",
+      "case.pageTitle": "Управление кейсом — {name} | Spainza",
+      "case.headerTitle": "Управление кейсом — {name}",
+      "case.autoSaveHint": "*Все изменения сохраняются автоматически.",
+      "case.backToClients": "Назад к списку клиентов",
+      "case.programConfig": "Конфигурация программы",
+      "case.timelineTitle": "График заявки",
+      "case.timelineLead": "Установите порядок действий по кейсу клиента. Он сможет увидеть этот порядок на главной странице. Это поможет держать клиента в курсе этапа кейса и сроков.",
+      "case.addStep": "Добавить шаг",
+      "case.worksOnCase": "Работает над кейсом:",
+      "case.managersLead": "Назначьте клиенту персонального менеджера (виден клиенту) и дополнительного (клиент его не видит). Укажите публичный номер сотрудника: две латинские буквы и четыре цифры — тот же, что в его профиле после регистрации.",
+      "case.personalManager": "Персональный менеджер",
+      "case.additionalManager": "Дополнительный менеджер",
+      "case.docRequests": "Запросы документов",
+      "case.docRequestsLead": "Выберите документы для отправки запроса клиенту. Эти документы будут отображаться на странице «Клиенты» в пункте «Посмотреть документы».",
+      "case.sendRequests": "Отправить запросы",
+      "case.sendRequestsCount": "Отправить {n} {word}",
+      "case.viewModeOnly": "Сейчас включён режим просмотра. Включите «Режим редактирования», чтобы вносить изменения.",
+      "case.noVisaPaths": "Нет доступных визовых путей",
+      "case.currentClientRole": "{type} (текущая роль клиента)",
+      "case.managerPublicId": "Номер: {id}",
+      "case.managerIdPlaceholder": "Например AB0123",
+      "case.history.referralAssigned": "Назначен реферал",
+      "case.history.referralRemoved": "Реферал удалён",
+      "case.history.managerAssigned": "Назначен менеджер",
+      "case.history.managerRemoved": "Менеджер удалён",
+      "case.history.consulateDateChanged": "Изменена дата записи в консульство",
+      "case.history.countryChanged": "Изменена страна кейса",
+      "case.history.archiveUpdated": "Обновлён архив готового кейса",
+      "case.history.archiveDeleted": "Архив удалён",
+      "case.history.timelineChanged": "График заявки изменён",
+      "case.history.docRequestsChanged": "Запросы документов изменены",
+      "case.history.roleChanged": "Изменена роль пользователя",
+      "case.history.visaPathChanged": "Изменён визовый путь",
+      "case.history.caseCreated": "Кейс создан",
+      "case.history.countrySet": "Указана страна кейса",
+      "case.history.archiveUploaded": "Загружен архив готового кейса",
+      "case.countryPlaceholder": "Например: Испания",
+      "case.currentArchive": "Текущий архив:",
+      "case.stepOrder": "Порядок",
+      "case.stepN": "шаг",
+      "case.stepStatus": "Статус шага",
+      "case.stepCompleted": "Завершено",
+      "case.stepActive": "Активно",
+      "case.stepPending": "Ожидание",
+      "case.stepTitleLabel": "Название шага",
+      "case.stepTitlePlaceholder": "Краткое название этапа",
+      "case.stepDescLabel": "Описание и детали",
+      "case.stepDescPlaceholder": "Сроки, подсказки клиенту, внутренние пометки…",
+      "case.dragReorder": "Потяните, чтобы поменять порядок шагов",
+      "case.deleteStep": "Удалить шаг",
+      "case.deleteStepTitle": "Удалить этот шаг?",
+      "case.deleteStepMessage": "Шаг будет удалён из таймлайна заявки.",
+      "case.newStep": "Новый шаг",
+      "case.durationPrefix": "Срок: {duration}",
+      "case.stepUntitled": "Шаг {n}",
+      "case.docDefaultName": "Документ",
+      "case.priorityUrgentBadge": "Срочно",
+      "case.priorityOptionalBadge": "Не обязательно",
+      "case.sentBadge": "Отправлено",
+      "case.recallRequest": "Отозвать",
+      "case.cannotDeleteSent": "Нельзя удалить отправленный документ. Сначала отзовите запрос.",
+      "case.deleteRequestTitle": "Удалить запрос?",
+      "case.deleteRequestMessage": "Удалить запрос «{name}»?",
+      "case.recallRequestTitle": "Отозвать запрос?",
+      "case.recallRequestMessage": "Отозвать запрос «{name}»? После отзыва его можно будет удалить.",
+      "case.selectDocToSend": "Выберите хотя бы один неотправленный документ для запроса",
+      "case.sentToClient": "Клиенту отправлено: {n} {word}",
+      "case.requestWord1": "запрос",
+      "case.requestWord2": "запроса",
+      "case.requestWord5": "запросов",
+      "case.docWord1": "документ",
+      "case.docWord2": "документа",
+      "case.docWord5": "документов",
+      "case.historyEmpty": "История изменений пуста",
+      "case.historyLoading": "Загрузка истории…",
+      "case.historyError": "Ошибка загрузки истории",
+      "case.history.byUser": "Пользователь: {name}",
+      "case.toast.noUserId": "ID пользователя не указан",
+      "case.toast.noCaseAccess": "У вас нет доступа к этому пользователю",
+      "case.toast.loadUserFailed": "Ошибка загрузки данных пользователя",
+      "case.toast.openCaseFailed": "Не удалось открыть кейс",
+      "case.toast.saveFailed": "Ошибка сохранения данных кейса: {error}",
+      "case.toast.archiveFailed": "Ошибка загрузки архива: {error}",
+      "profile.saveProfile": "Сохранить профиль",
+      "profile.updatePassword": "Обновить пароль",
+      "profile.subscriptionActive": "Активна",
+      "profile.subscriptionLead": "Эта функция пока в разработке, пользуйтесь всеми функциями Spainza+ бесплатно.",
+      "profile.manageSubscription": "Управление подпиской",
+      "profile.securityLogBtn": "Журнал безопасности",
+      "profile.recommendations": "Рекомендации",
+      "profile.tipStrongPassword": "Используйте сложный пароль и не сообщайте его никому.",
+      "profile.tipUniquePassword": "Не используйте тот же пароль в разных сервисах.",
+      "profile.tipCheckLog": "После смены пароля проверьте журнал на подозрительные входы.",
+      "profile.managerSection": "Ваш менеджер",
+      "profile.managerLead": "Ваш персональный менеджер будет на связи по вашему кейсу.",
+      "profile.quickMessage": "Быстрое сообщение",
+      "profile.reportManager": "Пожаловаться",
+      "profile.deleteAccount": "Запросить удаление аккаунта",
+      "profile.deleteAccountLead": "Это действие приведёт к удалению всех ваших данных, но документы останутся на сервере. Для удаления документов обратитесь в поддержку.",
+      "profile.avatarFormat": "PNG или JPG, до нескольких мегабайт.",
+      "profile.replacePhoto": "Заменить фото профиля",
+      "profile.defaultAvatar": "Аватар по умолчанию",
+      "profile.managerNotAssigned": "Персональный менеджер пока не назначен — он появится здесь после закрепления в карточке вашего кейса. Для этого отправьте ему ваш ID ",
+      "profile.personalManagerRole": "Персональный менеджер",
+      "profile.complaintTooShort": "Опишите ситуацию не короче 10 символов.",
+      "profile.complaintSending": "Отправка…",
+      "profile.complaintPlaceholder": "Опишите ситуацию…",
+      "profile.saving": "Сохраняем…",
+      "profile.saved": "Профиль сохранён",
+      "profile.emailTaken": "Email уже используется другим пользователем",
+      "profile.saveFailed": "Не удалось сохранить профиль",
+      "profile.passwordEnterBoth": "Введите текущий и новый пароль",
+      "profile.passwordMismatch": "Новый пароль и повтор не совпадают",
+      "profile.passwordUpdating": "Обновляем…",
+      "profile.passwordUpdated": "Пароль успешно обновлён",
+      "profile.passwordWrongCurrent": "Текущий пароль указан неверно",
+      "profile.passwordWeak": "Новый пароль слишком слабый (минимум 8 символов, верхний и нижний регистр)",
+      "profile.passwordUpdateFailed": "Не удалось обновить пароль",
+      "profile.passwordCurrentPlaceholder": "Введите текущий пароль",
+      "profile.passwordNewPlaceholder": "Минимум 8 символов, буквы и цифры",
+      "profile.passwordConfirmPlaceholder": "Введите новый пароль ещё раз",
+      "profile.securityLogEmpty": "Событий безопасности пока нет.",
+      "profile.securityLogLoading": "Загрузка событий…",
+      "profile.securityLogFailed": "Не удалось загрузить журнал безопасности.",
+      "profile.securityNoDetails": "Без дополнительных деталей.",
+      "profile.securityIpUnknown": "IP не определён",
+      "profile.securityIp": "IP: {ip}",
+      "profile.securityEventDefault": "Событие безопасности",
+      "profile.dateUnknown": "Дата неизвестна",
+      "profile.avatarImageOnly": "Можно выбрать только изображение.",
+      "profile.avatarMaxSize": "Максимальный размер аватара — 3 MB.",
+      "profile.avatarSelected": "Новый аватар выбран, нажмите «Сохранить профиль».",
+      "profile.avatarReadError": "Не удалось обработать выбранное изображение.",
+      "profile.avatarFileError": "Ошибка чтения файла.",
+      "profile.subscriptionSoon": "Управление подпиской будет доступно в следующем обновлении.",
+      "profile.deleteConfirm": "Удалить аккаунт без возможности восстановления?",
+      "profile.deleteFailed": "Не удалось удалить аккаунт. Попробуйте позже.",
+      "profile.supportUnavailable": "Служба поддержки временно недоступна (аккаунт поддержки не найден).",
+      "profile.complaintFailed": "Не удалось отправить жалобу. Попробуйте позже или откройте чат с поддержкой вручную.",
+      "profile.supportChatFailed": "Не удалось открыть чат с поддержкой",
+      "profile.security.events.profileUpdated": "Профиль обновлён",
+      "profile.security.events.profileUpdatedDetails": "Изменены основные данные профиля или уведомления.",
+      "profile.security.events.passwordChangeFailed": "Неудачная попытка смены пароля",
+      "profile.security.events.passwordChangeFailedDetails": "Указан неверный текущий пароль.",
+      "profile.security.events.passwordUpdated": "Пароль обновлён",
+      "profile.security.events.passwordUpdatedDetails": "Пароль успешно изменён в личном кабинете.",
+      "profile.security.events.accountDeleted": "Аккаунт удалён",
+      "profile.security.events.accountDeletedDetails": "Пользователь удалил аккаунт через настройки.",
+      "profile.security.events.emailVerified": "Email подтверждён",
+      "profile.security.events.emailVerifiedDetails": "Аккаунт активирован через ссылку подтверждения.",
+      "profile.security.events.passwordReset": "Пароль восстановлен",
+      "profile.security.events.passwordResetDetails": "Пароль изменён через ссылку восстановления. Старые сессии отозваны.",
+      "profile.security.events.logout": "Выход из аккаунта",
+      "profile.security.events.logoutDetails": "Текущие токены авторизации отозваны на сервере.",
+      "clients.title": "Список пользователей",
+      "clients.subtitle": "Просмотр пользователей доступных для вашей роли:",
+      "clients.sortLabel": "Сортировка",
+      "clients.sortPending": "Ожидают действия",
+      "clients.sortRole": "Статус",
+      "clients.sortConsulate": "Консульство",
+      "clients.sortRegistration": "Регистрация",
+      "clients.sortActions": "Действия",
+      "clients.addUser": "Добавить пользователя",
+      "clients.addClientTitle": "Добавить клиента",
+      "clients.addClientLead": "Закрепите клиента за собой по ID или отправьте ссылку-приглашение на регистрацию.",
+      "clients.addById": "Добавить по ID",
+      "clients.addByIdHint": "Вставьте код клиента: две латинские буквы и четыре цифры (как на дашборде и в профиле). По желанию для старых записей поддерживается числовой ID.",
+      "clients.idPlaceholder": "Например, AB0123",
+      "clients.assignBtn": "Закрепить",
+      "clients.inviteLink": "Ссылка-приглашение",
+      "clients.inviteHint": "Если клиент зарегистрируется по этой ссылке, он автоматически закрепится за вами.",
+      "clients.copy": "Копировать",
+      "clients.inviteLoading": "Загрузка ссылки…",
+      "clients.inviteReady": "Отправьте ссылку клиенту. После регистрации он появится в вашем списке.",
+      "clients.inviteFailed": "Не удалось загрузить ссылку. Обновите страницу.",
+      "clients.sending": "Отправка…",
+      "clients.assignOk": "Клиент успешно закреплён за вами.",
+      "clients.assignFailed": "Не удалось закрепить клиента.",
+      "clients.networkError": "Ошибка сети. Попробуйте снова.",
+      "clients.invalidId": "Введите корректный ID: два латинских символа и четыре цифры (например, AB0421) или числовой ID для старых аккаунтов.",
+      "clients.copied": "Скопировано в буфер обмена",
+      "clients.notFound": "Пользователи не найдены",
+      "clients.noAccess": "У вас нет доступа к этой странице",
+      "clients.loadError": "Ошибка загрузки пользователей",
+      "clients.connectionError": "Ошибка подключения к серверу",
+      "clients.noName": "Без имени",
+      "clients.notSpecified": "Не указана",
+      "clients.dateUnknown": "Н/Д",
+      "clients.openCase": "Открыть кейс",
+      "clients.manageCase": "Управление кейсом",
+      "clients.viewDocuments": "Посмотреть документы",
+      "clients.caseBtn": "Кейс",
+      "clients.docsBtn": "Документы",
+      "clients.consulateCol": "Дата записи в консульство",
+      "clients.registrationCol": "Дата регистрации",
+      "roles.management": "Управление",
+      "roles.admin": "Админ",
+      "roles.moderator": "Модератор",
+      "roles.manager": "Менеджер",
+      "roles.client": "Клиент",
+      "roles.digital_nomad": "Digital Nomad",
+      "roles.golden_visa": "Golden Visa",
+      "roles.user": "Пользователь",
+      "roles.citizen": "Гражданство",
+      "visa.digital_nomad": "Цифровой кочевник",
+      "visa.golden_visa": "Золотая виза",
+      "visa.citizen": "Гражданство",
+      "visa.other": "Другое",
+      "months.jan": "Янв",
+      "months.feb": "Фев",
+      "months.mar": "Мар",
+      "months.apr": "Апр",
+      "months.may": "Май",
+      "months.jun": "Июн",
+      "months.jul": "Июл",
+      "months.aug": "Авг",
+      "months.sep": "Сен",
+      "months.oct": "Окт",
+      "months.nov": "Ноя",
+      "months.dec": "Дек",
+      "chat.support": "Поддержка",
+      "chat.documents": "Документы",
+      "chat.messagePlaceholder": "Напишите сообщение…",
+      "chat.searchChats": "Поиск чатов…",
+      "chat.searchInMessages": "Поиск в сообщениях…",
+      "chat.newChat": "Новый чат",
+      "chat.newChatLead": "Укажите публичный номер собеседника из личного кабинета: две латинские буквы и четыре цифры.",
+      "chat.publicId": "Публичный номер",
+      "chat.publicIdPlaceholder": "Например AB0123",
+      "chat.createChat": "Создать чат",
+      "chat.creating": "Создание…",
+      "chat.confirm": "Подтвердить",
+      "chat.gotIt": "Понятно",
+      "chat.selectOrCreate": "Выберите чат или создайте новый",
+      "chat.selectChat": "Выберите чат",
+      "chat.chatsNotFound": "Чаты не найдены.",
+      "chat.loadChatsError": "Ошибка загрузки чатов: {error}",
+      "chat.loadMessagesError": "Ошибка загрузки сообщений",
+      "chat.complaintPreview": "Жалоба на менеджера",
+      "chat.complaintCard": "Жалоба на закреплённого менеджера",
+      "chat.photo": "Фото",
+      "chat.file": "Файл",
+      "chat.clickToDownload": "Нажмите для скачивания",
+      "chat.today": "Сегодня",
+      "chat.yesterday": "Вчера",
+      "chat.openChatFailed": "Не удалось открыть чат с выбранным пользователем.",
+      "chat.sendError": "Ошибка отправки сообщения",
+      "chat.imageUploadError": "Ошибка загрузки изображения",
+      "chat.fileUploadError": "Ошибка загрузки файла: {error}",
+      "chat.invalidPublicId": "Введите публичный номер собеседника: 2 латинские буквы и 4 цифры (как в профиле или на дашборде).",
+      "chat.errorGeneric": "Ошибка: {error}",
+      "chat.clearHistoryTitle": "Очистить историю?",
+      "chat.clearHistoryMessage": "Вы уверены, что хотите очистить историю сообщений с {name}? История исчезнет только у вас, собеседник получит уведомление об очистке.",
+      "chat.clearHistoryConfirm": "Очистить",
+      "chat.clearHistoryError": "Ошибка очистки истории: {error}",
+      "chat.cannotDeleteTitle": "Нельзя удалить",
+      "chat.cannotDeleteSupport": "Чат с поддержкой нельзя удалить.",
+      "chat.deleteChatTitle": "Удалить чат?",
+      "chat.deleteChatMessage": "Вы уверены, что хотите удалить чат с {name}? Чат исчезнет только у вас, собеседник получит уведомление об удалении.",
+      "chat.deleteChatConfirm": "Удалить",
+      "chat.deleteChatError": "Ошибка удаления чата: {error}",
+      "chat.errorTitle": "Ошибка",
+      "chat.systemCleared": "{name} очистил(а) историю сообщений",
+      "chat.systemDeleted": "{name} удалил(а) этот чат",
+      "chat.searchPrev": "Предыдущее",
+      "chat.searchNext": "Следующее",
+      "chat.closeSearch": "Закрыть поиск",
+      "configurator.helpTitle": "Справка по странице",
+      "configurator.saveTemplate": "Сохранить шаблон",
+      "configurator.docChecklist": "Чек-лист документов",
+      "configurator.addDocItem": "Добавить позицию",
+      "configurator.timeline": "Таймлайн заявки",
+      "configurator.addStep": "Добавить этап",
+      "configurator.templateFor": "Шаблон: {label}",
+      "configurator.templateSub": "Задайте таймлайн и документы для визового пути",
+      "configurator.savedAt": "Сохранено: {date}",
+      "configurator.statusSaved": "Сохранён",
+      "configurator.statusDraft": "Черновик",
+      "configurator.noVisaPaths": "У вас нет доступных визовых путей для шаблонов (или не удалось загрузить список). Обратитесь к администратору.",
+      "configurator.unsavedConfirm": "Есть несохранённые изменения. Продолжить без сохранения?",
+      "configurator.stepN": "Шаг {n}",
+      "configurator.moveUp": "Выше",
+      "configurator.moveDown": "Ниже",
+      "configurator.remove": "Удалить",
+      "configurator.fieldTitle": "Название",
+      "configurator.fieldDescription": "Описание",
+      "configurator.needOneStep": "Нужен хотя бы один этап",
+      "configurator.newStep": "Новый этап",
+      "configurator.docNamePlaceholder": "Название документа",
+      "configurator.required": "Обязательный",
+      "configurator.priorityNormal": "Обычный",
+      "configurator.priorityUrgent": "Срочно",
+      "configurator.priorityOptional": "Необязательно",
+      "configurator.needTimeline": "Добавьте хотя бы один этап таймлайна",
+      "configurator.saveFailed": "Не удалось сохранить",
+      "configurator.saveOk": "Шаблон сохранён",
+      "configurator.profileLoadFailed": "Не удалось загрузить профиль",
+      "configurator.noPermission": "Недостаточно прав для настройки шаблонов",
+      "configurator.guide.templates": "Шаблоны кейсов",
+      "configurator.guide.templatesText": "все изменения вы вносите исключительно для удобства своей работы, этапы и документы можно менять после отправки клиенту, они не влияют на шаблоны других менеджеров.",
+      "configurator.guide.checklist": "Чек-лист и таймлайн",
+      "configurator.guide.checklistText": "пока на странице кейса блок не меняли вручную, при открытии подставляется актуальный шаблон; обязательные пункты чек-листа уходят в запросы клиенту. После ручных правок соответствующая часть не перезаписывается шаблоном.",
+      "configurator.guide.owner": "Чей шаблон",
+      "configurator.guide.ownerText": "если в кейсе указан персональный менеджер, используется его шаблон для выбранного визового пути;",
+      "configurator.guide.discard": "Сбросить",
+      "configurator.guide.discardText": "отменить несохранённые правки и перечитать с сервера.",
+      "configurator.guide.save": "Сохранить",
+      "configurator.guide.saveText": "записать шаблон в систему;",
+      "messages.backToList": "К списку чатов",
+      "messages.searchTitle": "Поиск сообщений",
+      "messages.clearHistory": "Очистить историю",
+      "messages.deleteChat": "Удалить чат",
+      "profile.personalData": "Личные данные",
+      "profile.pageTitle": "Профиль пользователя",
+      "profile.replaceAvatar": "Заменить",
+      "profile.name": "Имя",
+      "profile.avatarHint": "Нажмите на фото, чтобы заменить.",
+      "profile.accountType": "Тип аккаунта",
+      "profile.phone": "Телефон",
+      "profile.security": "Безопасность",
+      "profile.changePassword": "Изменение пароля",
+      "profile.currentPassword": "Текущий пароль",
+      "profile.newPassword": "Новый пароль",
+      "profile.confirmPassword": "Повторите новый пароль",
+      "profile.yourManager": "Ваш менеджер",
+      "profile.complaintTitle": "Жалоба на менеджера",
+      "profile.complaintLead":
+        "Сообщение уйдёт в чат с поддержкой. Укажите суть жалобы — к письму автоматически прикрепятся данные закреплённого менеджера и ваш профиль.",
+      "profile.sendToSupport": "Отправить в поддержку",
+      "profile.securityLog": "Журнал безопасности",
+      "configurator.title": "Шаблоны кейсов",
+      "configurator.lead": "Без сохранённого шаблона график и запросы не заполняются сами.",
+      "configurator.pickVisa": "Выберите визовый путь",
+      "configurator.discard": "Сбросить",
+      "configurator.guideTitle": "Краткий гайд",
+      "case.editMode": "Режим редактирования",
+      "case.visaPath": "Визовый путь",
+      "case.visa.digitalNomad": "Цифровой кочевник",
+      "case.visa.golden": "Золотая виза",
+      "case.visa.citizen": "Гражданство",
+      "case.visa.other": "Другое",
+      "case.consulateDate": "Дата записи в консульство",
+      "case.datePlaceholder": "дд.мм.гггг",
+      "case.country": "Страна кейса",
+      "case.archive": "Архив готового кейса",
+      "case.archiveEmpty": "Архив не загружен",
+      "case.archiveChooseFile": "Выберите файл",
+      "case.archiveNoFile": "Файл не выбран",
+      "case.sendRequests": "Отправить запросы",
+      "case.historyTitle": "История изменений кейса (UTC+0)",
+      "case.addDocRequest": "Добавить запрос документа",
+      "case.addDocConfirm": "Добавить",
+      "case.docTitle": "Название документа",
+      "case.docTitleError": "Введите название документа",
+      "case.docTitlePlaceholder": "Например: Медицинская справка",
+      "case.docDescPlaceholder": "Дополнительные требования к документу",
+      "case.description": "Описание",
+      "case.priority": "Приоритет",
+      "case.priorityUrgent": "Срочно",
+      "case.priorityNormal": "Обычный",
+      "case.priorityOptional": "Не обязательно",
+    },
+    en: {
+      "nav.dashboard": "Home",
+      "nav.clients": "Clients",
+      "nav.documents": "Documents",
+      "nav.configurator": "Case templates",
+      "nav.messages": "Messages",
+      "adminAudit.title": "Message audit",
+      "adminAudit.subtitle": "Security and communications oversight",
+      "adminAudit.banner": "Audit mode · read-only · actions are not sent on behalf of the user",
+      "adminAudit.userColumn": "User",
+      "adminAudit.userHint": "Whose account we are viewing",
+      "adminAudit.userSearch": "Search by ID or name...",
+      "adminAudit.chats": "Chats",
+      "adminAudit.convSearch": "Search counterparty",
+      "adminAudit.noUser": "Select a user on the left",
+      "adminAudit.noChat": "Select a conversation from the chat list",
+      "adminAudit.noUsers": "No users found",
+      "adminAudit.noConversations": "No conversations",
+      "adminAudit.composeDisabled": "Sending messages is disabled in audit mode",
+      "adminAudit.hiddenChat": "Hidden for user",
+      "adminAudit.accessDenied": "404 Page not found",
+      "adminAudit.notFoundText": "Looks like you're lost. Here's a button to take you back to the home page.",
+      "adminAudit.notFoundButton": "Home",
+      "adminAudit.backUsers": "Back to users",
+      "adminAudit.backChats": "Back to chats",
+      "nav.profile": "Profile",
+      "nav.support": "Support",
+      "nav.logout": "Sign out",
+      "common.interfaceLanguage": "Interface language",
+      "common.langRu": "Russian",
+      "common.langEn": "English",
+      "common.openMenu": "Open menu",
+      "common.closeMenu": "Close menu",
+      "common.back": "Back",
+      "common.history": "History",
+      "common.cancel": "Cancel",
+      "common.save": "Save",
+      "common.apply": "Apply",
+      "common.reset": "Reset",
+      "common.filters": "Filters",
+      "common.viewAll": "View all",
+      "common.id": "ID",
+      "common.copied": "copied",
+      "common.copyId": "Copy ID {id}",
+      "common.memberSince": "Member since",
+      "common.memberSinceEmpty": "Member since —",
+      "common.avatar": "Avatar",
+      "common.defaultAvatar": "Default user avatar",
+      "common.avatarOf": "{name} avatar",
+      "common.loading": "Loading…",
+      "common.noMessages": "No messages",
+      "common.justNow": "just now",
+      "common.minAgo": "{n} min ago",
+      "common.hoursAgo": "{n} h ago",
+      "common.daysAgo": "{n} d ago",
+      "dashboard.title": "Spainza — client portal",
+      "dashboard.caseStatus": "Case status",
+      "dashboard.documentPack": "Document package",
+      "dashboard.managerChat": "Manager chat",
+      "dashboard.quickReplyPlaceholder": "Quick reply…",
+      "dashboard.sendMessage": "Send message",
+      "dashboard.timelineEmpty": "The application timeline is not set yet.",
+      "dashboard.stepUntitled": "Untitled",
+      "dashboard.currentStage": "Current stage",
+      "dashboard.noDescription": "No description",
+      "dashboard.countryNotSet": "Not specified",
+      "dashboard.archiveNotUploaded": "The completed case archive has not been uploaded yet.",
+      "dashboard.archiveLabel": "Completed case archive",
+      "dashboard.downloadArchive": "Download archive",
+      "dashboard.noInboundFrom": "No inbound messages from {who} yet. Open Messages to write or view history.",
+      "dashboard.whoManager": "your manager",
+      "dashboard.whoSupport": "support",
+      "dashboard.noInboundMeta": "{role} • no inbound",
+      "dashboard.managerDefaultTitle": "Personal manager",
+      "dashboard.supportName": "Support",
+      "dashboard.noConversationMeta": "{title} • no conversation",
+      "dashboard.chatAfterFirstMessage": "Your manager chat will appear after your first message in Messages.",
+      "dashboard.supportEmptyHint": "When support replies, it will show here. You can write in Messages.",
+      "dashboard.complaintPreview": "Manager complaint",
+      "dashboard.quickReplyManager": "Message your personal manager…",
+      "dashboard.quickReplySupport": "Message support…",
+      "dashboard.sendToManager": "Send to manager",
+      "dashboard.sendToSupport": "Send to support",
+      "dashboard.chatCreateFailed": "Could not create chat",
+      "dashboard.profileNotLoaded": "Profile not loaded. Refresh the page.",
+      "dashboard.sendFailed": "Could not send the message. Please try again.",
+      "documents.title": "Documents",
+      "documents.subtitle": "Documents waiting for your action",
+      "documents.summary": "Showing {shown} of {total} documents",
+      "documents.summaryRange": "Showing {from}–{to} of {total} documents",
+      "documents.empty": "No documents uploaded yet.",
+      "documents.filtersTitle": "Document filters",
+      "documents.statusLabel": "Status",
+      "documents.statusAll": "All statuses",
+      "documents.statusRequest": "Requests",
+      "documents.statusPending": "Under review",
+      "documents.statusApproved": "Approved",
+      "documents.statusRejected": "Rejected",
+      "documents.priorityLabel": "Priority",
+      "documents.priorityAll": "All priorities",
+      "documents.priorityUrgent": "Urgent",
+      "documents.priorityNormal": "Standard",
+      "documents.historyTitle": "Document activity log",
+      "documents.historyLoading": "Loading history…",
+      "documents.rejectTitle": "Reject document",
+      "documents.rejectReason": "Rejection reason",
+      "documents.rejectConfirm": "Reject",
+      "documents.rejectPlaceholder": "Describe why this document is rejected…",
+      "documents.card.badgeRequest": "Request",
+      "documents.card.badgeApproved": "Approved",
+      "documents.card.badgeReplace": "Replace",
+      "documents.card.badgeReview": "Review",
+      "documents.card.labelManagerRequest": "Manager request",
+      "documents.card.labelApproved": "Approved",
+      "documents.card.labelRejected": "Rejected",
+      "documents.card.labelUploaded": "Uploaded",
+      "documents.card.priorityUrgent": "Urgent",
+      "documents.card.priorityStandard": "Standard",
+      "documents.card.uploadDocument": "Upload document",
+      "documents.card.download": "Download",
+      "documents.card.replace": "Replace",
+      "documents.card.delete": "Delete",
+      "documents.card.approve": "Approve",
+      "documents.card.reject": "Reject",
+      "documents.card.revoke": "Revoke",
+      "documents.card.noAccess": "No access",
+      "documents.card.rejectionReason": "Rejection reason:",
+      "documents.card.fileType": "File type",
+      "documents.card.dateUnknown": "Date not specified",
+      "documents.card.ownDocument": "own document",
+      "documents.requestDocument": "Request document",
+      "documents.deleteModalTitle": "Delete document?",
+      "documents.deleteModalLead": "This action cannot be undone.",
+      "documents.titleModal": "Document title",
+      "documents.titleModalLabel": "Enter document title",
+      "documents.titleModalPlaceholder": "e.g. Passport",
+      "documents.titleRequired": "Document title is required",
+      "documents.historyClientOnly": "History is only available when viewing a specific client's documents",
+      "documents.historyLoadFailed": "Could not load history",
+      "documents.historyEmpty": "Change history is empty",
+      "documents.historyError": "Failed to load history",
+      "documents.history.byUser": "User: {name}",
+      "documents.history.uploaded": "Document uploaded",
+      "documents.history.approved": "Document approved",
+      "documents.history.rejected": "Document rejected",
+      "documents.history.revoked": "Approval revoked",
+      "documents.history.deleted": "Document deleted",
+      "documents.history.replaced": "Document file replaced",
+      "documents.history.detailUploaded": "Document «{title}» uploaded",
+      "documents.history.detailApproved": "Document «{title}» approved",
+      "documents.history.detailRejected": "Document «{title}» rejected. Reason: {reason}",
+      "documents.history.detailRevoked": "Approval for «{title}» revoked",
+      "documents.history.detailDeleted": "Document «{title}» deleted",
+      "documents.history.detailReplaced": "Document file «{title}» replaced and sent for review",
+      "documents.history.recently": "Recently",
+      "documents.pageTitleClient": "Client documents: {name}",
+      "documents.accessDenied": "Access restricted",
+      "documents.accessStaffHint": "Personal document list is not available for staff. Open a client in Clients and open their documents.",
+      "documents.accessRoleHint": "Document section access is restricted for your role.",
+      "documents.noClientAccess": "No access to this client's documents",
+      "documents.clientNotFound": "Client not found",
+      "documents.uploading": "Uploading…",
+      "documents.uploadSentReview": "Document submitted for review",
+      "documents.uploadSuccess": "Document uploaded successfully",
+      "documents.uploadError": "Upload failed: {error}",
+      "documents.toast.approved": "Document approved",
+      "documents.toast.rejectFailed": "Could not reject document",
+      "documents.toast.openFailed": "Could not open document",
+      "documents.toast.approveFailed": "Could not approve document",
+      "documents.toast.deleted": "Document deleted",
+      "documents.toast.deleteFailed": "Could not delete document",
+      "documents.toast.revokeFailed": "Could not revoke approval",
+      "documents.toast.replaceFailed": "Could not replace file",
+      "documents.toast.clientUnknown": "Could not determine client",
+      "documents.toast.rejectReasonRequired": "Please provide a rejection reason",
+      "documents.toast.rejected": "Document rejected",
+      "documents.toast.revoked": "Approval revoked",
+      "documents.toast.replaced": "File replaced",
+      "documents.toast.replaceFileError": "Replace failed: {error}",
+      "common.noDescription": "No description",
+      "common.manager": "Manager",
+      "common.user": "User",
+      "common.confirm": "Confirm",
+      "common.level": "Level {n}",
+      "common.verified": "Verified",
+      "case.pageTitle": "Case management — {name} | Spainza",
+      "case.headerTitle": "Case management — {name}",
+      "case.autoSaveHint": "*All changes are saved automatically.",
+      "case.backToClients": "Back to clients",
+      "case.programConfig": "Program configuration",
+      "case.timelineTitle": "Application timeline",
+      "case.timelineLead": "Set the order of actions for the client's case. They will see it on the dashboard to stay informed about stages and deadlines.",
+      "case.addStep": "Add step",
+      "case.worksOnCase": "Working on case:",
+      "case.managersLead": "Assign a personal manager (visible to the client) and an additional one (hidden from the client). Enter the public staff ID: two Latin letters and four digits — same as in their profile.",
+      "case.personalManager": "Personal manager",
+      "case.additionalManager": "Additional manager",
+      "case.docRequests": "Document requests",
+      "case.docRequestsLead": "Select documents to request from the client. They appear on the Clients page under View documents.",
+      "case.sendRequestsCount": "Send {n} {word}",
+      "case.viewModeOnly": "View-only mode is on. Enable Edit mode to make changes.",
+      "case.noVisaPaths": "No visa routes available",
+      "case.currentClientRole": "{type} (client's current role)",
+      "case.managerPublicId": "ID: {id}",
+      "case.managerIdPlaceholder": "e.g. AB0123",
+      "case.history.referralAssigned": "Referral assigned",
+      "case.history.referralRemoved": "Referral removed",
+      "case.history.managerAssigned": "Manager assigned",
+      "case.history.managerRemoved": "Manager removed",
+      "case.history.consulateDateChanged": "Consulate appointment date changed",
+      "case.history.countryChanged": "Case country changed",
+      "case.history.archiveUpdated": "Completed case archive updated",
+      "case.history.archiveDeleted": "Archive removed",
+      "case.history.timelineChanged": "Application timeline updated",
+      "case.history.docRequestsChanged": "Document requests updated",
+      "case.history.roleChanged": "User role changed",
+      "case.history.visaPathChanged": "Visa route changed",
+      "case.history.caseCreated": "Case created",
+      "case.history.countrySet": "Case country set",
+      "case.history.archiveUploaded": "Completed case archive uploaded",
+      "case.countryPlaceholder": "e.g. Spain",
+      "case.currentArchive": "Current archive:",
+      "case.stepOrder": "Order",
+      "case.stepN": "step",
+      "case.stepStatus": "Step status",
+      "case.stepCompleted": "Completed",
+      "case.stepActive": "Active",
+      "case.stepPending": "Pending",
+      "case.stepTitleLabel": "Step title",
+      "case.stepTitlePlaceholder": "Short stage title",
+      "case.stepDescLabel": "Description and details",
+      "case.stepDescPlaceholder": "Deadlines, client notes, internal remarks…",
+      "case.dragReorder": "Drag to reorder steps",
+      "case.deleteStep": "Delete step",
+      "case.deleteStepTitle": "Delete this step?",
+      "case.deleteStepMessage": "This step will be removed from the application timeline.",
+      "case.newStep": "New step",
+      "case.durationPrefix": "Duration: {duration}",
+      "case.stepUntitled": "Step {n}",
+      "case.docDefaultName": "Document",
+      "case.priorityUrgentBadge": "Urgent",
+      "case.priorityOptionalBadge": "Optional",
+      "case.sentBadge": "Sent",
+      "case.recallRequest": "Recall",
+      "case.cannotDeleteSent": "Cannot delete a sent document. Recall the request first.",
+      "case.deleteRequestTitle": "Delete request?",
+      "case.deleteRequestMessage": "Delete request «{name}»?",
+      "case.recallRequestTitle": "Recall request?",
+      "case.recallRequestMessage": "Recall request «{name}»? You can delete it after recall.",
+      "case.selectDocToSend": "Select at least one unsent document to request",
+      "case.sentToClient": "Sent to client: {n} {word}",
+      "case.requestWord1": "request",
+      "case.requestWord2": "requests",
+      "case.requestWord5": "requests",
+      "case.docWord1": "document",
+      "case.docWord2": "documents",
+      "case.docWord5": "documents",
+      "case.historyEmpty": "Change history is empty",
+      "case.historyLoading": "Loading history…",
+      "case.historyError": "Failed to load history",
+      "case.history.byUser": "User: {name}",
+      "case.toast.noUserId": "User ID not specified",
+      "case.toast.noCaseAccess": "You do not have access to this user",
+      "case.toast.loadUserFailed": "Failed to load user data",
+      "case.toast.openCaseFailed": "Could not open case",
+      "case.toast.saveFailed": "Failed to save case: {error}",
+      "case.toast.archiveFailed": "Failed to upload archive: {error}",
+      "profile.saveProfile": "Save profile",
+      "profile.updatePassword": "Update password",
+      "profile.subscriptionActive": "Active",
+      "profile.subscriptionLead": "This feature is in development — enjoy all Spainza+ features for free.",
+      "profile.manageSubscription": "Manage subscription",
+      "profile.securityLogBtn": "Security log",
+      "profile.recommendations": "Recommendations",
+      "profile.tipStrongPassword": "Use a strong password and never share it.",
+      "profile.tipUniquePassword": "Do not reuse the same password on other services.",
+      "profile.tipCheckLog": "After changing your password, check the log for suspicious sign-ins.",
+      "profile.managerSection": "Your manager",
+      "profile.managerLead": "Your personal manager will stay in touch about your case.",
+      "profile.quickMessage": "Quick message",
+      "profile.reportManager": "Report",
+      "profile.deleteAccount": "Request account deletion",
+      "profile.deleteAccountLead": "This will delete all your data; documents remain on the server. Contact support to delete documents.",
+      "profile.avatarFormat": "PNG or JPG, up to a few megabytes.",
+      "profile.replacePhoto": "Replace profile photo",
+      "profile.defaultAvatar": "Default avatar",
+      "profile.managerNotAssigned": "No personal manager yet — they will appear here once assigned in your case. Send them your ID ",
+      "profile.personalManagerRole": "Personal manager",
+      "profile.complaintTooShort": "Describe the issue in at least 10 characters.",
+      "profile.complaintSending": "Sending…",
+      "profile.complaintPlaceholder": "Describe the situation…",
+      "profile.saving": "Saving…",
+      "profile.saved": "Profile saved",
+      "profile.emailTaken": "Email is already used by another user",
+      "profile.saveFailed": "Could not save profile",
+      "profile.passwordEnterBoth": "Enter current and new password",
+      "profile.passwordMismatch": "New password and confirmation do not match",
+      "profile.passwordUpdating": "Updating…",
+      "profile.passwordUpdated": "Password updated successfully",
+      "profile.passwordWrongCurrent": "Current password is incorrect",
+      "profile.passwordWeak": "New password is too weak (min. 8 characters, upper and lower case)",
+      "profile.passwordUpdateFailed": "Could not update password",
+      "profile.passwordCurrentPlaceholder": "Enter current password",
+      "profile.passwordNewPlaceholder": "Min. 8 characters, letters and numbers",
+      "profile.passwordConfirmPlaceholder": "Enter new password again",
+      "profile.securityLogEmpty": "No security events yet.",
+      "profile.securityLogLoading": "Loading events…",
+      "profile.securityLogFailed": "Could not load security log.",
+      "profile.securityNoDetails": "No additional details.",
+      "profile.securityIpUnknown": "IP unknown",
+      "profile.securityIp": "IP: {ip}",
+      "profile.securityEventDefault": "Security event",
+      "profile.dateUnknown": "Date unknown",
+      "profile.avatarImageOnly": "Please select an image file.",
+      "profile.avatarMaxSize": "Maximum avatar size is 3 MB.",
+      "profile.avatarSelected": "New avatar selected — click Save profile.",
+      "profile.avatarReadError": "Could not process the selected image.",
+      "profile.avatarFileError": "File read error.",
+      "profile.subscriptionSoon": "Subscription management will be available in a future update.",
+      "profile.deleteConfirm": "Delete account permanently?",
+      "profile.deleteFailed": "Could not delete account. Try again later.",
+      "profile.supportUnavailable": "Support is temporarily unavailable (support account not found).",
+      "profile.complaintFailed": "Could not send report. Try later or open support chat manually.",
+      "profile.supportChatFailed": "Could not open support chat",
+      "profile.security.events.profileUpdated": "Profile updated",
+      "profile.security.events.profileUpdatedDetails": "Profile details or notification settings were changed.",
+      "profile.security.events.passwordChangeFailed": "Failed password change attempt",
+      "profile.security.events.passwordChangeFailedDetails": "The current password was incorrect.",
+      "profile.security.events.passwordUpdated": "Password updated",
+      "profile.security.events.passwordUpdatedDetails": "Password was changed successfully in the account settings.",
+      "profile.security.events.accountDeleted": "Account deleted",
+      "profile.security.events.accountDeletedDetails": "The user deleted their account from settings.",
+      "profile.security.events.emailVerified": "Email verified",
+      "profile.security.events.emailVerifiedDetails": "Account activated via verification link.",
+      "profile.security.events.passwordReset": "Password reset",
+      "profile.security.events.passwordResetDetails": "Password changed via recovery link. Previous sessions were revoked.",
+      "profile.security.events.logout": "Signed out",
+      "profile.security.events.logoutDetails": "Current auth tokens were revoked on the server.",
+      "clients.title": "User list",
+      "clients.subtitle": "Users visible for your role:",
+      "clients.sortLabel": "Sort",
+      "clients.sortPending": "Awaiting action",
+      "clients.sortRole": "Status",
+      "clients.sortConsulate": "Consulate",
+      "clients.sortRegistration": "Registered",
+      "clients.sortActions": "Actions",
+      "clients.addUser": "Add user",
+      "clients.addClientTitle": "Add client",
+      "clients.addClientLead": "Assign a client by ID or send an invite link to register.",
+      "clients.addById": "Add by ID",
+      "clients.addByIdHint": "Paste the client code: two Latin letters and four digits (as on the dashboard and profile). Numeric ID is supported for legacy accounts.",
+      "clients.idPlaceholder": "e.g. AB0123",
+      "clients.assignBtn": "Assign",
+      "clients.inviteLink": "Invite link",
+      "clients.inviteHint": "If the client registers via this link, they are assigned to you automatically.",
+      "clients.copy": "Copy",
+      "clients.inviteLoading": "Loading link…",
+      "clients.inviteReady": "Send the link to your client. After registration they appear in your list.",
+      "clients.inviteFailed": "Could not load the link. Refresh the page.",
+      "clients.sending": "Sending…",
+      "clients.assignOk": "Client assigned to you successfully.",
+      "clients.assignFailed": "Could not assign the client.",
+      "clients.networkError": "Network error. Try again.",
+      "clients.invalidId": "Enter a valid ID: two Latin letters and four digits (e.g. AB0421) or a numeric ID for legacy accounts.",
+      "clients.copied": "Copied to clipboard",
+      "clients.notFound": "No users found",
+      "clients.noAccess": "You do not have access to this page",
+      "clients.loadError": "Failed to load users",
+      "clients.connectionError": "Could not connect to the server",
+      "clients.noName": "No name",
+      "clients.notSpecified": "Not specified",
+      "clients.dateUnknown": "N/A",
+      "clients.openCase": "Open case",
+      "clients.manageCase": "Manage case",
+      "clients.viewDocuments": "View documents",
+      "clients.caseBtn": "Case",
+      "clients.docsBtn": "Documents",
+      "clients.consulateCol": "Consulate appointment",
+      "clients.registrationCol": "Registration date",
+      "roles.management": "Management",
+      "roles.admin": "Admin",
+      "roles.moderator": "Moderator",
+      "roles.manager": "Manager",
+      "roles.client": "Client",
+      "roles.digital_nomad": "Digital Nomad",
+      "roles.golden_visa": "Golden Visa",
+      "roles.user": "User",
+      "roles.citizen": "Citizenship",
+      "visa.digital_nomad": "Digital nomad",
+      "visa.golden_visa": "Golden visa",
+      "visa.citizen": "Citizenship",
+      "visa.other": "Other",
+      "months.jan": "Jan",
+      "months.feb": "Feb",
+      "months.mar": "Mar",
+      "months.apr": "Apr",
+      "months.may": "May",
+      "months.jun": "Jun",
+      "months.jul": "Jul",
+      "months.aug": "Aug",
+      "months.sep": "Sep",
+      "months.oct": "Oct",
+      "months.nov": "Nov",
+      "months.dec": "Dec",
+      "chat.support": "Support",
+      "chat.documents": "Documents",
+      "chat.messagePlaceholder": "Write a message…",
+      "chat.searchChats": "Search chats…",
+      "chat.searchInMessages": "Search messages…",
+      "chat.newChat": "New chat",
+      "chat.newChatLead": "Enter the other person's public ID from the portal: two Latin letters and four digits.",
+      "chat.publicId": "Public ID",
+      "chat.publicIdPlaceholder": "e.g. AB0123",
+      "chat.createChat": "Create chat",
+      "chat.creating": "Creating…",
+      "chat.confirm": "Confirm",
+      "chat.gotIt": "Got it",
+      "chat.selectOrCreate": "Select a chat or create a new one",
+      "chat.selectChat": "Select a chat",
+      "chat.chatsNotFound": "No chats found.",
+      "chat.loadChatsError": "Failed to load chats: {error}",
+      "chat.loadMessagesError": "Failed to load messages",
+      "chat.complaintPreview": "Manager complaint",
+      "chat.complaintCard": "Complaint about assigned manager",
+      "chat.photo": "Photo",
+      "chat.file": "File",
+      "chat.clickToDownload": "Tap to download",
+      "chat.today": "Today",
+      "chat.yesterday": "Yesterday",
+      "chat.openChatFailed": "Could not open a chat with this user.",
+      "chat.sendError": "Failed to send message",
+      "chat.imageUploadError": "Failed to upload image",
+      "chat.fileUploadError": "Failed to upload file: {error}",
+      "chat.invalidPublicId": "Enter a public ID: 2 Latin letters and 4 digits (as in profile or dashboard).",
+      "chat.errorGeneric": "Error: {error}",
+      "chat.clearHistoryTitle": "Clear history?",
+      "chat.clearHistoryMessage": "Clear message history with {name}? History is removed only for you; the other person gets a notification.",
+      "chat.clearHistoryConfirm": "Clear",
+      "chat.clearHistoryError": "Failed to clear history: {error}",
+      "chat.cannotDeleteTitle": "Cannot delete",
+      "chat.cannotDeleteSupport": "Support chat cannot be deleted.",
+      "chat.deleteChatTitle": "Delete chat?",
+      "chat.deleteChatMessage": "Delete chat with {name}? It disappears only for you; the other person gets a notification.",
+      "chat.deleteChatConfirm": "Delete",
+      "chat.deleteChatError": "Failed to delete chat: {error}",
+      "chat.errorTitle": "Error",
+      "chat.systemCleared": "{name} cleared the message history",
+      "chat.systemDeleted": "{name} deleted this chat",
+      "chat.searchPrev": "Previous",
+      "chat.searchNext": "Next",
+      "chat.closeSearch": "Close search",
+      "configurator.helpTitle": "Page help",
+      "configurator.saveTemplate": "Save template",
+      "configurator.docChecklist": "Document checklist",
+      "configurator.addDocItem": "Add item",
+      "configurator.timeline": "Application timeline",
+      "configurator.addStep": "Add stage",
+      "configurator.templateFor": "Template: {label}",
+      "configurator.templateSub": "Set timeline and documents for the visa route",
+      "configurator.savedAt": "Saved: {date}",
+      "configurator.statusSaved": "Saved",
+      "configurator.statusDraft": "Draft",
+      "configurator.noVisaPaths": "No visa routes available for templates (or the list failed to load). Contact an administrator.",
+      "configurator.unsavedConfirm": "You have unsaved changes. Continue without saving?",
+      "configurator.stepN": "Step {n}",
+      "configurator.moveUp": "Move up",
+      "configurator.moveDown": "Move down",
+      "configurator.remove": "Remove",
+      "configurator.fieldTitle": "Title",
+      "configurator.fieldDescription": "Description",
+      "configurator.needOneStep": "At least one stage is required",
+      "configurator.newStep": "New stage",
+      "configurator.docNamePlaceholder": "Document name",
+      "configurator.required": "Required",
+      "configurator.priorityNormal": "Normal",
+      "configurator.priorityUrgent": "Urgent",
+      "configurator.priorityOptional": "Optional",
+      "configurator.needTimeline": "Add at least one timeline stage",
+      "configurator.saveFailed": "Could not save",
+      "configurator.saveOk": "Template saved",
+      "configurator.profileLoadFailed": "Could not load profile",
+      "configurator.noPermission": "Insufficient permissions for templates",
+      "configurator.guide.templates": "Case templates",
+      "configurator.guide.templatesText": "changes are for your workflow only; stages and documents can be edited after sending to the client and do not affect other managers' templates.",
+      "configurator.guide.checklist": "Checklist and timeline",
+      "configurator.guide.checklistText": "until a case block is edited manually, the latest template is applied on open; required checklist items become client requests. After manual edits, that section is not overwritten by the template.",
+      "configurator.guide.owner": "Whose template",
+      "configurator.guide.ownerText": "if a personal manager is set on the case, their template is used for the selected visa route;",
+      "configurator.guide.discard": "Discard",
+      "configurator.guide.discardText": "discard unsaved edits and reload from the server.",
+      "configurator.guide.save": "Save",
+      "configurator.guide.saveText": "store the template in the system;",
+      "messages.backToList": "Back to chats",
+      "messages.searchTitle": "Search messages",
+      "messages.clearHistory": "Clear history",
+      "messages.deleteChat": "Delete chat",
+      "profile.personalData": "Personal details",
+      "profile.pageTitle": "User profile",
+      "profile.replaceAvatar": "Replace",
+      "profile.name": "Name",
+      "profile.avatarHint": "Tap the photo to replace it.",
+      "profile.accountType": "Account type",
+      "profile.phone": "Phone",
+      "profile.security": "Security",
+      "profile.changePassword": "Change password",
+      "profile.currentPassword": "Current password",
+      "profile.newPassword": "New password",
+      "profile.confirmPassword": "Confirm new password",
+      "profile.yourManager": "Your manager",
+      "profile.complaintTitle": "Report manager",
+      "profile.complaintLead":
+        "Your message goes to support chat. Describe the issue — your manager and profile details are attached automatically.",
+      "profile.sendToSupport": "Send to support",
+      "profile.securityLog": "Security log",
+      "configurator.title": "Case templates",
+      "configurator.lead": "Without a saved template, the timeline and requests are not filled automatically.",
+      "configurator.pickVisa": "Select visa route",
+      "configurator.discard": "Discard",
+      "configurator.guideTitle": "Quick guide",
+      "case.editMode": "Edit mode",
+      "case.visaPath": "Visa route",
+      "case.visa.digitalNomad": "Digital nomad",
+      "case.visa.golden": "Golden visa",
+      "case.visa.citizen": "Citizenship",
+      "case.visa.other": "Other",
+      "case.consulateDate": "Consulate appointment date",
+      "case.datePlaceholder": "mm/dd/yyyy",
+      "case.country": "Case country",
+      "case.archive": "Completed case archive",
+      "case.archiveEmpty": "No archive uploaded",
+      "case.archiveChooseFile": "Choose file",
+      "case.archiveNoFile": "No file selected",
+      "case.sendRequests": "Send requests",
+      "case.historyTitle": "Case change history (UTC+0)",
+      "case.addDocRequest": "Add document request",
+      "case.addDocConfirm": "Add",
+      "case.docTitle": "Document title",
+      "case.docTitleError": "Enter a document title",
+      "case.docTitlePlaceholder": "e.g. Medical certificate",
+      "case.docDescPlaceholder": "Additional document requirements",
+      "case.description": "Description",
+      "case.priority": "Priority",
+      "case.priorityUrgent": "Urgent",
+      "case.priorityNormal": "Normal",
+      "case.priorityOptional": "Optional",
+    },
+  };
+
+  var LOCALE_STORAGE_KEY = "userLocale";
+
+  function readProfileLocale() {
+    try {
+      var raw = localStorage.getItem("currentUserProfile");
+      if (!raw) return null;
+      var profile = JSON.parse(raw);
+      if (profile && profile.locale === "en") return "en";
+      if (profile && profile.locale === "ru") return "ru";
+    } catch (_e) {
+      /* ignore */
+    }
+    return null;
+  }
+
+  function getLocale() {
+    var stored = localStorage.getItem(LOCALE_STORAGE_KEY);
+    if (stored === "en" || stored === "ru") return stored;
+    var fromProfile = readProfileLocale();
+    if (fromProfile) return fromProfile;
+    return "ru";
+  }
+
+  function setLocale(locale) {
+    var next = locale === "en" ? "en" : "ru";
+    localStorage.setItem(LOCALE_STORAGE_KEY, next);
+    applyDocument();
+    try {
+      global.dispatchEvent(
+        new CustomEvent("lk-locale-change", { detail: { locale: next } })
+      );
+    } catch (_e) {
+      /* IE / old browsers */
+    }
+    return next;
+  }
+
+  function interpolate(template, params) {
+    if (!params || typeof template !== "string") return template;
+    return template.replace(/\{(\w+)\}/g, function (_m, key) {
+      return params[key] != null ? String(params[key]) : "";
+    });
+  }
+
+  function t(key, params) {
+    var loc = getLocale();
+    var bucket = STRINGS[loc] || STRINGS.ru;
+    var value = bucket[key];
+    if (value == null) {
+      value = STRINGS.ru[key];
+    }
+    if (value == null) return key;
+    return interpolate(value, params);
+  }
+
+  function applyAttr(root, selector, attr, keyAttr) {
+    root.querySelectorAll(selector).forEach(function (el) {
+      var key = el.getAttribute(keyAttr);
+      if (!key) return;
+      el.setAttribute(attr, t(key));
+    });
+  }
+
+  function applyDocument(root) {
+    root = root || global.document;
+    if (!root || !root.querySelectorAll) return;
+
+    root.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var key = el.getAttribute("data-i18n");
+      if (!key) return;
+      el.textContent = t(key);
+    });
+
+    applyAttr(root, "[data-i18n-placeholder]", "placeholder", "data-i18n-placeholder");
+    applyAttr(root, "[data-i18n-title]", "title", "data-i18n-title");
+    applyAttr(root, "[data-i18n-aria]", "aria-label", "data-i18n-aria");
+    applyAttr(root, "[data-i18n-alt]", "alt", "data-i18n-alt");
+
+    var html = root.documentElement || root;
+    if (html && html.setAttribute) {
+      html.setAttribute("lang", getLocale());
+    }
+
+    var titleKey = root.querySelector("title[data-i18n]");
+    if (titleKey) {
+      titleKey.textContent = t(titleKey.getAttribute("data-i18n"));
+    }
+
+    var docEl = root.documentElement || global.document.documentElement;
+    if (docEl && docEl.classList) {
+      docEl.classList.add("lk-i18n-ready");
+      docEl.classList.remove("lk-i18n-pending");
+    }
+  }
+
+  var MONTH_KEYS = [
+    "months.jan",
+    "months.feb",
+    "months.mar",
+    "months.apr",
+    "months.may",
+    "months.jun",
+    "months.jul",
+    "months.aug",
+    "months.sep",
+    "months.oct",
+    "months.nov",
+    "months.dec",
+  ];
+
+  function dateLocaleTag() {
+    return getLocale() === "en" ? "en-US" : "ru-RU";
+  }
+
+  function formatMonthShort(monthIndex) {
+    return t(MONTH_KEYS[monthIndex] || MONTH_KEYS[0]);
+  }
+
+  function roleLabel(roleKey) {
+    if (!roleKey) return t("roles.user");
+    var key = "roles." + String(roleKey);
+    var label = t(key);
+    return label === key ? String(roleKey) : label;
+  }
+
+  function visaLabel(visaType) {
+    if (!visaType) return "";
+    var key = "visa." + String(visaType);
+    var label = t(key);
+    return label === key ? String(visaType) : label;
+  }
+
+  var SECURITY_EVENT_I18N = {
+    profile_updated: {
+      title: "profile.security.events.profileUpdated",
+      details: "profile.security.events.profileUpdatedDetails",
+    },
+    password_change_failed: {
+      title: "profile.security.events.passwordChangeFailed",
+      details: "profile.security.events.passwordChangeFailedDetails",
+    },
+    password_updated: {
+      title: "profile.security.events.passwordUpdated",
+      details: "profile.security.events.passwordUpdatedDetails",
+    },
+    account_deleted: {
+      title: "profile.security.events.accountDeleted",
+      details: "profile.security.events.accountDeletedDetails",
+    },
+    email_verified: {
+      title: "profile.security.events.emailVerified",
+      details: "profile.security.events.emailVerifiedDetails",
+    },
+    password_reset: {
+      title: "profile.security.events.passwordReset",
+      details: "profile.security.events.passwordResetDetails",
+    },
+    logout: {
+      title: "profile.security.events.logout",
+      details: "profile.security.events.logoutDetails",
+    },
+  };
+
+  var SECURITY_TITLE_I18N = {
+    "Профиль обновлен": {
+      title: "profile.security.events.profileUpdated",
+      details: "profile.security.events.profileUpdatedDetails",
+    },
+    "Неудачная попытка смены пароля": {
+      title: "profile.security.events.passwordChangeFailed",
+      details: "profile.security.events.passwordChangeFailedDetails",
+    },
+    "Пароль обновлен": {
+      title: "profile.security.events.passwordUpdated",
+      details: "profile.security.events.passwordUpdatedDetails",
+    },
+    "Пароль обновлён": {
+      title: "profile.security.events.passwordUpdated",
+      details: "profile.security.events.passwordUpdatedDetails",
+    },
+    "Аккаунт удален": {
+      title: "profile.security.events.accountDeleted",
+      details: "profile.security.events.accountDeletedDetails",
+    },
+    "Аккаунт удалён": {
+      title: "profile.security.events.accountDeleted",
+      details: "profile.security.events.accountDeletedDetails",
+    },
+    "Email подтверждён": {
+      title: "profile.security.events.emailVerified",
+      details: "profile.security.events.emailVerifiedDetails",
+    },
+    "Пароль восстановлен": {
+      title: "profile.security.events.passwordReset",
+      details: "profile.security.events.passwordResetDetails",
+    },
+    "Выход из аккаунта": {
+      title: "profile.security.events.logout",
+      details: "profile.security.events.logoutDetails",
+    },
+  };
+
+  function translateSecurityLogEntry(log) {
+    if (!log || getLocale() === "ru") return log;
+    var spec = SECURITY_EVENT_I18N[log.event_type];
+    if (!spec) {
+      spec = SECURITY_TITLE_I18N[String(log.event_title || "").trim()];
+    }
+    if (!spec) return log;
+    return {
+      event_type: log.event_type,
+      event_title: t(spec.title),
+      details: t(spec.details),
+      ip_address: log.ip_address,
+      created_at: log.created_at,
+      id: log.id,
+    };
+  }
+
+  function translateHistoryAction(action) {
+    var raw = String(action || "").trim();
+    if (!raw || getLocale() === "ru") return raw;
+    var map = {
+      "Документ загружен": t("documents.history.uploaded"),
+      "Документ одобрен": t("documents.history.approved"),
+      "Документ отклонен": t("documents.history.rejected"),
+      "Документ отклонён": t("documents.history.rejected"),
+      "Одобрение отозвано": t("documents.history.revoked"),
+      "Документ удален": t("documents.history.deleted"),
+      "Документ удалён": t("documents.history.deleted"),
+      "Файл документа заменен": t("documents.history.replaced"),
+      "Файл документа заменён": t("documents.history.replaced"),
+    };
+    return map[raw] || raw;
+  }
+
+  function formatTimeAgo(dateInput) {
+    var date;
+    if (typeof dateInput === "string") {
+      date = new Date(dateInput.replace(" ", "T"));
+    } else if (dateInput instanceof Date) {
+      date = dateInput;
+    } else {
+      date = new Date(dateInput);
+    }
+    if (Number.isNaN(date.getTime())) {
+      return t("documents.history.recently");
+    }
+    var now = new Date();
+    var diffMs = now - date;
+    var diffMins = Math.floor(diffMs / 60000);
+    var diffHours = Math.floor(diffMs / 3600000);
+    var diffDays = Math.floor(diffMs / 86400000);
+    if (diffMins < 1) return t("common.justNow");
+    if (diffMins < 60) return t("common.minAgo", { n: diffMins });
+    if (diffHours < 24) return t("common.hoursAgo", { n: diffHours });
+    if (diffDays < 7) return t("common.daysAgo", { n: diffDays });
+    return date.toLocaleDateString(dateLocaleTag(), {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  function translateDocumentHistoryDetails(details) {
+    var raw = String(details || "").trim();
+    if (!raw || getLocale() === "ru") return raw;
+    var m;
+    m = raw.match(/^Документ '(.+)' был загружен$/u);
+    if (m) return t("documents.history.detailUploaded", { title: m[1] });
+    m = raw.match(/^Документ '(.+)' был одобрен$/u);
+    if (m) return t("documents.history.detailApproved", { title: m[1] });
+    m = raw.match(/^Документ '(.+)' был отклонен\. Причина: (.+)$/u);
+    if (m) return t("documents.history.detailRejected", { title: m[1], reason: m[2] });
+    m = raw.match(/^Документ '(.+)' был отклонён\. Причина: (.+)$/u);
+    if (m) return t("documents.history.detailRejected", { title: m[1], reason: m[2] });
+    m = raw.match(/^Одобрение документа '(.+)' было отозвано$/u);
+    if (m) return t("documents.history.detailRevoked", { title: m[1] });
+    m = raw.match(/^Документ '(.+)' был удален$/u);
+    if (m) return t("documents.history.detailDeleted", { title: m[1] });
+    m = raw.match(/^Документ '(.+)' был удалён$/u);
+    if (m) return t("documents.history.detailDeleted", { title: m[1] });
+    m = raw.match(/^Файл документа '(.+)' был заменен и отправлен на повторную проверку$/u);
+    if (m) return t("documents.history.detailReplaced", { title: m[1] });
+    m = raw.match(/^Файл документа '(.+)' был заменён и отправлен на повторную проверку$/u);
+    if (m) return t("documents.history.detailReplaced", { title: m[1] });
+    return raw;
+  }
+
+  function translateCaseHistoryDetails(details) {
+    var raw = String(details || "").trim();
+    if (!raw || getLocale() === "ru") return raw;
+    var statusEn = {
+      завершено: "completed",
+      активно: "active",
+      ожидание: "pending",
+    };
+    var out = raw
+      .replace(
+        /В графике сейчас (\d+) шаг\(ов\); до сохранения было (\d+)\./gu,
+        "Timeline now has $1 step(s); before save there were $2."
+      )
+      .replace(
+        /Добавлен шаг «([^»]*)» \(статус: ([^)]*)\)\./gu,
+        function (_all, title, status) {
+          return (
+            "Added step «" +
+            title +
+            "» (status: " +
+            (statusEn[status.trim()] || status.trim()) +
+            ")."
+          );
+        }
+      )
+      .replace(/Удалён шаг «([^»]*)»\./gu, "Removed step «$1».")
+      .replace(/Удален шаг «([^»]*)»\./gu, "Removed step «$1».")
+      .replace(/Изменён порядок шагов \(перетаскивание\)\./gu, "Step order changed (drag and drop).")
+      .replace(/Изменен порядок шагов \(перетаскивание\)\./gu, "Step order changed (drag and drop).")
+      .replace(/текст описания и сроков изменён/gu, "description and deadlines updated")
+      .replace(/текст описания и сроков изменен/gu, "description and deadlines updated")
+      .replace(/название: «([^»]*)» → «([^»]*)»/gu, "title: «$1» → «$2»")
+      .replace(/статус: ([^→]+) → ([^\n.]+)/gu, function (_all, a, b) {
+        return (
+          "status: " +
+          (statusEn[a.trim()] || a.trim()) +
+          " → " +
+          (statusEn[b.trim()] || b.trim())
+        );
+      })
+      .replace(/Шаг «([^»]*)»:/gu, "Step «$1»:")
+      .replace(/Без названия/gu, "Untitled");
+    return out;
+  }
+
+  function translateCaseHistoryAction(action) {
+    var raw = String(action || "").trim();
+    if (!raw || getLocale() === "ru") return raw;
+    var map = {
+      "Назначен реферал": t("case.history.referralAssigned"),
+      "Реферал удален": t("case.history.referralRemoved"),
+      "Реферал удалён": t("case.history.referralRemoved"),
+      "Назначен менеджер": t("case.history.managerAssigned"),
+      "Менеджер удален": t("case.history.managerRemoved"),
+      "Менеджер удалён": t("case.history.managerRemoved"),
+      "Изменена дата записи в консульство": t("case.history.consulateDateChanged"),
+      "Изменена страна кейса": t("case.history.countryChanged"),
+      "Обновлен архив готового кейса": t("case.history.archiveUpdated"),
+      "Обновлён архив готового кейса": t("case.history.archiveUpdated"),
+      "График заявки изменён": t("case.history.timelineChanged"),
+      "График заявки изменен": t("case.history.timelineChanged"),
+      "Запросы документов изменены": t("case.history.docRequestsChanged"),
+      "Изменена роль пользователя": t("case.history.roleChanged"),
+      "Изменен визовый путь": t("case.history.visaPathChanged"),
+      "Изменён визовый путь": t("case.history.visaPathChanged"),
+      "Кейс создан": t("case.history.caseCreated"),
+      "Указана страна кейса": t("case.history.countrySet"),
+      "Загружен архив готового кейса": t("case.history.archiveUploaded"),
+    };
+    return map[raw] || raw;
+  }
+
+  function isSystemDeleteMessage(text) {
+    var raw = String(text || "").trim();
+    return /удалил\(а\)\s+этот\s+чат$/u.test(raw) || /deleted this chat$/i.test(raw);
+  }
+
+  function translateSystemMessage(text) {
+    var raw = String(text || "").trim();
+    if (!raw || getLocale() === "ru") return raw;
+    var m = raw.match(/^(.+?)\s+очистил\(а\)\s+историю\s+сообщений$/u);
+    if (m) return t("chat.systemCleared", { name: m[1] });
+    m = raw.match(/^(.+?)\s+удалил\(а\)\s+этот\s+чат$/u);
+    if (m) return t("chat.systemDeleted", { name: m[1] });
+    m = raw.match(/^(.+?)\s+cleared the message history$/i);
+    if (m) return t("chat.systemCleared", { name: m[1] });
+    m = raw.match(/^(.+?)\s+deleted this chat$/i);
+    if (m) return t("chat.systemDeleted", { name: m[1] });
+    return raw;
+  }
+
+  function chatDisplayName(conversation) {
+    if (!conversation) return "";
+    if (Number(conversation.other_user_id) === 11) {
+      return t("chat.support");
+    }
+    return conversation.other_user_name || t("clients.noName");
+  }
+
+  global.LkI18n = {
+    STRINGS: STRINGS,
+    getLocale: getLocale,
+    setLocale: setLocale,
+    t: t,
+    applyDocument: applyDocument,
+    dateLocaleTag: dateLocaleTag,
+    formatMonthShort: formatMonthShort,
+    roleLabel: roleLabel,
+    visaLabel: visaLabel,
+    translateSystemMessage: translateSystemMessage,
+    isSystemDeleteMessage: isSystemDeleteMessage,
+    translateHistoryAction: translateHistoryAction,
+    translateCaseHistoryAction: translateCaseHistoryAction,
+    translateCaseHistoryDetails: translateCaseHistoryDetails,
+    translateDocumentHistoryDetails: translateDocumentHistoryDetails,
+    formatTimeAgo: formatTimeAgo,
+    translateSecurityLogEntry: translateSecurityLogEntry,
+    chatDisplayName: chatDisplayName,
+  };
+
+  if (global.document) {
+    applyDocument();
+  }
+})(typeof window !== "undefined" ? window : this);

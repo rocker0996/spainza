@@ -1,14 +1,621 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LK Messages</title>
+﻿<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<style id="lk-gate-nav-css">[data-lk-gate]:not(.lk-gate-visible){display:none!important}</style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
+<link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="Spainza" />
+<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<title>Messages | Spaniza Client Portal</title>
+<link rel="stylesheet" href="/frontend/css/portal.css?v=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+        }
+        .chat-shadow {
+            box-shadow: 0px 20px 40px rgba(117, 118, 130, 0.06);
+        }
+        
+        /* Notification badge pulse animation */
+        .pulser {
+          position: relative;
+        }
+        
+        .pulser::after {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          background: #0052ff;
+          border-radius: 50%;
+          z-index: -1;
+          animation: pulse 1500ms cubic-bezier(0.9, 0.7, 0.5, 0.9) infinite;
+        }
+        
+        @keyframes pulse {
+          0% {
+            opacity: 0;
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.3);
+            opacity: 0.3;
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.5);
+          }
+        }
+    </style>
 </head>
-<body data-layout-header="false" data-layout-footer="false">
-  <h1>Messages</h1>
-  <button id="logout-btn" type="button">Выйти</button>
-  <script src="../js/lk.js"></script>
-  <script src="../../shared/layout.js"></script>
-</body>
-</html>
+<body class="bg-surface font-body text-on-surface min-h-screen flex overflow-x-hidden" data-layout-header="false" data-layout-footer="false" data-lk-nav-active="messages">
+  <!-- Side Navigation (Visible on md+) -->
+  <aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 pt-10 pb-8 bg-surface-container-lowest border-r border-outline-variant/15 z-40">
+  <div class="px-8 mb-12">
+  <a href="./dashboard.html" class="text-2xl font-black tracking-tighter text-primary-container font-headline mb-1 inline-block no-underline hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">Spainza</a>
+  <div class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant font-label">Elite Intelligence</div>
+  </div>
+  <nav class="flex-1 flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6">
+  <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./dashboard.html">
+  <span class="material-symbols-outlined">dashboard</span>
+                  <span data-i18n="nav.dashboard">Главная</span>
+              </a>
+  <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./clients.html" data-lk-gate="clients">
+  <span class="material-symbols-outlined">groups</span>
+                  <span data-i18n="nav.clients">Клиенты</span>
+              </a>
+  <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./documents.html" data-lk-gate="documents">
+  <span class="material-symbols-outlined">description</span>
+                  <span data-i18n="nav.documents">Документы</span>
+              </a>
+  <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./configurator.html" data-lk-gate="configurator">
+  <span class="material-symbols-outlined">rule_settings</span>
+                  <span data-i18n="nav.configurator">Шаблоны кейсов</span>
+              </a>
+  <a class="flex items-center gap-4 text-primary-container bg-primary-fixed/30 rounded-r-xl border-l-4 border-primary-container px-6 py-3 transition-transform active:scale-[0.98]" href="./messages.html" data-lk-gate="messages">
+  <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+                  <span data-i18n="nav.messages">Сообщения</span>
+              </a>
+  </nav>
+  <div class="px-6 mb-8">
+  <!-- <button class="w-full py-3 px-4 bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline text-sm font-semibold rounded-[12px] flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+  <span class="material-symbols-outlined text-[20px]">add</span>
+                  Новая заявка
+              </button> -->
+  </div>
+  <nav class="flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6 border-t border-outline-variant/15 pt-6">
+  <div class="px-6 mb-3">
+  <div class="text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant font-label mb-2 text-center" data-i18n="common.interfaceLanguage">Язык интерфейса</div>
+  <div class="flex p-1 bg-surface-container rounded-xl border border-outline-variant/20">
+  <button class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-primary" data-locale-btn="ru" type="button" data-i18n="common.langRu">Русский</button>
+  <button class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-primary transition-colors" data-locale-btn="en" type="button" data-i18n="common.langEn">English</button>
+  </div>
+  </div>
+  <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./profile.html">
+  <span class="material-symbols-outlined text-[20px]">tune</span>
+                  <span data-i18n="nav.profile">Профиль</span>
+              </a>
+  <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./support.html">
+  <span class="material-symbols-outlined text-[20px]">help_center</span>
+                  <span data-i18n="nav.support">Поддержка</span>
+              </a>
+  <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all mt-4" href="../login.html" id="logout-btn">
+  <span class="material-symbols-outlined text-[20px]">logout</span>
+                  <span data-i18n="nav.logout">Выход</span>
+              </a>
+  </nav>
+  </aside>
+<div class="flex-grow md:ml-64 flex flex-col w-full min-h-0">
+<!-- Main Content Area (Messaging Canvas) -->
+<main id="messages-main" class="messages-main messages-view-list flex-grow flex flex-col md:flex-row p-0 md:p-8 gap-0 md:gap-6 md:overflow-hidden fixed md:relative inset-x-0 top-14 bottom-0 md:top-auto md:inset-auto md:h-[calc(100vh-80px)] z-30 md:z-auto w-full min-h-0 max-md:h-auto">
+<!-- Chat pane (desktop left; mobile full screen when open) -->
+<section id="chat-pane" class="messages-pane flex flex-col flex-grow min-w-0 md:h-full bg-white md:rounded-2xl chat-shadow overflow-hidden max-md:rounded-none max-md:h-full max-md:min-h-0">
+  <!-- Chat Header -->
+  <div class="chat-header px-4 md:px-6 py-3 md:py-4 border-b border-stone-50 bg-white/50 backdrop-blur-sm z-10 shrink-0">
+  <div class="flex items-center justify-between mb-3">
+  <div class="flex items-center gap-2 md:gap-3 min-w-0">
+  <button class="md:hidden p-2 -ml-1 hover:bg-stone-50 rounded-xl transition-colors text-outline shrink-0" id="chat-back-btn" type="button" data-i18n-aria="messages.backToList" aria-label="К списку чатов">
+  <span class="material-symbols-outlined">arrow_back</span>
+  </button>
+  <div class="flex items-center gap-3 min-w-0">
+  <div class="relative shrink-0">
+  <img alt="Аватар" class="w-10 h-10 rounded-lg object-cover chat-avatar" id="active-chat-avatar" src="../img/Avatar.jpg"/>
+  <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+  </div>
+  <div class="min-w-0">
+  <h3 class="font-bold text-on-surface leading-tight truncate" id="active-chat-name"> </h3>
+  <p class="text-[10px] text-outline font-semibold tracking-wide uppercase truncate" id="active-chat-role"> </p>
+  </div>
+  </div>
+  </div>
+  <div class="flex items-center gap-2 relative shrink-0">
+  <button class="p-2 hover:bg-stone-50 rounded-xl transition-colors text-outline" id="message-search-toggle-btn" type="button" data-i18n-title="messages.searchTitle" title="Поиск сообщений">
+  <span class="material-symbols-outlined" data-icon="search">search</span>
+  </button>
+  <button class="p-2 hover:bg-stone-50 rounded-xl transition-colors text-outline" id="active-chat-menu-btn" type="button">
+  <span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+  </button>
+  <!-- Dropdown menu -->
+  <div id="chat-menu-dropdown" class="chat-menu-dropdown hidden absolute right-0 top-full mt-2 bg-white rounded-xl shadow-lg border border-stone-100 py-2 min-w-[200px] z-50 origin-top-right">
+    <button id="clear-history-btn" class="w-full px-4 py-2 text-left text-sm text-amber-600 hover:bg-amber-50 transition-colors flex items-center gap-2" type="button">
+      <span class="material-symbols-outlined text-[18px]">history</span>
+      <span data-i18n="messages.clearHistory">Очистить историю</span>
+    </button>
+    <button id="delete-chat-btn" class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2" type="button">
+      <span class="material-symbols-outlined text-[18px]">delete</span>
+      <span data-i18n="messages.deleteChat">Удалить чат</span>
+    </button>
+  </div>
+  </div>
+  </div>
+  <!-- Search Bar (Hidden by default) -->
+  <div id="message-search-bar" class="msg-search-bar" aria-hidden="true">
+  <div class="msg-search-bar__inner">
+  <div class="relative flex items-center gap-2">
+  <div class="flex-grow relative">
+  <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm" data-icon="search">search</span>
+  <input class="w-full pl-10 pr-4 py-2 bg-stone-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary-container transition-all placeholder:text-stone-400" id="message-search-input" data-i18n-placeholder="chat.searchInMessages" placeholder="Поиск в сообщениях..." type="text"/>
+  </div>
+  <div id="search-results-info" class="text-xs text-outline font-medium whitespace-nowrap hidden">
+  <span id="search-current-index">0</span>/<span id="search-total-results">0</span>
+  </div>
+  <div class="flex items-center gap-1">
+  <button class="p-2 hover:bg-stone-50 rounded-lg transition-colors text-outline disabled:opacity-30 disabled:cursor-not-allowed" id="search-prev-btn" type="button" title="Предыдущее" disabled>
+  <span class="material-symbols-outlined text-[18px]">keyboard_arrow_up</span>
+  </button>
+  <button class="p-2 hover:bg-stone-50 rounded-lg transition-colors text-outline disabled:opacity-30 disabled:cursor-not-allowed" id="search-next-btn" type="button" title="Следующее" disabled>
+  <span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+  </button>
+  <button class="p-2 hover:bg-stone-50 rounded-lg transition-colors text-outline" id="message-search-close-btn" type="button" title="Закрыть поиск">
+  <span class="material-symbols-outlined text-[18px]">close</span>
+  </button>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  <!-- Messages Area -->
+  <div class="flex-grow min-h-0 p-4 md:p-6 overflow-y-auto flex flex-col gap-4 bg-stone-50/30" id="messages-container"></div>
+  <!-- Input Bar -->
+  <div id="chat-compose" class="p-3 md:p-6 bg-white border-t border-stone-50 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+  <div class="flex items-center gap-2 md:gap-3 bg-stone-50 p-1.5 md:p-2 pl-3 md:pl-4 rounded-2xl focus-within:ring-2 focus-within:ring-primary-container transition-all">
+  <div class="flex items-center gap-1">
+  <button class="p-2 text-outline hover:bg-stone-100 rounded-xl transition-colors" id="attach-document-btn" title="Attach Document" type="button">
+  <span class="material-symbols-outlined" data-icon="attach_file">attach_file</span>
+  </button>
+  <button class="p-2 text-outline hover:bg-stone-100 rounded-xl transition-colors" id="attach-image-btn" title="Add Image" type="button">
+  <span class="material-symbols-outlined" data-icon="image">image</span>
+  </button>
+  </div>
+  <input class="flex-grow bg-transparent border-none focus:ring-0 text-sm py-3 text-on-surface placeholder:text-stone-400" id="message-input" data-i18n-placeholder="chat.messagePlaceholder" placeholder="Напишите сообщение..." type="text"/>
+  <button class="send-message-btn bg-primary-container text-white p-3 rounded-xl hover:opacity-90 active:scale-95 transition-all shadow-md shadow-primary/20 flex items-center justify-center" id="send-message-btn" type="button">
+  <span class="material-symbols-outlined" data-icon="send" style="font-variation-settings: 'FILL' 1;">send</span>
+  </button>
+  </div>
+  <div class="mt-2 md:mt-3 flex flex-wrap items-center gap-3 md:gap-4 px-2 max-md:hidden">
+  <div class="flex items-center gap-2">
+  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+  <span class="text-[10px] text-outline font-semibold uppercase tracking-tight">Encrypted Session</span>
+  </div>
+  <button class="flex items-center gap-1.5 group cursor-pointer" id="shared-docs-btn" type="button">
+  <span class="material-symbols-outlined text-[14px] text-outline group-hover:text-primary transition-colors" data-icon="description">description</span>
+  <span class="text-[10px] text-outline font-semibold uppercase tracking-tight group-hover:text-primary transition-colors" id="shared-docs-count">Shared Docs (0)</span>
+  </button>
+  </div>
+  </div>
+  </section>
+<!-- Conversations list (right on desktop; full screen on mobile) -->
+<section id="conversations-pane" class="messages-pane w-full md:w-80 lg:w-96 md:shrink-0 md:h-full flex flex-col bg-white max-md:rounded-none md:rounded-2xl chat-shadow overflow-hidden max-md:min-h-0">
+  <div class="p-4 md:p-6 border-b border-stone-50 shrink-0">
+  <div class="flex items-center justify-between mb-3 md:mb-4">
+  <h2 class="text-lg md:text-xl font-bold tracking-tight text-on-surface"><span data-i18n="nav.messages">Сообщения</span></h2>
+  <button class="p-2 hover:bg-stone-50 rounded-lg transition-colors text-blue-600" id="new-conversation-btn" type="button">
+  <span class="material-symbols-outlined" data-icon="edit_square">edit_square</span>
+  </button>
+  </div>
+  <div class="relative">
+  <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm" data-icon="search">search</span>
+  <input class="w-full pl-10 pr-4 py-2.5 bg-stone-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary-container transition-all placeholder:text-stone-400" id="conversation-search-input" data-i18n-placeholder="chat.searchChats" placeholder="Поиск чатов..." type="text"/>
+  </div>
+  </div>
+  <div class="flex-grow min-h-0 overflow-y-auto overscroll-contain" id="conversations-list"></div>
+  </section>
+</main>
+</div>
+
+<!-- Modal for creating new conversation -->
+<div id="new-chat-modal" class="chat-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4" aria-hidden="true">
+  <div class="chat-modal__backdrop absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true"></div>
+  <div class="chat-modal__panel relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 mx-4">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-bold text-on-surface" data-i18n="chat.newChat">Новый чат</h3>
+      <button id="close-modal-btn" class="p-2 hover:bg-stone-100 rounded-lg transition-colors" type="button">
+        <span class="material-symbols-outlined text-outline">close</span>
+      </button>
+    </div>
+    
+    <p class="text-sm text-on-surface-variant mb-4" data-i18n="chat.newChatLead">Укажите публичный номер собеседника из личного кабинета: две латинские буквы и четыре цифры.</p>
+    
+    <div class="mb-6">
+      <label class="block text-sm font-semibold text-on-surface mb-2" for="user-id-input" data-i18n="chat.publicId">Публичный номер</label>
+      <input
+        type="text"
+        inputmode="text"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        maxlength="6"
+        id="user-id-input"
+        class="w-full px-4 py-3 bg-stone-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary-container transition-all font-mono tracking-wide uppercase"
+        data-i18n-placeholder="chat.publicIdPlaceholder"
+        placeholder="Например AB0123"
+      />
+      <p id="modal-error" class="text-xs text-red-500 mt-2 hidden"></p>
+    </div>
+    
+    <div class="flex gap-3">
+      <button
+        id="cancel-modal-btn"
+        class="flex-1 py-3 px-4 bg-stone-100 text-on-surface font-semibold rounded-xl hover:bg-stone-200 transition-colors"
+        type="button"
+      >
+        <span data-i18n="common.cancel">Отмена</span>
+      </button>
+      <button
+        id="create-chat-btn"
+        class="flex-1 py-3 px-4 bg-primary-container text-white font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
+        type="button"
+      >
+        <span data-i18n="chat.createChat">Создать чат</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Подтверждение: очистка / удаление чата -->
+<div id="chat-confirm-modal" class="chat-modal hidden fixed inset-0 z-[60] flex items-center justify-center p-4" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="chat-confirm-title">
+  <div class="chat-modal__backdrop absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true"></div>
+  <div class="chat-modal__panel relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 mx-4">
+    <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" id="chat-confirm-icon-wrap">
+      <span class="material-symbols-outlined text-[28px]" id="chat-confirm-icon">history</span>
+    </div>
+    <h3 id="chat-confirm-title" class="text-xl font-bold text-on-surface font-headline mb-2"></h3>
+    <p id="chat-confirm-message" class="text-sm text-on-surface-variant leading-relaxed mb-6"></p>
+    <div class="flex flex-col-reverse sm:flex-row gap-3">
+      <button type="button" id="chat-confirm-cancel" class="flex-1 py-3 px-4 bg-stone-100 text-on-surface font-semibold rounded-xl hover:bg-stone-200 transition-colors" data-i18n="common.cancel">Отмена</button>
+      <button type="button" id="chat-confirm-ok" class="flex-1 py-3 px-4 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-md" data-i18n="chat.confirm">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Уведомление на сайте -->
+<div id="chat-alert-modal" class="chat-modal hidden fixed inset-0 z-[60] flex items-center justify-center p-4" aria-hidden="true" role="alertdialog" aria-modal="true" aria-labelledby="chat-alert-title">
+  <div class="chat-modal__backdrop absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true"></div>
+  <div class="chat-modal__panel relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 mx-4">
+    <div class="w-12 h-12 rounded-xl bg-primary-fixed/40 flex items-center justify-center mb-4">
+      <span class="material-symbols-outlined text-primary-container text-[28px]" id="chat-alert-icon">info</span>
+    </div>
+    <h3 id="chat-alert-title" class="text-xl font-bold text-on-surface font-headline mb-2"></h3>
+    <p id="chat-alert-message" class="text-sm text-on-surface-variant leading-relaxed mb-6"></p>
+    <button type="button" id="chat-alert-ok" class="w-full py-3 px-4 bg-primary-container text-white font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-md shadow-primary/20" data-i18n="chat.gotIt">Понятно</button>
+  </div>
+</div>
+
+<style>
+  :root {
+    --msg-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --msg-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+    --msg-duration: 0.42s;
+  }
+
+  /* Search highlight */
+  .search-highlight {
+    background-color: #fef08a;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .search-highlight-active {
+    background-color: #fbbf24;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .message-dimmed {
+    opacity: 0.3;
+    transition: opacity 0.25s ease;
+  }
+
+  /* —— Messages thread —— */
+  @keyframes msg-in-out {
+    from {
+      opacity: 0;
+      transform: translateY(12px) translateX(8px) scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) translateX(0) scale(1);
+    }
+  }
+  @keyframes msg-in-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) translateX(-8px) scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) translateX(0) scale(1);
+    }
+  }
+  @keyframes msg-pop {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes msg-system-in {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .messages-thread-enter .msg-row--out {
+    animation: msg-in-out 0.44s var(--msg-ease-out) backwards;
+    animation-delay: calc(min(var(--msg-i, 0), 14) * 32ms);
+  }
+  .messages-thread-enter .msg-row--in {
+    animation: msg-in-in 0.44s var(--msg-ease-out) backwards;
+    animation-delay: calc(min(var(--msg-i, 0), 14) * 32ms);
+  }
+  .messages-thread-enter .msg-row--system {
+    animation: msg-system-in 0.4s var(--msg-ease-out) backwards;
+    animation-delay: calc(min(var(--msg-i, 0), 14) * 32ms);
+  }
+  .messages-thread-enter .msg-date-pill {
+    animation: fade-up 0.45s var(--msg-ease-out) both;
+  }
+  .msg-row--pop {
+    animation: msg-pop 0.38s var(--msg-ease-spring) both;
+  }
+
+  /* —— Search bar expand —— */
+  .msg-search-bar {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    margin-bottom: 0;
+    transition:
+      grid-template-rows 0.35s var(--msg-ease-out),
+      opacity 0.28s ease,
+      margin-bottom 0.35s var(--msg-ease-out);
+  }
+  .msg-search-bar__inner {
+    overflow: hidden;
+  }
+  .msg-search-bar.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-bottom: 0.75rem;
+  }
+
+  /* —— Chat menu —— */
+  @keyframes menu-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.88) translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  .chat-menu-dropdown.is-visible {
+    display: block;
+    animation: menu-pop 0.26s var(--msg-ease-spring) both;
+  }
+
+  /* —— Modal —— */
+  .chat-modal__backdrop {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .chat-modal__panel {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+    transition:
+      opacity 0.32s var(--msg-ease-out),
+      transform 0.38s var(--msg-ease-spring);
+  }
+  .chat-modal.is-open .chat-modal__backdrop {
+    opacity: 1;
+  }
+  .chat-modal.is-open .chat-modal__panel {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  /* —— Header avatar —— */
+  @keyframes avatar-pop {
+    0% { transform: scale(0.85); opacity: 0.6; }
+    70% { transform: scale(1.06); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .chat-avatar.avatar-pop {
+    animation: avatar-pop 0.45s var(--msg-ease-spring) both;
+  }
+
+  /* —— Send button —— */
+  .send-message-btn {
+    transition: transform 0.2s var(--msg-ease-out), box-shadow 0.25s ease, opacity 0.2s ease;
+  }
+  .send-message-btn:hover {
+    box-shadow: 0 8px 24px rgba(0, 82, 255, 0.35);
+  }
+  .send-message-btn.is-sending {
+    animation: send-pulse 0.6s ease infinite;
+  }
+  @keyframes send-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(0.94); }
+  }
+
+  #new-conversation-btn {
+    transition: transform 0.25s var(--msg-ease-spring), background-color 0.2s ease;
+  }
+  #new-conversation-btn:hover {
+    transform: rotate(-8deg) scale(1.08);
+  }
+  #new-conversation-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* —— Mobile slide between list & chat —— */
+  @media (max-width: 767px) {
+    body[data-lk-nav-active="messages"] {
+      overflow: hidden;
+      height: 100dvh;
+    }
+    .messages-main {
+      position: fixed;
+      top: 3.5rem;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: auto;
+      max-height: none;
+      overflow: hidden;
+    }
+    .messages-main .messages-pane {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+      flex: none !important;
+      display: flex !important;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      transition:
+        transform var(--msg-duration) var(--msg-ease-out),
+        opacity 0.34s ease,
+        filter 0.34s ease;
+      will-change: transform;
+    }
+    #chat-pane #messages-container {
+      flex: 1 1 0;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #chat-compose {
+      flex-shrink: 0;
+      z-index: 5;
+    }
+    #chat-pane .chat-header {
+      flex-shrink: 0;
+    }
+    .messages-main.messages-view-list #conversations-pane {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+      filter: blur(0);
+      pointer-events: auto;
+      z-index: 2;
+    }
+    .messages-main.messages-view-list #chat-pane {
+      transform: translate3d(100%, 0, 0);
+      opacity: 0.55;
+      filter: blur(2px);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .messages-main.messages-view-chat #conversations-pane {
+      transform: translate3d(-22%, 0, 0);
+      opacity: 0.45;
+      filter: blur(3px);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .messages-main.messages-view-chat #chat-pane {
+      transform: translate3d(0, 0, 0);
+      opacity: 1;
+      filter: blur(0);
+      pointer-events: auto;
+      z-index: 2;
+    }
+    .messages-main.messages-slide-forward #chat-pane {
+      transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .messages-main.messages-slide-back #conversations-pane {
+      transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .messages-main .messages-pane {
+      position: static;
+      transform: none !important;
+      opacity: 1 !important;
+      filter: none !important;
+      pointer-events: auto !important;
+      z-index: auto !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .msg-row--pop,
+    .messages-thread-enter .msg-row--out,
+    .messages-thread-enter .msg-row--in,
+    .messages-thread-enter .msg-row--system,
+    .messages-thread-enter .msg-date-pill,
+    .chat-menu-dropdown.is-visible,
+    .chat-avatar.avatar-pop,
+    .chat-modal__panel,
+    .chat-modal__backdrop,
+    .messages-main .messages-pane,
+    .msg-search-bar {
+      animation: none !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+
+<script src="../js/lk-i18n.js" defer></script>
+<script src="../js/mobile-nav.js" defer></script>
+<script src="../js/lk.js?v=21" defer></script>
+<script src="../js/chat.js?v=16" defer></script>
+<script src="../../shared/layout.js?v=9" defer></script>
+</body></html>

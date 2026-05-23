@@ -1,91 +1,21 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html class="light" lang="ru"><head>
 <meta charset="utf-8"/>
+<style id="lk-gate-nav-css">[data-lk-gate]:not(.lk-gate-visible){display:none!important}</style>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Spainza - Client Portal Dashboard</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
+<link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
+<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<title data-i18n="dashboard.title">Spainza - Client Portal Dashboard</title>
+<link rel="stylesheet" href="/frontend/css/portal.css?v=1"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-          darkMode: "class",
-          theme: {
-            extend: {
-              "colors": {
-                      "on-tertiary-container": "#ffddd5",
-                      "on-background": "#191b25",
-                      "tertiary-fixed-dim": "#ffb4a1",
-                      "outline": "#737688",
-                      "tertiary-fixed": "#ffdbd2",
-                      "surface-bright": "#fbf8ff",
-                      "on-error": "#ffffff",
-                      "surface": "#fbf8ff",
-                      "on-error-container": "#93000a",
-                      "on-primary-container": "#dfe3ff",
-                      "secondary-fixed": "#dde1ff",
-                      "surface-tint": "#004ced",
-                      "on-tertiary-fixed": "#3c0800",
-                      "on-primary-fixed": "#001452",
-                      "surface-container-highest": "#e1e1ef",
-                      "on-surface-variant": "#434656",
-                      "background": "#fbf8ff",
-                      "error-container": "#ffdad6",
-                      "on-surface": "#191b25",
-                      "surface-container-high": "#e7e7f5",
-                      "secondary-container": "#95aafe",
-                      "on-secondary-fixed": "#001452",
-                      "on-primary-fixed-variant": "#0038b6",
-                      "surface-container": "#ededfb",
-                      "secondary": "#4459a8",
-                      "on-secondary-container": "#253b89",
-                      "on-secondary-fixed-variant": "#2b418f",
-                      "inverse-primary": "#b7c4ff",
-                      "tertiary-container": "#bf3003",
-                      "outline-variant": "#c3c5d9",
-                      "on-secondary": "#ffffff",
-                      "inverse-surface": "#2e303a",
-                      "on-tertiary-fixed-variant": "#891e00",
-                      "secondary-fixed-dim": "#b7c4ff",
-                      "surface-container-low": "#f3f2ff",
-                      "inverse-on-surface": "#f0effe",
-                      "surface-variant": "#e1e1ef",
-                      "on-tertiary": "#ffffff",
-                      "tertiary": "#952200",
-                      "surface-dim": "#d9d9e7",
-                      "primary-fixed": "#dde1ff",
-                      "primary-container": "#0052ff",
-                      "error": "#ba1a1a",
-                      "primary-fixed-dim": "#b7c4ff",
-                      "on-primary": "#ffffff",
-                      "surface-container-lowest": "#ffffff",
-                      "primary": "#003ec7"
-              },
-              "borderRadius": {
-                      "DEFAULT": "0.25rem",
-                      "lg": "0.5rem",
-                      "xl": "0.75rem",
-                      "full": "9999px"
-              },
-              "spacing": {},
-              "fontFamily": {
-                      "headline": [
-                              "Manrope"
-                      ],
-                      "body": [
-                              "Inter"
-                      ],
-                      "label": [
-                              "Inter"
-                      ]
-              }
-      },
-          },
-        }
-      </script>
+
 <style>
           .material-symbols-outlined {
             font-family: 'Material Symbols Outlined';
@@ -108,153 +38,339 @@
           .ambient-shadow {
               box-shadow: 0px 20px 40px rgba(117, 118, 130, 0.06);
           }
+          
+          /* Notification badge pulse animation */
+          .pulser {
+            position: relative;
+          }
+          
+          .pulser::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: #0052ff;
+            border-radius: 50%;
+            z-index: -1;
+            animation: pulse 1500ms cubic-bezier(0.9, 0.7, 0.5, 0.9) infinite;
+          }
+          
+          @keyframes pulse {
+            0% {
+              opacity: 0;
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(1.3);
+              opacity: 0.3;
+            }
+            100% {
+              opacity: 0;
+              transform: scale(1.5);
+            }
+          }
+
+          /* РЇС‡РµР№РєР° С„РёРєСЃРёСЂСѓРµС‚ С€РёСЂРёРЅСѓ РЅР° РІСЂРµРјСЏ Р°РЅРёРјР°С†РёРё — РєСЂСѓРі СЃР¶РёРјР°РµС‚СЃСЏ РѕС‚ С†РµРЅС‚СЂР°, РЅРµ СѓРµР·Р¶Р°РµС‚ РІРїСЂР°РІРѕ (flex-end) */
+          .dashboard-id-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            vertical-align: middle;
+            min-width: 0;
+          }
+
+          /* ID РЅР° РіР»Р°РІРЅРѕР№: В«С‚Р°Р±Р»РµС‚РєР°В» в†’ РєСЂСѓРі СЃ РіР°Р»РѕС‡РєРѕР№ (РїРѕСЃР»Рµ РєРѕРїРёСЂРѕРІР°РЅРёСЏ), РїР°Р»РёС‚СЂР° Spainza */
+          .dashboard-id-btn {
+            box-sizing: border-box;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: fit-content;
+            min-width: 72px;
+            height: 35px;
+            padding: 0 14px;
+            background: #ffffff;
+            border: 3px solid #003ec7;
+            border-radius: 22px;
+            cursor: pointer;
+            vertical-align: middle;
+            user-select: none;
+            -webkit-user-select: none;
+            transition:
+              width 0.3s cubic-bezier(0.13, 0.71, 0.57, 1.29),
+              height 0.3s cubic-bezier(0.13, 0.71, 0.57, 1.29),
+              min-width 0.3s cubic-bezier(0.13, 0.71, 0.57, 1.29),
+              border-radius 0.3s cubic-bezier(0.13, 0.71, 0.57, 1.29),
+              padding 0.3s cubic-bezier(0.13, 0.71, 0.57, 1.29),
+              border-color 0.2s ease,
+              opacity 0.2s ease;
+          }
+          .dashboard-id-btn:hover:not(:disabled) {
+            border-color: #0052ff;
+          }
+          .dashboard-id-btn:focus {
+            outline: none;
+          }
+          .dashboard-id-btn:focus-visible:not(:disabled) {
+            box-shadow: 0 0 0 2px rgba(0, 62, 199, 0.35);
+          }
+          .dashboard-id-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            pointer-events: none;
+          }
+          /* РљСЂСѓРі РЅРµ РІС‹С€Рµ В«РїРѕР»РѕСЃРєРёВ»: РІРЅСѓС‚СЂРё СЂР°РјРєРё 3px РІС‹СЃРѕС‚Р° 35 в†’ РІРЅСѓС‚СЂРµРЅРЅРёР№ РєРІР°РґСЂР°С‚ 29px */
+          .dashboard-id-btn::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 29px;
+            height: 29px;
+            max-width: calc(100% - 6px);
+            max-height: calc(100% - 6px);
+            box-sizing: border-box;
+            background-color: #003ec7;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s cubic-bezier(0.13, 0.71, 0.57, 1.29),
+              transform 0.3s cubic-bezier(0.13, 0.71, 0.57, 1.29);
+            opacity: 0;
+            z-index: 0;
+            pointer-events: none;
+          }
+          .dashboard-id-btn__checkmark-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: rotate(-45deg);
+            transform-origin: 50% 50%;
+            transition:
+              opacity 0.32s cubic-bezier(0.13, 0.71, 0.57, 1.29),
+              transform 0.38s cubic-bezier(0.13, 0.71, 0.57, 1.29);
+            z-index: 2;
+          }
+          .dashboard-id-btn__check-svg {
+            width: 17px;
+            height: 17px;
+            display: block;
+            overflow: visible;
+            transform: translateZ(0);
+          }
+          .dashboard-id-btn__check-path {
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 2.45;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 1;
+            stroke-dashoffset: 1;
+          }
+          .dashboard-id-btn__label {
+            position: relative;
+            z-index: 1;
+            font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+            font-weight: 600;
+            font-size: 0.875rem;
+            line-height: 1.2;
+            color: #003ec7;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+            max-width: 14rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.13, 0.71, 0.57, 1.29);
+            transform-origin: center;
+          }
+          .dashboard-id-btn.dashboard-id-btn--active {
+            width: 35px !important;
+            height: 35px !important;
+            min-width: 35px !important;
+            padding: 0;
+            border-radius: 50%;
+          }
+          .dashboard-id-btn.dashboard-id-btn--active::before {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.4s cubic-bezier(0.13, 0.71, 0.57, 1.29) 0.1s,
+              transform 0.4s cubic-bezier(0.13, 0.71, 0.57, 1.29) 0.1s;
+          }
+          .dashboard-id-btn.dashboard-id-btn--active .dashboard-id-btn__label {
+            opacity: 0;
+            transform: scale(0.5) rotate(30deg);
+          }
+          .dashboard-id-btn.dashboard-id-btn--active .dashboard-id-btn__checkmark-container {
+            opacity: 1;
+            transform: rotate(0deg);
+            transition-delay: 0.2s;
+          }
+          .dashboard-id-btn.dashboard-id-btn--active .dashboard-id-btn__check-path {
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 0.45s cubic-bezier(0.34, 1.15, 0.64, 1) 0.28s;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .dashboard-id-btn,
+            .dashboard-id-btn::before,
+            .dashboard-id-btn__label,
+            .dashboard-id-btn__checkmark-container {
+              transition-duration: 0.01ms;
+            }
+            .dashboard-id-btn__checkmark-container {
+              transform: rotate(0deg);
+            }
+            .dashboard-id-btn.dashboard-id-btn--active .dashboard-id-btn__check-path {
+              stroke-dashoffset: 0;
+              transition: none;
+            }
+          }
+
+          @media (max-width: 767px) {
+            .dashboard-id-btn__label {
+              max-width: 9rem;
+            }
+          }
+
       </style>
 </head>
-<body class="bg-surface font-body text-on-surface min-h-screen flex" data-layout-header="false" data-layout-footer="false">
-<!-- Mobile Top App Bar (Hidden on md+) -->
-<header class="md:hidden flex justify-between items-center px-6 h-16 w-full fixed top-0 z-50 bg-surface/90 backdrop-blur-md shadow-[0_2px_10px_rgba(117,118,130,0.06)]">
-<div class="text-2xl font-black tracking-tighter text-primary-container font-headline">Spainza</div>
-<div class="flex gap-4">
-<span class="material-symbols-outlined text-outline">notifications</span>
-<span class="material-symbols-outlined text-outline">menu</span>
-</div>
-</header>
-<!-- Side Navigation (Visible on md+) -->
+<body class="bg-surface font-body text-on-surface min-h-screen flex overflow-x-hidden" data-layout-header="false" data-layout-footer="false" data-lk-nav-active="dashboard">
 <aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 pt-10 pb-8 bg-surface-container-lowest border-r border-outline-variant/15 z-40">
 <div class="px-8 mb-12">
-<div class="text-2xl font-black tracking-tighter text-primary-container font-headline mb-1">Spainza</div>
+<a href="./dashboard.html" class="text-2xl font-black tracking-tighter text-primary-container font-headline mb-1 inline-block no-underline hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">Spainza</a>
 <div class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant font-label">Elite Intelligence</div>
 </div>
 <nav class="flex-1 flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6">
-<!-- Active Tab -->
 <a class="flex items-center gap-4 text-primary-container bg-primary-fixed/30 rounded-r-xl border-l-4 border-primary-container px-6 py-3 transition-transform active:scale-[0.98]" href="./dashboard.html">
-<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
-                Главная
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                <span data-i18n="nav.dashboard">Главная</span>
             </a>
-<!-- Inactive Tabs -->
-<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./status.html">
-<span class="material-symbols-outlined">folder_shared</span>
-                Заявка
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./clients.html" data-lk-gate="clients">
+<span class="material-symbols-outlined">groups</span>
+                <span data-i18n="nav.clients">Клиенты</span>
             </a>
-<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./documents.html">
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./documents.html" data-lk-gate="documents">
 <span class="material-symbols-outlined">description</span>
-                Документы
+                <span data-i18n="nav.documents">Документы</span>
             </a>
-<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./messages.html">
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./configurator.html" data-lk-gate="configurator">
+<span class="material-symbols-outlined">rule_settings</span>
+                <span data-i18n="nav.configurator">Шаблоны кейсов</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./messages.html" data-lk-gate="messages">
 <span class="material-symbols-outlined">chat_bubble</span>
-                Сообщения
+                <span data-i18n="nav.messages">Сообщения</span>
             </a>
 </nav>
 <div class="px-6 mb-8">
-<button class="w-full py-3 px-4 bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline text-sm font-semibold rounded-[12px] flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<!-- <button class="w-full py-3 px-4 bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline text-sm font-semibold rounded-[12px] flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
 <span class="material-symbols-outlined text-[20px]">add</span>
-                Новая заявка
-            </button>
+                РќРѕРІР°СЏ Р·Р°СЏРІРєР°
+            </button> -->
 </div>
 <nav class="flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6 border-t border-outline-variant/15 pt-6">
+<div class="px-6 mb-3">
+<div class="text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant font-label mb-2 text-center" data-i18n="common.interfaceLanguage">Язык интерфейса</div>
+<div class="flex p-1 bg-surface-container rounded-xl border border-outline-variant/20">
+<button class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-primary" data-locale-btn="ru" type="button" data-i18n="common.langRu">Русский</button>
+<button class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-primary transition-colors" data-locale-btn="en" type="button" data-i18n="common.langEn">English</button>
+</div>
+</div>
 <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./profile.html">
 <span class="material-symbols-outlined text-[20px]">tune</span>
-                Настройки
+                <span data-i18n="nav.profile">Профиль</span>
             </a>
-<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="../ru/contact.html">
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./support.html">
 <span class="material-symbols-outlined text-[20px]">help_center</span>
-                Поддержка
+                <span data-i18n="nav.support">Поддержка</span>
             </a>
 <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all mt-4" href="../login.html" id="logout-btn">
 <span class="material-symbols-outlined text-[20px]">logout</span>
-                Выход
+                <span data-i18n="nav.logout">Выход</span>
             </a>
 </nav>
 </aside>
 <!-- Main Content Area -->
-<main class="flex-1 md:ml-64 pt-24 md:pt-12 px-6 md:px-12 pb-24 max-w-7xl mx-auto w-full">
+<main class="flex-1 md:ml-64 pt-24 md:pt-12 px-4 sm:px-6 md:px-12 pb-8 md:pb-12 max-w-7xl mx-auto w-full">
 <!-- Header Section -->
-<header class="mb-12 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
-<div>
-<h1 class="text-[3.5rem] leading-none font-headline font-bold text-on-surface tracking-[-0.02em] mb-3">Welcome back, <span id="user-name-title"> </span></h1>
-<div class="flex items-center gap-3 text-on-surface-variant font-label text-sm uppercase tracking-[0.05em]">
+<header class="mb-8 md:mb-12 flex flex-col md:flex-row md:justify-between md:items-start gap-4 md:gap-6">
+<div class="flex-1 flex flex-col gap-3 min-w-0">
+<div class="md:hidden flex items-center justify-between gap-3 px-1">
+<p class="text-xs text-outline font-label uppercase tracking-[0.04em] truncate" id="user-created-at-mobile">Member since —</p>
+<button type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high border border-outline-variant/25 text-on-surface active:scale-[0.98] transition-transform disabled:opacity-60 disabled:cursor-not-allowed" id="user-id-mobile-copy" disabled>
+<span class="text-[10px] font-label font-semibold uppercase tracking-[0.05em] text-outline">ID</span>
+<span class="font-label text-[10px] font-bold tracking-widest uppercase text-primary" id="user-id-mobile-value">—</span>
+</button>
+</div>
+<a href="./profile.html" class="w-full md:w-fit md:self-start flex items-center gap-3 md:gap-4 bg-surface-container-lowest p-3 md:p-2 pr-4 md:pr-6 rounded-2xl md:rounded-full ambient-shadow transition-colors hover:bg-surface-container-low active:scale-[0.99] cursor-pointer no-underline">
+<div class="relative shrink-0">
+<img alt="Аватар" class="w-12 h-12 md:w-10 md:h-10 rounded-full object-cover shadow-[0_10px_20px_rgba(117,118,130,0.1)]" data-alt="Стандартный аватар пользователя" id="user-avatar" src="../img/Avatar.jpg"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-sm font-semibold font-headline text-on-surface truncate" id="user-name-card"></span>
+<span class="text-xs text-outline font-label truncate" id="user-email"></span>
+<span id="user-name-title" class="hidden"></span>
+</div>
+</a>
+<div class="flex items-center gap-2 text-on-surface-variant font-label text-xs md:text-sm uppercase tracking-[0.05em] px-1">
 <span class="material-symbols-outlined text-[18px] text-tertiary-container">public</span>
-<span id="user-role-name">Пользователь</span> — <span class="text-tertiary-container font-semibold" id="user-role-level">Не начат</span>
+<span id="user-role-name"></span>  <span class="text-tertiary-container font-semibold" id="user-role-level"></span>
 </div>
 </div>
-<div class="flex items-center gap-4 bg-surface-container-lowest p-2 pr-6 rounded-full ambient-shadow">
-<img alt="Profile avatar" class="w-10 h-10 rounded-full object-cover" data-alt="Close up professional headshot of a man with short hair against a neutral gray background, well lit, natural look" id="user-avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWaxo2zb6eb4vAnCllT9BFKo3-B1kUyyBKnJsKOryG-83Ei1Aki_i-4mfF0Or6AXCsBHR7kzwlnxOPKVFqIuOQYwAueATj5sEaGT1oQe1FUgUdkC804wI3oYGG4WtbxobWEeFXEo-KW0e8Kiop68qXvdwdK0g3dEGiHoTcijhIPOkZaU-rRfja2RGlmSMNUar-mKZCiBJcRG0S3g-0MI5ctoY6HckcVVAGyfmSHpwDGZn9FFXCHZY2x4txr8O1i4_2QpIZuEF5FVQ"/>
-<div class="flex flex-col">
-<span class="text-sm font-semibold font-headline text-on-surface" id="user-name-card">Client</span>
-<span class="text-xs text-outline font-label" id="user-email">Email unavailable</span>
-</div>
-</div>
-<p class="text-xs text-outline font-label uppercase tracking-[0.04em]" id="user-created-at">Member since —</p>
-</header>
-<!-- Grid Layout -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-<!-- Left Column: Progress & Overview -->
-<div class="lg:col-span-7 flex flex-col gap-8">
-<!-- Case Progress Tracker (Bento style card) -->
-<section class="bg-surface-container-lowest rounded-[12px] p-8 ambient-shadow relative overflow-hidden">
-<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 rounded-bl-full pointer-events-none"></div>
-<h2 class="text-xl font-headline font-bold text-on-surface mb-8 flex items-center gap-2">
-<span class="material-symbols-outlined text-primary-container">timeline</span>
-                        Application Timeline
-                    </h2>
-<div class="flex flex-col gap-6 relative pl-6">
-<!-- Vertical line connecting steps -->
-<div class="absolute left-[31px] top-4 bottom-8 w-[2px] bg-outline-variant/20"></div>
-<!-- Step 1: Completed -->
-<div class="flex gap-6 relative">
-<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center z-10 shrink-0">
-<span class="material-symbols-outlined text-primary-container text-[16px]">check</span>
-</div>
-<div>
-<h3 class="text-base font-semibold font-headline text-on-surface">Initial Consultation &amp; Strategy</h3>
-<p class="text-sm text-on-surface-variant font-body mt-1">Completed on Oct 12, 2023</p>
-</div>
-</div>
-<!-- Step 2: Completed -->
-<div class="flex gap-6 relative">
-<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center z-10 shrink-0">
-<span class="material-symbols-outlined text-primary-container text-[16px]">check</span>
-</div>
-<div>
-<h3 class="text-base font-semibold font-headline text-on-surface">Document Gathering</h3>
-<p class="text-sm text-on-surface-variant font-body mt-1">All required documents verified by legal team.</p>
-</div>
-</div>
-<!-- Step 3: Completed -->
-<div class="flex gap-6 relative">
-<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center z-10 shrink-0">
-<span class="material-symbols-outlined text-primary-container text-[16px]">check</span>
-</div>
-<div>
-<h3 class="text-base font-semibold font-headline text-on-surface">Legal Review &amp; Translation</h3>
-<p class="text-sm text-on-surface-variant font-body mt-1">Sworn translations completed.</p>
-</div>
-</div>
-<!-- Step 4: Active -->
-<div class="flex gap-6 relative">
-<div class="w-8 h-8 rounded-full bg-surface-container-lowest border-2 border-tertiary-container flex items-center justify-center z-10 shrink-0">
-<div class="w-2.5 h-2.5 rounded-full bg-tertiary-container animate-pulse"></div>
-</div>
-<div class="bg-surface-container-low p-5 rounded-[12px] flex-1">
-<div class="flex justify-between items-start mb-2">
-<h3 class="text-base font-semibold font-headline text-on-surface">Submission to Ministry</h3>
-<span class="bg-tertiary-container text-on-tertiary px-2 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider font-label">Action Required</span>
-</div>
-<p class="text-sm text-on-surface-variant font-body mb-4">Your application is ready for formal submission. Please review the final dossier and sign the authorization form.</p>
-<button class="bg-primary-container text-on-primary px-5 py-2 rounded-[12px] text-sm font-semibold font-headline hover:bg-primary transition-colors flex items-center gap-2">
-                                    Review &amp; Sign Dossier
-                                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+<div class="hidden md:flex flex-col items-end gap-1 bg-transparent p-0">
+  <p class="text-xs text-outline font-label uppercase tracking-[0.04em]" id="user-created-at">Member since —</p>
+
+  <div class="inline-flex items-center gap-2 flex-wrap md:justify-end">
+<span class="text-xs text-outline font-label uppercase tracking-[0.04em]">ID:</span>
+<div class="dashboard-id-wrap" id="user-id-wrap">
+<button type="button" class="dashboard-id-btn" id="user-id-value" disabled>
+<span class="dashboard-id-btn__checkmark-container" aria-hidden="true">
+<svg class="dashboard-id-btn__check-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" focusable="false">
+<path class="dashboard-id-btn__check-path" pathLength="1" d="M5.5 12.6 L10.35 17.45 19.25 7.15"/>
+</svg>
+</span>
+<span class="dashboard-id-btn__label" id="user-id-value-label">—</span>
 </button>
 </div>
 </div>
-<!-- Step 5: Pending -->
-<div class="flex gap-6 relative opacity-50">
-<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center z-10 shrink-0">
-<span class="material-symbols-outlined text-outline text-[16px]">schedule</span>
 </div>
-<div>
-<h3 class="text-base font-semibold font-headline text-on-surface">Government Processing</h3>
-<p class="text-sm text-on-surface-variant font-body mt-1">Estimated duration: 20-40 business days.</p>
+</header>
+<!-- Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8">
+<!-- Left Column: Progress & Overview -->
+<div class="lg:col-span-7 flex flex-col gap-8">
+<!-- Case Progress Tracker (Bento style card) -->
+<section class="bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-primary-container/5 rounded-bl-full pointer-events-none"></div>
+<h2 class="text-lg md:text-xl font-headline font-bold text-on-surface mb-6 md:mb-8 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container">timeline</span>
+                        <span data-i18n="dashboard.caseStatus">Статус кейса</span>
+                    </h2>
+<div id="dashboard-timeline" class="flex flex-col gap-6 relative pl-6 min-h-[100px]" aria-busy="true">
+<div class="absolute left-[31px] top-4 bottom-8 w-[2px] bg-outline-variant/20"></div>
+<div class="flex items-center gap-4 relative pl-1">
+<div class="w-8 h-8 rounded-full bg-surface-container-high z-10 shrink-0 animate-pulse"></div>
+<div class="flex-1 space-y-2 pt-0.5">
+<div class="h-4 max-w-xs rounded-md bg-surface-container-high animate-pulse"></div>
+<div class="h-3 max-w-[14rem] rounded-md bg-surface-container-high/70 animate-pulse"></div>
+</div>
+</div>
+<div class="flex items-center gap-4 relative pl-1 opacity-80">
+<div class="w-8 h-8 rounded-full bg-surface-container-high z-10 shrink-0 animate-pulse"></div>
+<div class="flex-1 space-y-2 pt-0.5">
+<div class="h-4 max-w-sm rounded-md bg-surface-container-high animate-pulse"></div>
+<div class="h-3 max-w-xs rounded-md bg-surface-container-high/70 animate-pulse"></div>
 </div>
 </div>
 </div>
@@ -263,72 +379,35 @@
 <!-- Right Column: Documents & Comms -->
 <div class="lg:col-span-5 flex flex-col gap-8">
 <!-- Document Management -->
-<section class="bg-surface-container-lowest rounded-[12px] p-8 ambient-shadow">
+<section class="bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
 <div class="flex justify-between items-center mb-6">
-<h2 class="text-xl font-headline font-bold text-on-surface flex items-center gap-2">
+<h2 class="text-lg md:text-xl font-headline font-bold text-on-surface flex items-center gap-2">
 <span class="material-symbols-outlined text-secondary">folder_open</span>
-                            Key Documents
+                            <span data-i18n="dashboard.documentPack">Готовый пакет документов</span>
                         </h2>
-<button class="text-primary-container text-sm font-semibold font-headline hover:text-primary transition-colors">View All</button>
+<button type="button" onclick="window.location.href='./documents.html'" class="text-primary-container text-xs md:text-sm font-semibold font-headline hover:text-primary transition-colors" data-lk-gate="documents" data-i18n="common.viewAll">Смотреть все</button>
 </div>
-<div class="flex flex-col gap-4 mb-6">
-<!-- Doc Item -->
-<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-[12px] group">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-[8px] bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
-<span class="material-symbols-outlined">description</span>
-</div>
-<div>
-<p class="font-semibold text-sm font-headline text-on-surface">Passport_Scan_Full.pdf</p>
-<p class="text-xs text-outline font-body mt-0.5">Verified • 4.2 MB</p>
-</div>
-</div>
-<button class="text-outline hover:text-primary-container transition-colors p-2">
-<span class="material-symbols-outlined text-[20px]">download</span>
-</button>
-</div>
-<!-- Doc Item -->
-<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-[12px] group">
-<div class="flex items-center gap-4">
-<div class="w-10 h-10 rounded-[8px] bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
-<span class="material-symbols-outlined">description</span>
-</div>
-<div>
-<p class="font-semibold text-sm font-headline text-on-surface">Bank_Statement_Q3.pdf</p>
-<p class="text-xs text-outline font-body mt-0.5">Verified • 1.8 MB</p>
-</div>
-</div>
-<button class="text-outline hover:text-primary-container transition-colors p-2">
-<span class="material-symbols-outlined text-[20px]">download</span>
-</button>
-</div>
-</div>
-<button class="w-full py-3 border border-dashed border-outline-variant rounded-[12px] text-primary-container font-headline text-sm font-semibold hover:bg-surface-container-low transition-colors flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-[20px]">upload</span>
-                        Upload New Document
-                    </button>
+<div id="dashboard-key-documents" class="flex flex-col gap-4 mb-6 min-h-[4rem]"></div>
 </section>
-<!-- Recent Messages Widget -->
-<section class="bg-surface-container-lowest rounded-[12px] p-8 ambient-shadow">
-<h2 class="text-xl font-headline font-bold text-on-surface mb-6 flex items-center gap-2">
+<!-- РџРѕСЃР»РµРґРЅРµРµ РІС…РѕРґСЏС‰РµРµ: РјРµРЅРµРґР¶РµСЂ РёР»Рё РїРѕРґРґРµСЂР¶РєР° -->
+<section class="bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
+<h2 class="text-lg md:text-xl font-headline font-bold text-on-surface mb-6 flex items-center gap-2">
 <span class="material-symbols-outlined text-secondary">forum</span>
-                        Concierge Desk
+                        <span data-i18n="dashboard.managerChat">Чат с менеджером</span>
                     </h2>
-<div class="bg-surface p-5 rounded-[12px] border border-outline-variant/20 mb-4">
+<div class="bg-surface p-5 rounded-[12px] border border-outline-variant/20 mb-4" id="dashboard-concierge-card">
 <div class="flex items-center gap-3 mb-3">
-<img alt="Maria K. Concierge" class="w-8 h-8 rounded-full object-cover" data-alt="Professional headshot of a woman in a business suit smiling warmly against a bright office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxMjp7Gqyb5SngggNcc38Q5whXtseLYvKVEaFh4uSlgOs3oNanCzknairCZppNN3W1mTCGGXpQg6ekSo1WVxsFiXx2lNHQxl5uSJa4jqZnI-ZIs6eawcBmDmC8V0iGQB_WBVxASs-Jo0Lx97ydPgweblfsLQWi4HwTkalmxU1Ss7SN08D66tEcn7wXmz0ArxBIU-exzGtv5eyu_dTxCXnXfwkf3gqEGp9F0zxvnSBYcW-s56pXI-ALXrPW28r-5eh1eSayMwiFR_w"/>
+<img alt="Аватар" class="w-8 h-8 rounded-full object-cover" id="dashboard-last-message-avatar" src="../img/Avatar.jpg"/>
 <div>
-<p class="text-sm font-semibold font-headline text-on-surface leading-tight">Maria K.</p>
-<p class="text-xs text-outline font-label">Senior Immigration Counsel • 2h ago</p>
+<p class="text-sm font-semibold font-headline text-on-surface leading-tight" id="dashboard-last-message-name">—</p>
+<p class="text-xs text-outline font-label" id="dashboard-last-message-meta" data-i18n="common.noMessages">Нет сообщений</p>
 </div>
 </div>
-<p class="text-sm text-on-surface-variant font-body leading-relaxed">
-                            Hello Alexey, we have finished the translations for your bank statements. Everything looks solid for the income requirement. Please review the dossier when you have a moment so we can submit it tomorrow.
-                        </p>
+<p class="text-sm text-on-surface-variant font-body leading-relaxed min-h-[3rem]" id="dashboard-last-message-text"></p>
 </div>
-<div class="flex gap-3">
-<input class="flex-1 bg-surface-container-low border-none rounded-[12px] text-sm font-body px-4 py-3 placeholder:text-outline focus:ring-1 focus:ring-primary-container focus:outline-none transition-shadow" placeholder="Type a quick reply..." type="text"/>
-<button class="w-12 h-12 bg-secondary text-on-secondary rounded-[12px] flex items-center justify-center hover:bg-secondary-container hover:text-on-secondary-container transition-colors shrink-0">
+<div class="flex gap-2 md:gap-3">
+<input class="flex-1 bg-surface-container-low border-none rounded-[12px] text-sm font-body px-4 py-3 placeholder:text-outline focus:ring-1 focus:ring-primary-container focus:outline-none transition-shadow" id="dashboard-quick-reply-input" data-i18n-placeholder="dashboard.quickReplyPlaceholder" placeholder="Быстрый ответ..." type="text"/>
+<button type="button" id="dashboard-quick-reply-send" class="w-12 h-12 bg-secondary text-on-secondary rounded-[12px] flex items-center justify-center hover:bg-secondary-container hover:text-on-secondary-container transition-colors shrink-0" data-i18n-title="dashboard.sendMessage" title="Отправить сообщение">
 <span class="material-symbols-outlined text-[20px]">send</span>
 </button>
 </div>
@@ -336,27 +415,9 @@
 </div>
 </div>
 </main>
-<!-- Mobile Bottom Nav Bar (Visible only on mobile) -->
-<nav class="md:hidden fixed bottom-0 w-full bg-surface-container-lowest/90 backdrop-blur-md pb-safe border-t border-outline-variant/15 z-50">
-<div class="flex justify-around items-center h-16">
-<a class="flex flex-col items-center gap-1 text-primary-container px-4" href="./dashboard.html">
-<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
-<span class="text-[10px] font-label font-semibold">Home</span>
-</a>
-<a class="flex flex-col items-center gap-1 text-outline px-4" href="./documents.html">
-<span class="material-symbols-outlined">description</span>
-<span class="text-[10px] font-label font-semibold">Docs</span>
-</a>
-<a class="flex flex-col items-center gap-1 text-outline px-4" href="./messages.html">
-<span class="material-symbols-outlined">chat_bubble</span>
-<span class="text-[10px] font-label font-semibold">Chat</span>
-</a>
-<a class="flex flex-col items-center gap-1 text-outline px-4" href="./profile.html">
-<span class="material-symbols-outlined">tune</span>
-<span class="text-[10px] font-label font-semibold">Settings</span>
-</a>
-</div>
-</nav>
-<script src="../js/lk.js"></script>
-<script src="../../shared/layout.js"></script>
+<script src="../js/lk-i18n.js?v=3" defer></script>
+<script src="../js/mobile-nav.js" defer></script>
+<script src="../js/lk.js?v=21" defer></script>
+<script src="../js/dashboard.js?v=4" defer></script>
+<script src="../../shared/layout.js" defer></script>
 </body></html>

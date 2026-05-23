@@ -1,0 +1,23 @@
+# Local development overlay: publish gateway, allow host access to containers.
+# Usage:
+#   docker compose --env-file .env.production -f docker-compose.production.yml -f docker-compose.local.yml up -d --build
+
+services:
+  spainza-local-proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      spainza-site:
+        condition: service_healthy
+      spainza-backend:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/gateway/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - spainza-internal
+
+networks:
+  spainza-internal:
+    internal: false

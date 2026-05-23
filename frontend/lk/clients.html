@@ -1,381 +1,330 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html class="light" lang="ru"><head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Spainza - Client Portal Dashboard</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com" rel="preconnect"/>
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-    <script id="tailwind-config">
-            tailwind.config = {
-              darkMode: "class",
-              theme: {
-                extend: {
-                  "colors": {
-                          "on-tertiary-container": "#ffddd5",
-                          "on-background": "#191b25",
-                          "tertiary-fixed-dim": "#ffb4a1",
-                          "outline": "#737688",
-                          "tertiary-fixed": "#ffdbd2",
-                          "surface-bright": "#fbf8ff",
-                          "on-error": "#ffffff",
-                          "surface": "#fbf8ff",
-                          "on-error-container": "#93000a",
-                          "on-primary-container": "#dfe3ff",
-                          "secondary-fixed": "#dde1ff",
-                          "surface-tint": "#004ced",
-                          "on-tertiary-fixed": "#3c0800",
-                          "on-primary-fixed": "#001452",
-                          "surface-container-highest": "#e1e1ef",
-                          "on-surface-variant": "#434656",
-                          "background": "#fbf8ff",
-                          "error-container": "#ffdad6",
-                          "on-surface": "#191b25",
-                          "surface-container-high": "#e7e7f5",
-                          "secondary-container": "#95aafe",
-                          "on-secondary-fixed": "#001452",
-                          "on-primary-fixed-variant": "#0038b6",
-                          "surface-container": "#ededfb",
-                          "secondary": "#4459a8",
-                          "on-secondary-container": "#253b89",
-                          "on-secondary-fixed-variant": "#2b418f",
-                          "inverse-primary": "#b7c4ff",
-                          "tertiary-container": "#bf3003",
-                          "outline-variant": "#c3c5d9",
-                          "on-secondary": "#ffffff",
-                          "inverse-surface": "#2e303a",
-                          "on-tertiary-fixed-variant": "#891e00",
-                          "secondary-fixed-dim": "#b7c4ff",
-                          "surface-container-low": "#f3f2ff",
-                          "inverse-on-surface": "#f0effe",
-                          "surface-variant": "#e1e1ef",
-                          "on-tertiary": "#ffffff",
-                          "tertiary": "#952200",
-                          "surface-dim": "#d9d9e7",
-                          "primary-fixed": "#dde1ff",
-                          "primary-container": "#0052ff",
-                          "error": "#ba1a1a",
-                          "primary-fixed-dim": "#b7c4ff",
-                          "on-primary": "#ffffff",
-                          "surface-container-lowest": "#ffffff",
-                          "primary": "#003ec7"
-                  },
-                  "borderRadius": {
-                          "DEFAULT": "0.25rem",
-                          "lg": "0.5rem",
-                          "xl": "0.75rem",
-                          "full": "9999px"
-                  },
-                  "spacing": {},
-                  "fontFamily": {
-                          "headline": [
-                                  "Manrope"
-                          ],
-                          "body": [
-                                  "Inter"
-                          ],
-                          "label": [
-                                  "Inter"
-                          ]
-                  }
-          },
-              },
+<style id="lk-gate-nav-css">[data-lk-gate]:not(.lk-gate-visible){display:none!important}</style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
+<link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="Spainza" />
+<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<link rel="stylesheet" href="/frontend/css/portal.css?v=1"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .tonal-architecture-shift { background: linear-gradient(180deg, rgba(243, 242, 255, 1) 0%, rgba(251, 248, 255, 1) 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); }
+        
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            z-index: 50;
+            overflow: hidden;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #475569;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .dropdown-item:hover {
+            background: #f8fafc;
+            color: #0052ff;
+        }
+        
+        /* Notification badge pulse animation */
+        .pulser {
+          position: relative;
+        }
+        
+        .pulser::after {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          background: #0052ff;
+          border-radius: 50%;
+          z-index: -1;
+          animation: pulse 1500ms cubic-bezier(0.9, 0.7, 0.5, 0.9) infinite;
+        }
+        
+        @keyframes pulse {
+          0% {
+            opacity: 0;
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.3);
+            opacity: 0.3;
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.5);
+          }
+        }
+
+        .add-client-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+        }
+        .add-client-modal.show {
+            display: flex;
+        }
+        @media (min-width: 768px) {
+            .add-client-modal {
+                align-items: center;
+                padding: 1rem;
             }
-          </script>
-    <style>
-              .material-symbols-outlined {
-                font-family: 'Material Symbols Outlined';
-                font-weight: normal;
-                font-style: normal;
-                font-size: 24px;  /* Preferred icon size */
-                display: inline-block;
-                line-height: 1;
-                text-transform: none;
-                letter-spacing: normal;
-                word-wrap: normal;
-                white-space: nowrap;
-                direction: ltr;
-                -webkit-font-smoothing: antialiased;
-                text-rendering: optimizeLegibility;
-                -moz-osx-font-smoothing: grayscale;
-              }
-              
-              /* Ambient shadow for cards */
-              .ambient-shadow {
-                  box-shadow: 0px 20px 40px rgba(117, 118, 130, 0.06);
-              }
-          </style>
-    </head>
-    <body class="bg-surface font-body text-on-surface min-h-screen flex" data-layout-header="false" data-layout-footer="false">
-    <!-- Mobile Top App Bar (Hidden on md+) -->
-    <header class="md:hidden flex justify-between items-center px-6 h-16 w-full fixed top-0 z-50 bg-surface/90 backdrop-blur-md shadow-[0_2px_10px_rgba(117,118,130,0.06)]">
-    <div class="text-2xl font-black tracking-tighter text-primary-container font-headline">Spainza</div>
-    <div class="flex gap-4">
-    <span class="material-symbols-outlined text-outline">notifications</span>
-    <span class="material-symbols-outlined text-outline">menu</span>
-    </div>
-    </header>
-    <!-- Side Navigation (Visible on md+) -->
-    <aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 pt-10 pb-8 bg-surface-container-lowest border-r border-outline-variant/15 z-40">
-    <div class="px-8 mb-12">
-    <div class="text-2xl font-black tracking-tighter text-primary-container font-headline mb-1">Spainza</div>
-    <div class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant font-label">Elite Intelligence</div>
-    </div>
-    <nav class="flex-1 flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6">
-    <!-- Active Tab -->
-    <a class="flex items-center gap-4 text-primary-container bg-primary-fixed/30 rounded-r-xl border-l-4 border-primary-container px-6 py-3 transition-transform active:scale-[0.98]" href="./dashboard.html">
-    <span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
-                    Главная
-                </a>
-    <!-- Inactive Tabs -->
-    <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./status.html">
-    <span class="material-symbols-outlined">folder_shared</span>
-                    Заявка
-                </a>
-    <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./documents.html">
-    <span class="material-symbols-outlined">description</span>
-                    Документы
-                </a>
-    <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./messages.html">
-    <span class="material-symbols-outlined">chat_bubble</span>
-                    Сообщения
-                </a>
-    </nav>
-    <div class="px-6 mb-8">
-    <button class="w-full py-3 px-4 bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline text-sm font-semibold rounded-[12px] flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-    <span class="material-symbols-outlined text-[20px]">add</span>
-                    Новая заявка
-                </button>
-    </div>
-    <nav class="flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6 border-t border-outline-variant/15 pt-6">
-    <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./profile.html">
-    <span class="material-symbols-outlined text-[20px]">tune</span>
-                    Настройки
-                </a>
-    <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="../ru/contact.html">
-    <span class="material-symbols-outlined text-[20px]">help_center</span>
-                    Поддержка
-                </a>
-    <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all mt-4" href="../login.html" id="logout-btn">
-    <span class="material-symbols-outlined text-[20px]">logout</span>
-                    Выход
-                </a>
-    </nav>
-    </aside>
+        }
+
+        @media (max-width: 767px) {
+            .dropdown-menu {
+                position: fixed;
+                left: 1rem;
+                right: 1rem;
+                top: auto;
+                bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+                transform: none;
+                min-width: 0;
+                border-radius: 16px;
+                box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.12);
+            }
+            .dropdown-item {
+                padding: 1rem 1.25rem;
+                font-size: 0.9375rem;
+            }
+            .clients-sort-pill.active {
+                background: #0052ff;
+                color: #fff;
+                border-color: #0052ff;
+            }
+        }
+    </style>
+<script src="../js/lk-access.js?v=1"></script>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen flex overflow-x-hidden" data-layout-header="false" data-layout-footer="false" data-lk-nav-active="clients" data-lk-page-gate="clients">
+<!-- Side Navigation (Visible on md+) -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 pt-10 pb-8 bg-surface-container-lowest border-r border-outline-variant/15 z-40">
+<div class="px-8 mb-12">
+<a href="./dashboard.html" class="text-2xl font-black tracking-tighter text-primary-container font-headline mb-1 inline-block no-underline hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">Spainza</a>
+<div class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant font-label">Elite Intelligence</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6">
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./dashboard.html">
+<span class="material-symbols-outlined">dashboard</span>
+                <span data-i18n="nav.dashboard">Главная</span>
+            </a>
+<a class="flex items-center gap-4 text-primary-container bg-primary-fixed/30 rounded-r-xl border-l-4 border-primary-container px-6 py-3 transition-transform active:scale-[0.98]" href="./clients.html" data-lk-gate="clients">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+                <span data-i18n="nav.clients">Клиенты</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./documents.html" data-lk-gate="documents">
+<span class="material-symbols-outlined">description</span>
+                <span data-i18n="nav.documents">Документы</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./configurator.html" data-lk-gate="configurator">
+<span class="material-symbols-outlined">rule_settings</span>
+                <span data-i18n="nav.configurator">Шаблоны кейсов</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./messages.html" data-lk-gate="messages">
+<span class="material-symbols-outlined">chat_bubble</span>
+                <span data-i18n="nav.messages">Сообщения</span>
+            </a>
+</nav>
+<div class="px-6 mb-8">
+<!-- <button class="w-full py-3 px-4 bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline text-sm font-semibold rounded-[12px] flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                Новая заявка
+            </button> -->
+</div>
+<nav class="flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6 border-t border-outline-variant/15 pt-6">
+<div class="px-6 mb-3">
+<div class="text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant font-label mb-2 text-center" data-i18n="common.interfaceLanguage">Язык интерфейса</div>
+<div class="flex p-1 bg-surface-container rounded-xl border border-outline-variant/20">
+<button class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-primary" data-locale-btn="ru" type="button" data-i18n="common.langRu">Русский</button>
+<button class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-primary transition-colors" data-locale-btn="en" type="button" data-i18n="common.langEn">English</button>
+</div>
+</div>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./profile.html">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+                <span data-i18n="nav.profile">Профиль</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./support.html">
+<span class="material-symbols-outlined text-[20px]">help_center</span>
+                <span data-i18n="nav.support">Поддержка</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all mt-4" href="../login.html" id="logout-btn">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                <span data-i18n="nav.logout">Выход</span>
+            </a>
+</nav>
+</aside>
 <!-- Main Content Wrapper -->
-<main class="ml-[280px] min-h-screen">
-<!-- TopAppBar -->
-<header class="fixed top-0 right-0 w-[calc(100%-280px)] z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md shadow-[0px_20px_40px_rgba(117,118,130,0.06)] flex justify-between items-center px-8 h-20">
-<div class="flex items-center gap-6">
-<div class="relative w-96">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-<input class="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Поиск по ID или клиенту..." type="text"/>
-</div>
-</div>
-<div class="flex items-center gap-4">
-<button class="p-2 rounded-xl text-slate-500 hover:bg-slate-50 transition-all relative">
-<span class="material-symbols-outlined">notifications</span>
-<span class="absolute top-2 right-2 w-2 h-2 bg-tertiary-container rounded-full"></span>
-</button>
-<div class="h-8 w-px bg-slate-200 mx-2"></div>
-<div class="flex items-center gap-3 px-2 py-1 rounded-xl hover:bg-slate-50 transition-all cursor-pointer">
-<div class="text-right">
-<p class="text-xs font-bold text-slate-800 font-manrope">Администратор</p>
-<p class="text-[10px] text-slate-500">Система Spainza</p>
-</div>
-<img class="w-10 h-10 rounded-xl object-cover shadow-sm" data-alt="professional male admin in a corporate suit with a serious confident expression, soft office lighting background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvYHT3374n-2kTcRZ7BGeowj0qSxAAdSS8afZ0FCDWe663oglXWFVQHwgDMyCwdHocPqmFUxwytWMoht69t4gnq9KoeaugIlGmiyjwU9pxalZ1oZk1Ho7Nek5mZLoNFi6kpTBgJh0bVw2mGrZJn0btoiClfylHTM1SUsvstSQXP0D5sJh2JewSEnphqmI8Lua0QVwQUhzFA_4G7zRQn54atLEH3iv2kxI0of-Bd2d9xvYcPDSxN47fvX1BSo99Y6QmyJjEVbm1V3o"/>
-</div>
-</div>
-</header>
+<main class="flex-1 md:ml-64 w-full min-h-screen">
 <!-- Page Content -->
-<div class="pt-28 px-10 pb-12">
+<div class="pt-20 md:pt-28 px-4 sm:px-6 md:px-10 pb-8 md:pb-12">
 <!-- Header Section -->
-<div class="flex justify-between items-end mb-10">
-<div>
-<h2 class="text-4xl font-extrabold text-slate-800 font-manrope tracking-tighter mb-2">Список заявок</h2>
-<p class="text-slate-500 font-medium">Управление текущими миграционными процессами и документами.</p>
+<div class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end mb-6 md:mb-10">
+<div class="min-w-0">
+<h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-800 font-manrope tracking-tighter mb-1.5 md:mb-2" data-i18n="clients.title">Список пользователей</h2>
+<p class="text-sm md:text-base text-slate-500 font-medium leading-snug"><span data-i18n="clients.subtitle">Просмотр пользователей доступных для вашей роли:</span> <span id="viewer-role" class="font-bold text-primary"></span></p>
 </div>
-<button class="flex items-center gap-2 bg-primary px-6 py-3 text-white rounded-xl font-bold font-manrope shadow-lg hover:shadow-primary/30 transition-all">
-<span class="material-symbols-outlined">ios_share</span>
-                    Export Report
+<button type="button" id="add-client-open-btn" class="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 bg-primary px-5 md:px-6 py-3 text-white rounded-xl font-bold font-manrope text-sm md:text-base shadow-lg hover:shadow-primary/30 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-[22px]">person_add</span>
+                    <span data-i18n="clients.addUser">Добавить пользователя</span>
                 </button>
 </div>
-<!-- Filters & Stats Bento -->
-<div class="grid grid-cols-12 gap-6 mb-8">
-<!-- Status Filter -->
-<div class="col-span-8 glass-card p-1 rounded-2xl flex items-center gap-1">
-<button class="flex-1 py-3 px-4 rounded-xl bg-white shadow-sm text-primary font-bold text-sm transition-all">Все заявки</button>
-<button class="flex-1 py-3 px-4 rounded-xl text-slate-500 hover:text-slate-800 font-semibold text-sm transition-all">На проверке</button>
-<button class="flex-1 py-3 px-4 rounded-xl text-slate-500 hover:text-slate-800 font-semibold text-sm transition-all">Требует действия</button>
-<button class="flex-1 py-3 px-4 rounded-xl text-slate-500 hover:text-slate-800 font-semibold text-sm transition-all">Одобрено</button>
-</div>
-<!-- Type Filter -->
-<div class="col-span-4 relative">
-<select class="w-full h-full bg-white border-none rounded-2xl shadow-sm px-6 font-manrope font-semibold text-slate-700 focus:ring-2 focus:ring-primary/10 transition-all appearance-none">
-<option>Все типы виз</option>
-<option>Digital Nomad</option>
-<option>Golden Visa</option>
-<option>Студенческая</option>
-</select>
-<span class="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+<!-- Mobile: сортировка -->
+<div class="md:hidden mb-4" id="clients-mobile-sort" aria-label="Сортировка списка">
+<p class="text-[10px] font-bold font-manrope uppercase tracking-widest text-slate-400 mb-2" data-i18n="clients.sortLabel">Сортировка</p>
+<div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+<button type="button" class="clients-sort-pill shrink-0 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-600 transition-colors active" data-mobile-sort="pending_action" data-i18n="clients.sortPending">Ожидают действия</button>
+<button type="button" class="clients-sort-pill shrink-0 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-600 transition-colors" data-mobile-sort="role" data-i18n="clients.sortRole">Статус</button>
+<button type="button" class="clients-sort-pill shrink-0 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-600 transition-colors" data-mobile-sort="target_date" data-i18n="clients.sortConsulate">Консульство</button>
+<button type="button" class="clients-sort-pill shrink-0 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-600 transition-colors" data-mobile-sort="date" data-i18n="clients.sortRegistration">Регистрация</button>
+<button type="button" class="clients-sort-pill shrink-0 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-600 transition-colors" data-mobile-sort="id">ID</button>
 </div>
 </div>
-<!-- Main Data Table Container -->
-<div class="bg-white rounded-[24px] shadow-[0px_20px_40px_rgba(117,118,130,0.04)] overflow-hidden">
+
+<!-- Mobile: карточки -->
+<div class="md:hidden space-y-2" id="users-cards-list" aria-live="polite">
+<div class="bg-white rounded-2xl shadow-[0px_12px_32px_rgba(117,118,130,0.06)] p-8 text-center text-slate-500">
+<div class="flex flex-col items-center gap-3">
+<span class="material-symbols-outlined text-5xl text-slate-300 animate-pulse">groups</span>
+<p class="font-semibold min-h-[1.25rem] text-sm"></p>
+</div>
+</div>
+</div>
+
+<!-- Desktop: таблица -->
+<div class="hidden md:block bg-white rounded-[24px] shadow-[0px_20px_40px_rgba(117,118,130,0.04)] overflow-hidden">
 <table class="w-full text-left border-collapse">
 <thead>
-<tr class="bg-slate-50/50">
-<th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400">ID</th>
-<th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400">Клиент</th>
-<th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400">Тип визы</th>
-<th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400">Дата подачи</th>
-<th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400">Статус</th>
-<th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400 text-right">Действия</th>
-</tr>
+    <tr class="bg-slate-50/50">
+        <th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400 cursor-pointer hover:text-primary transition-colors select-none" onclick="sortTable('id')">
+            <div class="flex items-center gap-2">
+                ID
+                <span class="material-symbols-outlined text-[16px] sort-icon" data-sort="id">unfold_more</span>
+            </div>
+        </th>
+        <th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400 cursor-pointer hover:text-primary transition-colors select-none" onclick="sortTable('pending_action')">
+            <div class="flex items-center gap-2">
+                <span data-i18n="clients.sortPending">Ожидают действия</span>
+                <span class="material-symbols-outlined text-[16px] sort-icon text-primary" data-sort="pending_action">arrow_downward</span>
+            </div>
+        </th>
+        <th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400 cursor-pointer hover:text-primary transition-colors select-none" onclick="sortTable('role')">
+            <div class="flex items-center gap-2">
+                <span data-i18n="clients.sortRole">Статус</span>
+                <span class="material-symbols-outlined text-[16px] sort-icon" data-sort="role">unfold_more</span>
+            </div>
+        </th>
+        <th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400 cursor-pointer hover:text-primary transition-colors select-none" onclick="sortTable('target_date')">
+            <div class="flex items-center gap-2">
+                <span data-i18n="clients.consulateCol">Дата записи в консульство</span>
+                <span class="material-symbols-outlined text-[16px] sort-icon" data-sort="target_date">unfold_more</span>
+            </div>
+        </th>
+        <th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400 cursor-pointer hover:text-primary transition-colors select-none" onclick="sortTable('date')">
+            <div class="flex items-center gap-2">
+                <span data-i18n="clients.registrationCol">Дата регистрации</span>
+                <span class="material-symbols-outlined text-[16px] sort-icon" data-sort="date">unfold_more</span>
+            </div>
+        </th>
+        <th class="px-8 py-5 text-[11px] font-bold font-manrope uppercase tracking-widest text-slate-400 text-right" data-i18n="clients.sortActions">Действия</th>
+    </tr>
 </thead>
-<tbody class="divide-y divide-slate-100">
-<!-- Row 1 -->
-<tr class="hover:bg-slate-50/80 transition-colors group">
-<td class="px-8 py-6 font-manrope font-bold text-slate-400">#SP-4402</td>
-<td class="px-8 py-6">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold text-xs">АВ</div>
-<div>
-<p class="font-bold text-slate-800">Александр Волков</p>
-<p class="text-xs text-slate-500">volkov@example.com</p>
+<tbody class="divide-y divide-slate-100" id="users-table-body">
+<!-- Loading state -->
+<tr>
+<td colspan="6" class="px-8 py-12 text-center text-slate-500">
+<div class="flex flex-col items-center gap-3">
+<span class="material-symbols-outlined text-5xl text-slate-300 animate-pulse">groups</span>
+<p class="font-semibold min-h-[1.25rem]"></p>
 </div>
-</div>
-</td>
-<td class="px-8 py-6">
-<span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold font-manrope">Digital Nomad</span>
-</td>
-<td class="px-8 py-6 text-sm text-slate-600">12 Окт 2023</td>
-<td class="px-8 py-6">
-<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 text-blue-600 text-[11px] font-bold uppercase tracking-wider">
-<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                    Review
-                                </span>
-</td>
-<td class="px-8 py-6 text-right">
-<button class="p-2 rounded-xl hover:bg-white hover:shadow-sm transition-all text-slate-400 hover:text-primary">
-<span class="material-symbols-outlined">more_vert</span>
-</button>
-</td>
-</tr>
-<!-- Row 2 -->
-<tr class="hover:bg-slate-50/80 transition-colors group">
-<td class="px-8 py-6 font-manrope font-bold text-slate-400">#SP-4398</td>
-<td class="px-8 py-6">
-<div class="flex items-center gap-3">
-<img class="w-10 h-10 rounded-full object-cover" data-alt="close up portrait of a professional woman smiling softly, natural soft lighting with blurred greenery in background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKps-T8CPebPvZnI289RaOgM_hVHYPh9cs7brFtB_uGiIUWKlOu5qO6pO8NnBlatOzQMOXPSwTwMRm-f5smPcq90DCOQfp5UTsUig8lwkvsj6GU0a_CZ9gMSadeQGeVo3Yd1bebB-_OB9Y5rWd_uuyKKP8C1Ui5VL8J7h3WcVruorprJQarAd-teKztBmK0erAKFUjGAj3mHfgfH-nPJ-d77Mr97990KOZ9wCSg3eTw9MHL_q9lRUtz10WOy3LJwzrRgRqIwIxXp4"/>
-<div>
-<p class="font-bold text-slate-800">Елена Смирнова</p>
-<p class="text-xs text-slate-500">elena.s@example.com</p>
-</div>
-</div>
-</td>
-<td class="px-8 py-6">
-<span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold font-manrope">Golden Visa</span>
-</td>
-<td class="px-8 py-6 text-sm text-slate-600">10 Окт 2023</td>
-<td class="px-8 py-6">
-<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-tertiary-container/10 text-tertiary-container text-[11px] font-bold uppercase tracking-wider">
-<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>
-                                    Action Required
-                                </span>
-</td>
-<td class="px-8 py-6 text-right">
-<button class="p-2 rounded-xl hover:bg-white hover:shadow-sm transition-all text-slate-400 hover:text-primary">
-<span class="material-symbols-outlined">more_vert</span>
-</button>
-</td>
-</tr>
-<!-- Row 3 -->
-<tr class="hover:bg-slate-50/80 transition-colors group">
-<td class="px-8 py-6 font-manrope font-bold text-slate-400">#SP-4395</td>
-<td class="px-8 py-6">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs">ДП</div>
-<div>
-<p class="font-bold text-slate-800">Дмитрий Петров</p>
-<p class="text-xs text-slate-500">dima.p@example.com</p>
-</div>
-</div>
-</td>
-<td class="px-8 py-6">
-<span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold font-manrope">Студенческая</span>
-</td>
-<td class="px-8 py-6 text-sm text-slate-600">08 Окт 2023</td>
-<td class="px-8 py-6">
-<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-[11px] font-bold uppercase tracking-wider">
-<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    Approved
-                                </span>
-</td>
-<td class="px-8 py-6 text-right">
-<button class="p-2 rounded-xl hover:bg-white hover:shadow-sm transition-all text-slate-400 hover:text-primary">
-<span class="material-symbols-outlined">more_vert</span>
-</button>
-</td>
-</tr>
-<!-- Row 4 -->
-<tr class="hover:bg-slate-50/80 transition-colors group">
-<td class="px-8 py-6 font-manrope font-bold text-slate-400">#SP-4392</td>
-<td class="px-8 py-6">
-<div class="flex items-center gap-3">
-<img class="w-10 h-10 rounded-full object-cover" data-alt="professional male portrait with high end lighting, neutral background, sharp business casual attire" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWS0uJMhpuheUubtxwOpA3MIyiFivrBol8ItqnQUuYRh60NwqosPo2OgYXs4MQufbIGwnTeoBztGRYk917F2ApInr6ewscsZy9i_Hri3DyWXODCWyE9BpSZCm8p62Wvr8C2leU6pxBknfRWfiDAhHqgs6v5aSfWk0aSPEJEJFZFGJviNQnF4J2mCB3iSjoVDRtOx5mghLaiMX8E9FIf1NzKx_rWueGcQ8OjxqrylYVhpmUPIq-vl97ySYYp4sfIB7X-CddcBrYNXo"/>
-<div>
-<p class="font-bold text-slate-800">Иван Иванов</p>
-<p class="text-xs text-slate-500">ivan.i@example.com</p>
-</div>
-</div>
-</td>
-<td class="px-8 py-6">
-<span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold font-manrope">Digital Nomad</span>
-</td>
-<td class="px-8 py-6 text-sm text-slate-600">05 Окт 2023</td>
-<td class="px-8 py-6">
-<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 text-blue-600 text-[11px] font-bold uppercase tracking-wider">
-<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                    Review
-                                </span>
-</td>
-<td class="px-8 py-6 text-right">
-<button class="p-2 rounded-xl hover:bg-white hover:shadow-sm transition-all text-slate-400 hover:text-primary">
-<span class="material-symbols-outlined">more_vert</span>
-</button>
 </td>
 </tr>
 </tbody>
 </table>
-<!-- Pagination Footer -->
-<div class="px-8 py-6 flex items-center justify-between border-t border-slate-50">
-<p class="text-xs text-slate-500 font-medium">Показано <span class="text-slate-800">4</span> из <span class="text-slate-800">128</span> заявок</p>
-<div class="flex items-center gap-2">
-<button class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all">
-<span class="material-symbols-outlined">chevron_left</span>
-</button>
-<button class="w-10 h-10 rounded-xl bg-primary text-white font-bold text-xs">1</button>
-<button class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all font-bold text-xs">2</button>
-<button class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all font-bold text-xs">3</button>
-<button class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all">
-<span class="material-symbols-outlined">chevron_right</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Footer Meta -->
-<div class="mt-12 flex items-center justify-between opacity-60">
-<p class="text-[10px] font-manrope uppercase tracking-widest font-bold text-slate-400">© 2023 Spainza Sovereign Navigator — Admin Portal v2.4.0</p>
-<div class="flex gap-6">
-<a class="text-[10px] font-manrope uppercase tracking-widest font-bold text-slate-400 hover:text-primary transition-colors" href="../ru/terms-of-service.html">Documentation</a>
-<a class="text-[10px] font-manrope uppercase tracking-widest font-bold text-slate-400 hover:text-primary transition-colors" href="../ru/contact-support.html">Support Center</a>
-</div>
 </div>
 </div>
 </main>
+
+<!-- Модальное окно: добавить клиента -->
+<div id="add-client-modal" class="add-client-modal" aria-hidden="true">
+<div class="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl max-w-lg w-full max-h-[92dvh] md:max-h-[90vh] overflow-y-auto p-6 md:p-8 relative md:mx-auto self-end md:self-center" role="dialog" aria-labelledby="add-client-modal-title">
+<button type="button" id="add-client-modal-close" class="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors" aria-label="Закрыть">
+<span class="material-symbols-outlined">close</span>
+</button>
+<h3 id="add-client-modal-title" class="text-2xl font-extrabold text-slate-800 font-manrope mb-2 pr-10" data-i18n="clients.addClientTitle">Добавить клиента</h3>
+<p class="text-sm text-slate-500 mb-8" data-i18n="clients.addClientLead">Закрепите клиента за собой по ID или отправьте ссылку-приглашение на регистрацию.</p>
+
+<div class="space-y-8">
+<section class="rounded-2xl border border-slate-200 bg-slate-50/50 p-6">
+<h4 class="text-sm font-bold font-manrope uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+                <span data-i18n="clients.addById">Добавить по ID</span>
+            </h4>
+<p class="text-xs text-slate-500 mb-4" data-i18n="clients.addByIdHint">Вставьте код клиента: две латинские буквы и четыре цифры (как на дашборде и в профиле). По желанию для старых записей поддерживается числовой ID.</p>
+<div class="flex flex-col sm:flex-row gap-3">
+<input type="text" inputmode="text" autocomplete="off" id="add-client-by-id-input" data-i18n-placeholder="clients.idPlaceholder" placeholder="Например, AB0123" class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 font-semibold focus:ring-2 focus:ring-primary/25 focus:border-primary uppercase"/>
+<button type="button" id="add-client-by-id-submit" class="shrink-0 rounded-xl bg-primary px-5 py-3 text-white font-bold font-manrope text-sm hover:opacity-95 transition-opacity" data-i18n="clients.assignBtn">Закрепить</button>
+</div>
+<p id="add-client-by-id-message" class="mt-3 text-sm hidden" role="status"></p>
+</section>
+
+<section class="rounded-2xl border border-slate-200 bg-slate-50/50 p-6">
+<h4 class="text-sm font-bold font-manrope uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">link</span>
+                <span data-i18n="clients.inviteLink">Ссылка-приглашение</span>
+            </h4>
+<p class="text-xs text-slate-500 mb-4" data-i18n="clients.inviteHint">Если клиент зарегистрируется по этой ссылке, он автоматически закрепится за вами.</p>
+<div class="flex flex-col gap-3">
+<div class="flex gap-2">
+<input type="text" id="add-client-invite-url" readonly class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600 font-mono truncate"/>
+<button type="button" id="add-client-invite-copy" class="shrink-0 rounded-xl border-2 border-primary bg-white px-4 py-3 text-primary font-bold text-sm hover:bg-primary/5 transition-colors" data-i18n="clients.copy">Копировать</button>
+</div>
+<p id="add-client-invite-hint" class="text-xs text-slate-400"></p>
+</div>
+</section>
+</div>
+</div>
+</div>
+
+<script src="../js/lk-i18n.js?v=4" defer></script>
+<script src="../js/mobile-nav.js" defer></script>
+<script src="../js/lk.js?v=21" defer></script>
+<script src="../js/clients.js?v=4" defer></script>
 </body></html>

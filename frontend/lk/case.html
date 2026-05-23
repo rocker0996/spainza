@@ -1,0 +1,481 @@
+﻿<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<style id="lk-gate-nav-css">[data-lk-gate]:not(.lk-gate-visible){display:none!important}</style>
+<script src="../js/lk-access.js?v=1"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
+<link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="Spainza" />
+<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<link rel="stylesheet" href="/frontend/css/portal.css?v=1"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .tonal-architecture-shift { background: linear-gradient(180deg, rgba(243, 242, 255, 1) 0%, rgba(251, 248, 255, 1) 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); }
+        
+        /* Remove default select arrow completely */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: none !important;
+        }
+        #timeline-container select.case-step-status {
+            -webkit-appearance: menulist;
+            appearance: auto;
+            background-image: revert !important;
+            padding-right: 2rem;
+        }
+        
+        /* Ensure no background on select in all states */
+        select::-ms-expand {
+            display: none;
+        }
+        
+        /* Drag handle only */
+        .drag-handle {
+            cursor: grab;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        
+        /* History modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        
+        /* Notification badge pulse animation */
+        .pulser {
+          position: relative;
+        }
+        
+        .pulser::after {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          background: #0052ff;
+          border-radius: 50%;
+          z-index: -1;
+          animation: pulse 1500ms cubic-bezier(0.9, 0.7, 0.5, 0.9) infinite;
+        }
+        
+        @keyframes pulse {
+          0% {
+            opacity: 0;
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.3);
+            opacity: 0.3;
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.5);
+          }
+        }
+/* График заявки: поля шага */
+        .case-step-textarea {
+            width: 100%;
+            min-width: 0;
+            border-radius: 0.75rem;
+            border: 1px solid rgb(226 232 240);
+            background: #fff;
+            padding: 0.625rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .case-step-textarea:focus {
+            outline: none;
+            border-color: rgb(59 130 246);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+        }
+        .case-step-textarea:read-only {
+            background: rgb(248 250 252);
+            color: rgb(71 85 105);
+            cursor: default;
+            resize: none;
+        }
+        .case-step-textarea:not(:read-only):not(.case-step-autosize) {
+            resize: vertical;
+        }
+        .case-step-textarea.case-step-autosize {
+            resize: none;
+            overflow-x: hidden;
+        }
+        .case-step-title {
+            font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            line-height: 1.45;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen flex overflow-x-hidden" data-layout-header="false" data-layout-footer="false" data-lk-nav-active="clients" data-lk-page-gate="case">
+<!-- Side Navigation (Visible on md+) -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 pt-10 pb-8 bg-surface-container-lowest border-r border-outline-variant/15 z-40">
+<div class="px-8 mb-12">
+<a href="./dashboard.html" class="text-2xl font-black tracking-tighter text-primary-container font-headline mb-1 inline-block no-underline hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">Spainza</a>
+<div class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant font-label">Elite Intelligence</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6">
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./dashboard.html">
+<span class="material-symbols-outlined">dashboard</span>
+                <span data-i18n="nav.dashboard">Главная</span>
+            </a>
+<a class="flex items-center gap-4 text-primary-container bg-primary-fixed/30 rounded-r-xl border-l-4 border-primary-container px-6 py-3 transition-transform active:scale-[0.98]" href="./clients.html" data-lk-gate="clients">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+                <span data-i18n="nav.clients">Клиенты</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./documents.html" data-lk-gate="documents">
+<span class="material-symbols-outlined">description</span>
+                <span data-i18n="nav.documents">Документы</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./configurator.html" data-lk-gate="configurator">
+<span class="material-symbols-outlined">rule_settings</span>
+                <span data-i18n="nav.configurator">Шаблоны кейсов</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./messages.html" data-lk-gate="messages">
+<span class="material-symbols-outlined">chat_bubble</span>
+                <span data-i18n="nav.messages">Сообщения</span>
+            </a>
+</nav>
+<div class="px-6 mb-8">
+<!-- <button class="w-full py-3 px-4 bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline text-sm font-semibold rounded-[12px] flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                Новая заявка
+            </button> -->
+</div>
+<nav class="flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6 border-t border-outline-variant/15 pt-6">
+<div class="px-6 mb-3">
+<div class="text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant font-label mb-2 text-center" data-i18n="common.interfaceLanguage">Язык интерфейса</div>
+<div class="flex p-1 bg-surface-container rounded-xl border border-outline-variant/20">
+<button class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-primary" data-locale-btn="ru" type="button" data-i18n="common.langRu">Русский</button>
+<button class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-primary transition-colors" data-locale-btn="en" type="button" data-i18n="common.langEn">English</button>
+</div>
+</div>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./profile.html">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+                <span data-i18n="nav.profile">Профиль</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./support.html">
+<span class="material-symbols-outlined text-[20px]">help_center</span>
+                <span data-i18n="nav.support">Поддержка</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all mt-4" href="../login.html" id="logout-btn">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                <span data-i18n="nav.logout">Выход</span>
+            </a>
+</nav>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="flex-1 md:ml-64 min-h-screen bg-slate-50/30 w-full">
+<!-- Page Content -->
+<div class="pt-24 md:pt-12 px-4 sm:px-6 lg:px-10 pb-8 md:pb-12 max-w-7xl mx-auto w-full flex-1">
+<!-- Header Section -->
+<div class="mb-10 flex min-w-0 flex-col justify-between gap-4 md:flex-row md:items-start md:gap-6">
+<div class="min-w-0 w-full md:flex-1 md:min-w-0">
+<div class="mb-3 flex min-w-0 flex-wrap items-center gap-2">
+<span id="case-number" class="bg-blue-100 text-blue-700 font-manrope text-[11px] font-bold px-2 py-1 rounded uppercase tracking-wider max-w-full truncate"></span>
+<span class="bg-slate-100 text-slate-600 font-manrope text-[11px] font-bold px-2 py-1 rounded inline-flex items-center gap-1 uppercase tracking-wider max-w-full min-w-0">
+<span class="material-symbols-outlined text-[14px] shrink-0">public</span> <span id="case-country-badge" class="truncate min-w-0"></span>
+                        </span>
+</div>
+<h1 id="case-title" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-800 font-manrope tracking-tight break-words min-w-0"></h1>
+<p class="text-sm font-body text-slate-500 mt-1" data-i18n="case.autoSaveHint">*Все изменения сохраняются автоматически.</p>
+</div>
+<div class="flex w-full min-w-0 shrink-0 flex-nowrap items-center gap-1.5 sm:gap-3 md:w-auto md:max-w-none">
+<a href="./clients.html" aria-label="Назад к списку клиентов" class="inline-flex h-10 min-w-[2.5rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2 py-2 font-manrope text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 sm:min-w-0 sm:justify-start sm:px-5 sm:py-2.5 sm:text-sm">
+<span class="material-symbols-outlined shrink-0 text-[18px] sm:text-[18px]">arrow_back</span>
+<span class="hidden sm:inline" data-i18n="common.back">Назад</span>
+                    </a>
+<button id="history-btn" type="button" aria-label="История изменений кейса" class="inline-flex h-10 min-w-[2.5rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2 py-2 font-manrope text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 sm:min-w-0 sm:justify-start sm:px-5 sm:py-2.5 sm:text-sm">
+<span class="material-symbols-outlined shrink-0 text-[18px]">history</span>
+<span class="hidden sm:inline" data-i18n="common.history">История</span>
+                    </button>
+<label title="Режим редактирования" class="inline-flex min-h-10 min-w-0 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-1.5 shadow-sm transition-all hover:bg-slate-50 sm:h-10 sm:gap-2 sm:px-5 sm:py-2.5">
+<div class="relative shrink-0">
+<input id="edit-mode-toggle" class="sr-only peer" type="checkbox"/>
+<div class="block bg-slate-200 w-10 h-6 rounded-full transition-colors duration-300 peer-checked:bg-blue-100"></div>
+<div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 peer-checked:translate-x-4 shadow-sm border border-slate-100 peer-checked:border-blue-200"></div>
+</div>
+<div class="min-w-0 font-manrope font-bold leading-snug text-blue-600">
+<span class="inline-block max-w-[7rem] text-left text-[10px] sm:hidden" data-i18n="case.editMode">Режим редактирования</span>
+<span class="hidden whitespace-nowrap text-sm sm:inline" data-i18n="case.editMode">Режим редактирования</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Two Column Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 min-w-0 lg:items-start">
+<!-- Left Column (Main Content) -->
+<div class="lg:col-span-8 space-y-8 min-w-0">
+    <!-- Visa Type Configuration -->
+    <section class="bg-white rounded-[24px] p-5 sm:p-6 lg:p-8 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-manrope text-lg font-bold text-slate-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-500">description</span>
+                        <span data-i18n="case.programConfig">Конфигурация программы</span>
+                    </h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <label class="font-manrope text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="case.visaPath">Визовый путь</label>
+                <div class="relative">
+                    <select id="visa-type" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 block p-3.5 transition-colors shadow-sm font-body">
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                        <span class="material-symbols-outlined text-[20px]">expand_more</span>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="font-manrope text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="case.consulateDate">Дата записи в консульство</label>
+                <div class="relative">
+                    <input id="target-date" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 block p-3.5 transition-colors shadow-sm font-body" type="date"/>
+                    <span id="target-date-placeholder" class="absolute inset-y-0 left-0 flex items-center px-3.5 pointer-events-none text-slate-400 text-sm font-semibold font-body select-none" aria-hidden="true"></span>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div class="space-y-2">
+                <label class="font-manrope text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="case.country">Страна кейса</label>
+                <div class="relative">
+                    <input id="case-country-input" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 block p-3.5 transition-colors shadow-sm font-body" type="text" data-i18n-placeholder="case.countryPlaceholder" placeholder="Например: Испания"/>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="font-manrope text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="case.archive">Архив готового кейса</label>
+                <div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                    <input id="case-archive" class="hidden" type="file" accept=".zip,.rar,.7z,.tar,.gz"/>
+                    <button type="button" id="case-archive-pick-btn" class="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 font-manrope text-xs font-bold text-blue-600 transition hover:bg-blue-100" data-i18n="case.archiveChooseFile">Выберите файл</button>
+                    <span id="case-archive-filename" class="min-w-0 truncate text-xs font-body text-slate-600" data-i18n="case.archiveNoFile">Файл не выбран</span>
+                </div>
+                <p id="case-archive-status" class="text-xs text-slate-500 font-body" data-i18n="case.archiveEmpty">Архив не загружен</p>
+            </div>
+        </div>
+    </section>
+    <!-- Timeline Management -->
+<section class="bg-white rounded-[24px] p-5 sm:p-6 lg:p-8 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100">
+<div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6 sm:mb-8">
+<div class="min-w-0">
+<h3 class="font-manrope text-lg font-bold text-slate-800 flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-500 shrink-0">route</span>
+<span data-i18n="case.timelineTitle">График заявки</span>
+</h3>
+<p class="text-sm font-body text-slate-500 mt-1.5 leading-relaxed max-w-2xl" data-i18n="case.timelineLead">Установите порядок действий по кейсу клиента. Он сможет увидеть этот порядок на главной странице. Это поможет держать клиента в курсе этапа кейса и сроков.</p>
+</div>
+<button id="add-step-btn" type="button" class="w-full sm:w-auto shrink-0 justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 font-manrope text-sm font-bold py-2.5 px-5 rounded-xl transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span data-i18n="case.addStep">Добавить шаг</span>
+</button>
+</div>
+<div id="timeline-container" class="flex flex-col gap-5 min-h-[8rem]" aria-busy="true"></div>
+</section>
+</div>
+<!-- Right Column (Side Panel): на мобильных сначала «Запросы документов», на lg+ — «Владелец кейса» сверху -->
+<div class="lg:col-span-4 min-w-0 flex flex-col-reverse gap-6 lg:flex-col lg:self-start">
+<!-- Team Assignment -->
+<div class="bg-white rounded-[24px] p-5 sm:p-6 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100">
+<h4 class="font-manrope text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-5" data-i18n="case.worksOnCase">Работает над кейсом:</h4>
+<p class="text-sm font-body text-slate-500 mb-5" data-i18n="case.managersLead">Назначьте клиенту персонального менеджера (виден клиенту) и дополнительного (клиент его не видит). Укажите публичный номер сотрудника: две латинские буквы и четыре цифры — тот же, что в его профиле после регистрации.</p>
+<div class="space-y-5">
+<div>
+<label class="text-sm font-bold text-slate-700 block mb-2 font-manrope" data-i18n="case.personalManager">Персональный менеджер</label>
+<div id="manager-display" class="hidden items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+<div id="manager-avatar" class="h-9 w-9 rounded-full overflow-hidden bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm font-manrope"></div>
+<div class="flex-1">
+<div id="manager-name" class="text-sm font-semibold text-slate-800"></div>
+<div id="manager-email" class="text-xs text-slate-500"></div>
+<div id="manager-public-id" class="hidden text-xs font-mono font-semibold text-slate-600 tracking-wide mt-0.5"></div>
+</div>
+<button onclick="clearManager()" class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div id="manager-input-container" class="flex min-w-0 flex-row items-stretch gap-2">
+<input id="manager-id-input" type="text" inputmode="text" maxlength="6" autocomplete="off" autocorrect="off" spellcheck="false" data-i18n-placeholder="case.managerIdPlaceholder" placeholder="Например AB0123" class="min-w-0 flex-1 bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 transition-colors font-mono uppercase"/>
+<button onclick="assignManager()" type="button" class="flex shrink-0 items-center justify-center self-stretch bg-blue-600 px-4 py-2.5 text-white transition-colors hover:bg-blue-700 rounded-xl">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</button>
+</div>
+<div id="manager-error" class="hidden text-xs text-red-500 mt-1 font-manrope"></div>
+</div>
+<div>
+<label class="text-sm font-bold text-slate-700 block mb-2 font-manrope" data-i18n="case.additionalManager">Дополнительный менеджер</label>
+<div id="referral-display" class="hidden items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+<div id="referral-avatar" class="h-9 w-9 rounded-full overflow-hidden bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm font-manrope"></div>
+<div class="flex-1">
+<div id="referral-name" class="text-sm font-semibold text-slate-800"></div>
+<div id="referral-email" class="text-xs text-slate-500"></div>
+<div id="referral-public-id" class="hidden text-xs font-mono font-semibold text-slate-600 tracking-wide mt-0.5"></div>
+</div>
+<button onclick="clearReferral()" class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div id="referral-input-container" class="flex min-w-0 flex-row items-stretch gap-2">
+<input id="referral-id-input" type="text" inputmode="text" maxlength="6" autocomplete="off" autocorrect="off" spellcheck="false" data-i18n-placeholder="case.managerIdPlaceholder" placeholder="Например AB0123" class="min-w-0 flex-1 bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 transition-colors font-mono uppercase"/>
+<button onclick="assignReferral()" type="button" class="flex shrink-0 items-center justify-center self-stretch bg-blue-600 px-4 py-2.5 text-white transition-colors hover:bg-blue-700 rounded-xl">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</button>
+</div>
+<div id="referral-error" class="hidden text-xs text-red-500 mt-1 font-manrope"></div>
+</div>
+</div>
+</div>
+<!-- Document Requests -->
+<div class="bg-white rounded-[24px] p-5 sm:p-6 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100 flex flex-col">
+<div class="flex justify-between items-center mb-4">
+<h4 class="font-manrope text-[11px] font-bold text-slate-400 uppercase tracking-widest" data-i18n="case.docRequests">Запросы документов</h4>
+<button id="add-custom-doc-btn" class="text-blue-500 hover:bg-blue-50 p-1 rounded-lg transition-colors" title="Добавить пользовательский запрос">
+<span class="material-symbols-outlined text-[20px]">add_box</span>
+</button>
+</div>
+<p class="text-sm font-body text-slate-500 mb-5" data-i18n="case.docRequestsLead">Выберите документы для отправки запроса клиенту. Эти документы будут отображаться на странице «Клиенты» в пункте «Посмотреть документы».</p>
+<div id="document-requests-list" class="overflow-x-hidden space-y-2 pr-2 max-h-[min(52vh,26rem)] overflow-y-auto custom-scrollbar">
+<!-- Template Item -->
+<label class="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent hover:border-slate-200 group min-w-0">
+<input checked="" class="mt-1 rounded border-slate-300 text-blue-600 focus:ring-blue-500 shrink-0" type="checkbox"/>
+<div class="min-w-0 flex-1">
+<span class="block text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors font-manrope break-words">Загранпаспорт</span>
+<span class="block text-xs text-slate-500 mt-0.5 break-words">Скан высокого разрешения, все страницы.</span>
+</div>
+</label>
+<label class="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent hover:border-slate-200 group min-w-0">
+<input checked="" class="mt-1 rounded border-slate-300 text-blue-600 focus:ring-blue-500 shrink-0" type="checkbox"/>
+<div class="min-w-0 flex-1">
+<span class="block text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors font-manrope break-words">Банковские выписки (6 мес.)</span>
+<span class="block text-xs text-slate-500 mt-0.5 break-words">Должны показывать стабильный удаленный доход.</span>
+</div>
+</label>
+<label class="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent hover:border-slate-200 group min-w-0">
+<input class="mt-1 rounded border-slate-300 text-blue-600 focus:ring-blue-500 shrink-0" type="checkbox"/>
+<div class="min-w-0 flex-1">
+<span class="block text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors font-manrope break-words">Трудовой договор</span>
+<span class="block text-xs text-slate-500 mt-0.5 break-words">С разрешением на удаленную работу.</span>
+</div>
+</label>
+<label class="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent hover:border-slate-200 group min-w-0">
+<input class="mt-1 rounded border-slate-300 text-blue-600 focus:ring-blue-500 shrink-0" type="checkbox"/>
+<div class="min-w-0 flex-1">
+<span class="block text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors font-manrope break-words">Справка о несудимости</span>
+<span class="block text-xs text-slate-500 mt-0.5 break-words">С апостилем, не старше 90 дней.</span>
+</div>
+</label>
+</div>
+<div class="pt-5 mt-2 border-t border-slate-100">
+<button id="send-doc-requests-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-manrope text-sm font-bold py-3.5 px-4 rounded-xl shadow-[0_4px_14px_rgba(37,99,235,0.2)] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">send</span>
+                                <span id="send-btn-text" data-i18n="case.sendRequests">Отправить запросы</span>
+                            </button>
+<a id="view-client-documents-btn" href="./documents.html" class="w-full mt-3 bg-white hover:bg-slate-50 text-slate-700 font-manrope text-sm font-bold py-3.5 px-4 rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2 no-underline">
+<span class="material-symbols-outlined text-[18px]">folder_open</span>
+<span data-i18n="clients.viewDocuments">Посмотреть документы</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+<!-- History Modal -->
+<div id="history-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden min-w-0">
+        <div class="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-start sm:items-center justify-between gap-3 min-w-0">
+            <h3 class="text-base sm:text-lg font-bold text-slate-800 font-manrope leading-snug min-w-0 flex-1" data-i18n="case.historyTitle">История изменений кейса (UTC+0)</h3>
+            <button onclick="closeHistoryModal()" class="p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined text-base">close</span>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto max-h-[65vh] space-y-4" id="history-log-list">
+            <p class="text-sm text-slate-500 min-h-[1.25rem]"></p>
+        </div>
+    </div>
+</div>
+
+<!-- Add Custom Document Modal -->
+<div id="add-doc-modal" class="modal">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-manrope text-lg font-bold text-slate-800" data-i18n="case.addDocRequest">Добавить запрос документа</h3>
+            <button onclick="closeAddDocModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 font-manrope" data-i18n="case.docTitle">Название документа</label>
+                <input id="doc-title-input" type="text" data-i18n-placeholder="case.docTitlePlaceholder" placeholder="Например: Медицинская справка" oninput="document.getElementById('doc-title-error')?.classList.add('hidden')" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 transition-colors" />
+                <p id="doc-title-error" class="hidden text-xs text-red-600 mt-2 font-manrope" data-i18n="case.docTitleError">Введите название документа</p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 font-manrope" data-i18n="case.description">Описание</label>
+                <textarea id="doc-description-input" data-i18n-placeholder="case.docDescPlaceholder" placeholder="Дополнительные требования к документу" rows="3" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 transition-colors resize-none"></textarea>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 font-manrope" data-i18n="case.priority">Приоритет</label>
+                <div class="flex flex-wrap gap-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="doc-priority" value="urgent" class="text-red-600 focus:ring-red-500" />
+                        <span class="px-3 py-1 bg-red-50 text-red-600 text-xs font-bold rounded-lg" data-i18n="case.priorityUrgent">Срочно</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="doc-priority" value="normal" checked class="text-blue-600 focus:ring-blue-500" />
+                        <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg" data-i18n="case.priorityNormal">Обычный</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="doc-priority" value="optional" class="text-slate-400 focus:ring-slate-400" />
+                        <span class="px-3 py-1 bg-slate-50 text-slate-400 text-xs font-bold rounded-lg" data-i18n="case.priorityOptional">Не обязательно</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex gap-3 mt-6">
+            <button onclick="closeAddDocModal()" class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-manrope font-bold text-sm rounded-xl transition-colors" data-i18n="common.cancel">
+                Отмена
+            </button>
+            <button onclick="saveCustomDocument()" class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-manrope font-bold text-sm rounded-xl transition-colors" data-i18n="case.addDocConfirm">
+                Добавить
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="case-toast" class="hidden fixed left-1/2 -translate-x-1/2 bottom-6 z-[1100] max-w-md w-[calc(100%-2rem)] pointer-events-none" role="status" aria-live="polite"></div>
+
+<script src="../js/lk-i18n.js" defer></script>
+<script src="../js/mobile-nav.js" defer></script>
+<script src="../js/lk.js?v=21" defer></script>
+<script src="../js/case.js?v=16" defer></script>
+</body></html>

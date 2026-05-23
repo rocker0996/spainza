@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
+<link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="Spainza" />
+<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<title>Login & Registration | Spainza Client Portal</title>
+<meta content="Secure login and registration for the Spainza client portal. Track your Spain immigration case and manage your documents online." name="description"/>
+<meta content="Spain immigration login, client portal Spain visa, register immigration account, secure case tracking" name="keywords"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#b7c4ff",
+                        "tertiary-container": "#bf3003",
+                        "surface-container-low": "#f3f2ff",
+                        "on-primary-container": "#dfe3ff",
+                        "outline": "#737688",
+                        "on-surface": "#191b25",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#001452",
+                        "surface-tint": "#004ced",
+                        "inverse-primary": "#b7c4ff",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#dde1ff",
+                        "on-error-container": "#93000a",
+                        "on-background": "#191b25",
+                        "primary-fixed": "#dde1ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#891e00",
+                        "surface-container-high": "#e7e7f5",
+                        "secondary-container": "#95aafe",
+                        "outline-variant": "#c3c5d9",
+                        "on-primary-fixed-variant": "#0038b6",
+                        "on-secondary-fixed-variant": "#2b418f",
+                        "surface-variant": "#e1e1ef",
+                        "on-tertiary-container": "#ffddd5",
+                        "surface-container-highest": "#e1e1ef",
+                        "primary-fixed-dim": "#b7c4ff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#2e303a",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#d9d9e7",
+                        "on-secondary-container": "#253b89",
+                        "surface-container": "#ededfb",
+                        "inverse-on-surface": "#f0effe",
+                        "on-primary-fixed": "#001452",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#3c0800",
+                        "on-tertiary": "#ffffff",
+                        "background": "#fbf8ff",
+                        "secondary": "#4459a8",
+                        "surface": "#fbf8ff",
+                        "tertiary-fixed-dim": "#ffb4a1",
+                        "tertiary": "#952200",
+                        "on-surface-variant": "#434656",
+                        "tertiary-fixed": "#ffdbd2",
+                        "primary": "#003ec7",
+                        "surface-bright": "#fbf8ff",
+                        "primary-container": "#0052ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {},
+                    "fontFamily": {
+                        "headline": [
+                            "Manrope"
+                        ],
+                        "body": [
+                            "Inter"
+                        ],
+                        "label": [
+                            "Inter"
+                        ]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0d0f17; /* Dark background to force contrast, overrides config background for this specific screen request */
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            background-image: radial-gradient(circle at top right, rgba(0, 82, 255, 0.15) 0%, transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(94, 114, 195, 0.1) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+        h1, h2, h3, h4, h5, h6, .font-headline {
+            font-family: 'Manrope', sans-serif;
+        }
+        .glass-card {
+            background: rgba(25, 27, 37, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(195, 197, 217, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .glass-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(195, 197, 217, 0.15);
+            color: #0052ff;
+        }
+        .glass-input:focus {
+            border-color: #0052ff;
+            box-shadow: 0 0 0 4px rgba(0, 82, 255, 0.1);
+            outline: none;
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #ffffff, #b7c4ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .primary-btn-gradient {
+            background: linear-gradient(135deg, #0052ff 0%, #003ec7 100%);
+            box-shadow: 0 10px 25px -5px rgba(0, 82, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        .primary-btn-gradient:hover {
+            box-shadow: 0 15px 35px -5px rgba(0, 82, 255, 0.6);
+            transform: translateY(-1px);
+        }
+        .social-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(195, 197, 217, 0.15);
+            transition: all 0.2s ease;
+        }
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(195, 197, 217, 0.3);
+        }
+    </style>
+</head>
+<body class="flex flex-col relative overflow-x-hidden">
+<!-- Top Navigation Anchor (Minimal for transactional page) -->
+<nav class="w-full top-0 left-0 flex justify-between items-center px-8 py-6 max-w-7xl mx-auto absolute z-10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="text-2xl font-bold tracking-tighter text-white font-headline">Spainza</span>
+</div>
+<a class="text-secondary-fixed-dim hover:text-white transition-colors flex items-center gap-2 text-sm font-medium" href="./index.html">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+            Back to Home
+        </a>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex items-center justify-center p-6 sm:p-8 mt-16 md:mt-0 relative z-0">
+<!-- Background Pattern Decorator -->
+<div class="absolute inset-0 z-[-1] opacity-20 pointer-events-none" style="background-image: radial-gradient(#434656 1px, transparent 1px); background-size: 24px 24px;"></div>
+<!-- Central Auth Container -->
+<div class="w-full max-w-md glass-card rounded-xl p-8 md:p-10">
+<div class="text-center mb-8">
+<h1 class="text-3xl font-extrabold tracking-tight font-headline gradient-text mb-2">Welcome back</h1>
+<p class="text-sm text-secondary-fixed-dim font-body">Log in or create an account to continue.</p>
+</div>
+<!-- Tab Switcher -->
+<div class="flex bg-[rgba(255,255,255,0.05)] rounded-lg p-1 mb-8">
+<button class="flex-1 py-2.5 text-sm font-semibold rounded-md bg-[rgba(255,255,255,0.1)] text-white shadow-sm transition-all" id="tab-login" type="button">Login</button>
+<button class="flex-1 py-2.5 text-sm font-medium rounded-md text-secondary-fixed-dim hover:text-white transition-all" id="tab-register" type="button">Register</button>
+</div>
+<!-- Login Form -->
+<form class="space-y-5" id="auth-form">
+<div class="space-y-1.5">
+<label class="block text-sm font-medium text-secondary-fixed-dim font-label" for="email">Email address</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[20px] text-outline-variant">mail</span>
+</div>
+<input class="glass-input block w-full pl-10 pr-3 py-3 rounded-lg text-sm sm:text-base placeholder-[rgba(195,197,217,0.5)]" id="email" name="email" placeholder="name@example.com" required="" type="email"/>
+</div>
+</div>
+<div class="space-y-1.5">
+<div class="flex justify-between items-center">
+<label class="block text-sm font-medium text-secondary-fixed-dim font-label" for="password">Password</label>
+<a class="text-xs font-medium text-primary-container hover:text-secondary-fixed-dim transition-colors" href="./index.html" id="forgot-password-link">Forgot password?</a>
+</div>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[20px] text-outline-variant">lock</span>
+</div>
+<input class="glass-input block w-full pl-10 pr-10 py-3 rounded-lg text-sm sm:text-base placeholder-[rgba(195,197,217,0.5)]" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+<button aria-label="Show or hide password" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" id="password-toggle" type="button">
+<span class="material-symbols-outlined text-[20px] text-outline-variant hover:text-white transition-colors" id="password-toggle-icon">visibility_off</span>
+</button>
+</div>
+</div>
+<div class="space-y-1.5 hidden" id="confirm-password-group">
+<label class="block text-sm font-medium text-secondary-fixed-dim font-label" for="password-confirm">Confirm password</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[20px] text-outline-variant">lock</span>
+</div>
+<input class="glass-input block w-full pl-10 pr-3 py-3 rounded-lg text-sm sm:text-base placeholder-[rgba(195,197,217,0.5)]" id="password-confirm" name="password-confirm" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<div class="pt-2">
+<button class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white primary-btn-gradient focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-container focus:ring-offset-[#0d0f17]" id="submit-btn" type="submit">
+                        Login
+                    </button>
+</div>
+<p class="text-sm text-error" id="auth-error"></p>
+<p class="text-sm text-primary-container" id="auth-success"></p>
+</form>
+<!-- Divider -->
+<div class="mt-8 relative">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-[rgba(195,197,217,0.1)]"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-3 bg-[#13151f] text-outline-variant text-xs font-medium tracking-wide uppercase">Or continue with</span>
+</div>
+</div>
+<!-- Social Logins -->
+<div class="mt-6 grid grid-cols-1 gap-3">
+<button class="social-btn flex justify-center items-center py-2.5 px-4 rounded-lg">
+<svg class="h-5 w-5 mr-2" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+</svg>
+<span class="text-sm font-medium text-white">Google</span>
+</button>
+</div>
+</div>
+</main>
+<script>
+  (function () {
+    const loginTab = document.getElementById("tab-login");
+    const registerTab = document.getElementById("tab-register");
+    const form = document.getElementById("auth-form");
+    const submitBtn = document.getElementById("submit-btn");
+    const errorBox = document.getElementById("auth-error");
+    const successBox = document.getElementById("auth-success");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const passwordToggleBtn = document.getElementById("password-toggle");
+    const passwordToggleIcon = document.getElementById("password-toggle-icon");
+    const forgotPasswordLink = document.getElementById("forgot-password-link");
+    const confirmPasswordGroup = document.getElementById("confirm-password-group");
+    const confirmPasswordInput = document.getElementById("password-confirm");
+
+    const dashboardUrl =
+      window.location.protocol === "file:"
+        ? "../lk/dashboard.html"
+        : "/frontend/lk/dashboard.html";
+    const apiBases = (function resolveApiBases() {
+      if (window.API_BASE_URL) {
+        return [String(window.API_BASE_URL).replace(/\/+$/, "")];
+      }
+
+      if (window.location.protocol === "file:") {
+        return ["http://localhost:5000/api"];
+      }
+
+      const localHosts = ["localhost", "127.0.0.1", "0.0.0.0"];
+      const isLocalHost = localHosts.includes(window.location.hostname);
+      if (isLocalHost && window.location.port && window.location.port !== "5000") {
+        return [
+          "/api",
+          window.location.protocol + "//" + window.location.hostname + ":5000/api",
+        ];
+      }
+
+      return ["/api"];
+    })();
+
+    let mode = "login";
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const inv = (params.get("invite") || "").trim();
+      if (inv) {
+        sessionStorage.setItem("manager_invite_token", inv);
+        mode = "register";
+      }
+    } catch (_) {}
+
+    const pageLang = (document.documentElement.lang || "en").toLowerCase();
+
+    function getApiErrorMessage(data) {
+      if (!data || typeof data !== "object") return "Request error";
+      if (pageLang.startsWith("en")) {
+        return data.message_en || data.message_ru || data.error || "Request error";
+      }
+      return data.message_en || data.message_ru || data.error || "Request error";
+    }
+
+    function renderTabs() {
+      if (mode === "login") {
+        loginTab.className = "flex-1 py-2.5 text-sm font-semibold rounded-md bg-[rgba(255,255,255,0.1)] text-white shadow-sm transition-all";
+        registerTab.className = "flex-1 py-2.5 text-sm font-medium rounded-md text-secondary-fixed-dim hover:text-white transition-all";
+        submitBtn.textContent = "Login";
+        confirmPasswordGroup.classList.add("hidden");
+        forgotPasswordLink.classList.remove("hidden");
+        confirmPasswordInput.required = false;
+        confirmPasswordInput.value = "";
+      } else {
+        registerTab.className = "flex-1 py-2.5 text-sm font-semibold rounded-md bg-[rgba(255,255,255,0.1)] text-white shadow-sm transition-all";
+        loginTab.className = "flex-1 py-2.5 text-sm font-medium rounded-md text-secondary-fixed-dim hover:text-white transition-all";
+        submitBtn.textContent = "Create account";
+        confirmPasswordGroup.classList.remove("hidden");
+        forgotPasswordLink.classList.add("hidden");
+        confirmPasswordInput.required = true;
+      }
+      errorBox.textContent = "";
+      successBox.textContent = "";
+    }
+
+    loginTab.addEventListener("click", function () {
+      mode = "login";
+      renderTabs();
+    });
+
+    registerTab.addEventListener("click", function () {
+      mode = "register";
+      renderTabs();
+    });
+
+    if (passwordToggleBtn && passwordToggleIcon) {
+      passwordToggleBtn.addEventListener("click", function () {
+        const isHidden = passwordInput.type === "password";
+        passwordInput.type = isHidden ? "text" : "password";
+        passwordToggleIcon.textContent = isHidden ? "visibility" : "visibility_off";
+      });
+    }
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      errorBox.textContent = "";
+      successBox.textContent = "";
+
+      const email = String(emailInput.value || "").trim();
+      const password = String(passwordInput.value || "");
+      const confirmPassword = String(confirmPasswordInput.value || "");
+      const endpointPath = mode === "login" ? "/login" : "/register";
+
+      try {
+        if (mode === "register" && password !== confirmPassword) {
+          throw new Error("Passwords do not match");
+        }
+
+        let response = null;
+        let data = null;
+        let requestError = null;
+
+        for (const baseUrl of apiBases) {
+          const endpoint = baseUrl + endpointPath;
+          try {
+            const authBody =
+              mode === "register"
+                ? (function () {
+                    const o = { email, password };
+                    const t = (
+                      sessionStorage.getItem("manager_invite_token") ||
+                      new URLSearchParams(window.location.search).get("invite") ||
+                      ""
+                    ).trim();
+                    if (t) {
+                      o.manager_invite_token = t;
+                    }
+                    return o;
+                  })()
+                : { email, password };
+            response = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(authBody)
+            });
+            const responseText = await response.text();
+            data = responseText ? JSON.parse(responseText) : {};
+            requestError = null;
+            break;
+          } catch (error) {
+            requestError = error;
+          }
+        }
+
+        if (requestError) {
+          throw new Error(
+            "Unable to connect to API. Please check backend availability (for example, http://localhost:5000)"
+          );
+        }
+
+        if (!response.ok || !data.success) {
+          throw new Error(getApiErrorMessage(data));
+        }
+
+        if (mode === "register") {
+          const cid =
+            data.display_id != null && String(data.display_id).trim()
+              ? String(data.display_id).trim()
+              : data.user_id != null
+                ? String(data.user_id)
+                : "";
+          successBox.textContent = cid
+            ? `Registration successful. Your client ID is ${cid}. Please log in.`
+            : "Registration successful. Please log in.";
+          try {
+            sessionStorage.removeItem("manager_invite_token");
+          } catch (_) {}
+          mode = "login";
+          renderTabs();
+          passwordInput.value = "";
+          confirmPasswordInput.value = "";
+          return;
+        }
+
+        localStorage.setItem("token", data.token || "");
+        window.location.href = dashboardUrl;
+      } catch (error) {
+        errorBox.textContent = error.message || "Error";
+      }
+    });
+
+    renderTabs();
+  })();
+</script>
+</body></html>

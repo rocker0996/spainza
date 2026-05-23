@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
+<link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="Spainza" />
+<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<title>Spainza - Официальный и легальный путь в Испанию</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+            "colors": {
+                    "tertiary-fixed": "#ffdbd2",
+                    "surface-dim": "#d9d9e7",
+                    "on-tertiary-fixed-variant": "#891e00",
+                    "on-surface": "#191b25",
+                    "tertiary": "#952200",
+                    "on-error": "#ffffff",
+                    "background": "#fbf8ff",
+                    "surface": "#fbf8ff",
+                    "on-secondary-fixed": "#001452",
+                    "primary-container": "#0052ff",
+                    "inverse-surface": "#2e303a",
+                    "on-error-container": "#93000a",
+                    "outline": "#737688",
+                    "on-primary-fixed": "#001452",
+                    "surface-container": "#ededfb",
+                    "secondary": "#4459a8",
+                    "on-primary-fixed-variant": "#0038b6",
+                    "primary-fixed-dim": "#b7c4ff",
+                    "primary-fixed": "#dde1ff",
+                    "on-primary-container": "#dfe3ff",
+                    "on-background": "#191b25",
+                    "on-secondary-fixed-variant": "#2b418f",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#f0effe",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-high": "#e7e7f5",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#bf3003",
+                    "outline-variant": "#c3c5d9",
+                    "on-tertiary-fixed": "#3c0800",
+                    "inverse-primary": "#b7c4ff",
+                    "on-secondary-container": "#253b89",
+                    "surface-container-low": "#f3f2ff",
+                    "primary": "#003ec7",
+                    "tertiary-fixed-dim": "#ffb4a1",
+                    "on-surface-variant": "#434656",
+                    "secondary-container": "#95aafe",
+                    "secondary-fixed-dim": "#b7c4ff",
+                    "surface-tint": "#004ced",
+                    "secondary-fixed": "#dde1ff",
+                    "surface-variant": "#e1e1ef",
+                    "surface-container-highest": "#e1e1ef",
+                    "on-tertiary-container": "#ffddd5",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#fbf8ff",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {},
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+            },
+        },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .tonal-transition {
+            background-image: linear-gradient(to bottom, transparent, var(--tw-bg-opacity, 1));
+        }
+        .glass-header {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        details.mobile-nav > summary {
+            list-style: none;
+        }
+        details.mobile-nav > summary::-webkit-details-marker {
+            display: none;
+        }
+        details.mobile-nav[open] summary .icon-menu {
+            display: none;
+        }
+        details.mobile-nav:not([open]) summary .icon-close {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary-container selection:text-white">
+<div id="site-header"></div>
+<main class="pt-16 sm:pt-20">
+<!-- Hero Section -->
+<section class="relative pt-12 pb-12 lg:pt-12 lg:pb-12 overflow-hidden px-6 md:px-12">
+    <!-- Background Decorative Elements (Tonal Layering) -->
+    <div class="absolute inset-0 z-[-1] bg-surface-container-low"></div>
+    <div class="absolute top-0 right-0 w-3/4 h-full bg-gradient-to-l from-surface-container-high/60 to-transparent z-[-1] rounded-l-[100px] transform translate-x-20"></div>
+    <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+    <!-- Content -->
+    <div class="flex flex-col items-start z-10">
+    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-fixed/50 text-on-primary-fixed text-sm font-medium mb-6 font-label uppercase tracking-wider">
+    <span class="material-symbols-outlined text-[18px]">verified</span>
+                            Премиальная программа
+                        </div>
+    <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tighter text-on-surface mb-6 font-headline leading-[1.1] text-balance">
+                            Золотая виза Испании: <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Инвестиции в ваше будущее</span>
+    </h1>
+    <p class="text-lg lg:text-xl text-on-surface-variant mb-10 max-w-xl font-body leading-relaxed text-balance">
+                            Получите вид на жительство в одной из лучших стран Европы через инвестиции в недвижимость или экономику. Свобода передвижения, безопасность активов и будущее для вашей семьи.
+                        </p>
+    <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+    <button class="w-full sm:w-auto bg-gradient-to-r from-primary to-secondary text-on-primary px-8 py-4 rounded-xl font-semibold tracking-wide hover:shadow-[0_8px_30px_rgba(0,82,254,0.2)] transition-all duration-300 font-headline active:scale-95">
+                                Начать процесс
+                            </button>
+    <button class="w-full sm:w-auto bg-surface text-primary px-8 py-4 rounded-xl font-semibold tracking-wide hover:bg-surface-variant transition-all duration-300 font-headline flex items-center justify-center gap-2">
+                                Требования
+                                <span class="material-symbols-outlined text-[20px]">arrow_downward</span>
+    </button>
+    </div>
+    </div>
+    <!-- Imagery (Bento-style layout) -->
+    <div class="relative w-full aspect-square lg:aspect-[4/3] z-10">
+    <div class="absolute inset-0 bg-surface-container rounded-3xl overflow-hidden shadow-[0px_20px_40px_rgba(117,118,130,0.06)] transform lg:translate-x-8">
+    <img alt="Luxury Spanish villa exterior with modern architecture, swimming pool, and Mediterranean landscaping under clear blue sky" class="w-full h-full object-cover" data-alt="Modern luxury Spanish villa with large windows, glowing interior lights at dusk, reflecting in a pristine swimming pool, high-end real estate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzK0aYJx0t2-OajuRU4mi3yRAfWs8uudA3pved3IJnSN2VGPiSKM9pVExsFdyCHafI7QdTVBBBJH5RHImLiS-3gNCf1dfdS6gEZF9ScGWvnLzw-EMtQ3cZ_4f-iCpWTXLU-254Mrp4WAPG7VLC6diGa1TdS_MdVTH-S7JqYjlJzLegpPBiPfTgZO6o3NwlexRqVFEM1R44rPFdJoFcGwWlilDQ5_zh8Rnyi44ftEu-q7OLrIEMerEDDEeXiulpaNJxOehg3N0amLc"/>
+    </div>
+    <!-- Floating Stat Card -->
+    <div class="absolute -bottom-8 -left-8 bg-surface/90 backdrop-blur-md p-6 rounded-2xl shadow-[0px_20px_40px_rgba(117,118,130,0.12)] border border-white/20 hidden md:block">
+    <div class="flex items-center gap-4">
+    <div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">euro</span>
+    </div>
+    <div>
+    <div class="text-sm text-on-surface-variant font-medium font-label uppercase tracking-wider">От</div>
+    <div class="text-2xl font-bold font-headline text-on-surface">500,000</div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    </section>
+    <!-- 2. Benefits Section -->
+    <section class="py-24 px-6 md:px-12 bg-surface">
+    <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16 max-w-2xl mx-auto">
+    <h2 class="text-4xl font-bold tracking-tight text-on-surface mb-4 font-headline">Привилегии статуса</h2>
+    <p class="text-on-surface-variant text-lg font-body">Основные преимущества программы Golden Visa для инвесторов и их семей.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <!-- Benefit Card 1 -->
+    <div class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0px_10px_30px_rgba(117,118,130,0.04)] hover:shadow-[0px_20px_40px_rgba(117,118,130,0.08)] transition-all duration-300 group flex flex-col h-full border border-surface-variant/50">
+    <div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform duration-300">
+    <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">domain</span>
+    </div>
+    <h3 class="text-xl font-semibold text-on-surface mb-3 font-headline">Инвестиции в недвижимость</h3>
+    <p class="text-on-surface-variant font-body leading-relaxed flex-grow">Возможность инвестировать от €500 000 в жилые или коммерческие объекты с правом сдачи в аренду.</p>
+    </div>
+    <!-- Benefit Card 2 -->
+    <div class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0px_10px_30px_rgba(117,118,130,0.04)] hover:shadow-[0px_20px_40px_rgba(117,118,130,0.08)] transition-all duration-300 group flex flex-col h-full border border-surface-variant/50">
+    <div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform duration-300">
+    <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">flight_takeoff</span>
+    </div>
+    <h3 class="text-xl font-semibold text-on-surface mb-3 font-headline">Свобода в Шенгене</h3>
+    <p class="text-on-surface-variant font-body leading-relaxed flex-grow">Безвизовый въезд и перемещение по всем странам Шенгенского соглашения до 90 дней в полугодие.</p>
+    </div>
+    <!-- Benefit Card 3 -->
+    <div class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0px_10px_30px_rgba(117,118,130,0.04)] hover:shadow-[0px_20px_40px_rgba(117,118,130,0.08)] transition-all duration-300 group flex flex-col h-full border border-surface-variant/50">
+    <div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform duration-300">
+    <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">family_restroom</span>
+    </div>
+    <h3 class="text-xl font-semibold text-on-surface mb-3 font-headline">Вся семья в заявке</h3>
+    <p class="text-on-surface-variant font-body leading-relaxed flex-grow">ВНЖ получает инвестор, супруг(а), финансово зависимые дети и родители.</p>
+    </div>
+    <!-- Benefit Card 4 -->
+    <div class="bg-surface-container-lowest p-8 rounded-2xl shadow-[0px_10px_30px_rgba(117,118,130,0.04)] hover:shadow-[0px_20px_40px_rgba(117,118,130,0.08)] transition-all duration-300 group flex flex-col h-full border border-surface-variant/50">
+    <div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform duration-300">
+    <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">home_pin</span>
+    </div>
+    <h3 class="text-xl font-semibold text-on-surface mb-3 font-headline">Без обязательного проживания</h3>
+    <p class="text-on-surface-variant font-body leading-relaxed flex-grow">Для поддержания статуса достаточно посетить Испанию 1 раз за время действия резиденции.</p>
+    </div>
+    </div>
+    </div>
+    </section>
+    <!-- 3. Investment Options -->
+    <section class="py-24 px-6 md:px-12 bg-surface-container-low">
+    <div class="max-w-7xl mx-auto">
+    <div class="mb-16">
+    <div class="max-w-4xl mx-auto text-center">
+    <h2 class="text-4xl font-bold tracking-tight text-on-surface mb-4 font-headline">Опции инвестирования</h2>
+    <p class="text-on-surface-variant text-lg font-body">Выберите наиболее подходящий для вас путь получения Золотой визы, соответствующий вашим финансовым целям.</p>
+    </div>
+    </div>
+    <!-- Grid Layout for Options -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Option: Real Estate (Highlighted) -->
+    <div class="bg-surface-container-lowest rounded-2xl p-8 shadow-[0px_10px_30px_rgba(117,118,130,0.06)] relative overflow-hidden group">
+    <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-0"></div>
+    <div class="relative z-10 flex flex-col h-full">
+    <div class="flex justify-between items-start mb-6">
+    <h3 class="text-2xl font-bold text-on-surface font-headline">Покупка недвижимости</h3>
+    <div class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold font-headline">Самый популярный</div>
+    </div>
+    <div class="text-4xl font-bold text-primary mb-2 font-headline">€500,000</div>
+    <p class="text-on-surface-variant font-body mb-6 flex-grow">Приобретение одного или нескольких объектов жилой или коммерческой недвижимости. Возможна сдача в аренду.</p>
+    </div>
+    </div>
+    <!-- Option: Bank Deposit -->
+    <div class="bg-surface-container-lowest rounded-2xl p-8 shadow-[0px_10px_30px_rgba(117,118,130,0.06)] relative overflow-hidden">
+    <div class="relative z-10 flex flex-col h-full">
+    <h3 class="text-2xl font-bold text-on-surface font-headline mb-6">Банковский депозит или акции</h3>
+    <div class="text-4xl font-bold text-on-surface mb-2 font-headline">€1,000,000</div>
+    <p class="text-on-surface-variant font-body mb-6 flex-grow">Размещение средств на депозите в испанском банке или покупка акций испанских компаний.</p>
+    </div>
+    </div>
+    <!-- Option: Gov Bonds -->
+    <div class="bg-surface-container-lowest rounded-2xl p-8 shadow-[0px_10px_30px_rgba(117,118,130,0.06)] relative overflow-hidden">
+    <div class="relative z-10 flex flex-col h-full">
+    <h3 class="text-2xl font-bold text-on-surface font-headline mb-6">Государственные облигации</h3>
+    <div class="text-4xl font-bold text-on-surface mb-2 font-headline">€2,000,000</div>
+    <p class="text-on-surface-variant font-body mb-6 flex-grow">Инвестиции в государственные долговые ценные бумаги Испании с низким уровнем риска.</p>
+    </div>
+    </div>
+    <!-- Option: Business -->
+    <div class="bg-surface-container-lowest rounded-2xl p-8 shadow-[0px_10px_30px_rgba(117,118,130,0.06)] relative overflow-hidden">
+    <div class="relative z-10 flex flex-col h-full">
+    <h3 class="text-2xl font-bold text-on-surface font-headline mb-6">Бизнес-проект</h3>
+    <div class="text-4xl font-bold text-on-surface mb-2 font-headline">Индивидуально</div>
+    <p class="text-on-surface-variant font-body mb-6 flex-grow">Создание бизнес-проекта, представляющего общий интерес для Испании (создание рабочих мест, инновации).</p>
+    </div>
+    </div>
+    </div>
+    </div>
+    </section>
+    <!-- 4. Eligibility & Requirements -->
+    <section class="py-24 px-6 md:px-12 bg-surface">
+    <div class="max-w-screen-xl mx-auto flex flex-col lg:flex-row gap-16 items-center">
+    <div class="w-full lg:w-1/2">
+    <h2 class="text-4xl font-bold tracking-tight text-on-surface mb-8 font-headline">Требования к заявителю</h2>
+    <p class="text-on-surface-variant text-lg font-body mb-10">Процесс получения Золотой визы Испании требует соответствия ряду базовых критериев безопасности и финансовой состоятельности.</p>
+    <ul class="space-y-6">
+    <li class="flex items-start gap-4">
+    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-1">
+    <span class="material-symbols-outlined text-[18px]">check</span>
+    </div>
+    <div>
+    <h4 class="font-bold text-on-surface font-headline text-lg">Совершеннолетие и легальность</h4>
+    <p class="text-on-surface-variant font-body text-sm mt-1">Возраст старше 18 лет и отсутствие незаконного нахождения на территории Испании.</p>
+    </div>
+    </li>
+    <li class="flex items-start gap-4">
+    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-1">
+    <span class="material-symbols-outlined text-[18px]">gavel</span>
+    </div>
+    <div>
+    <h4 class="font-bold text-on-surface font-headline text-lg">Отсутствие судимостей</h4>
+    <p class="text-on-surface-variant font-body text-sm mt-1">Чистая криминальная история в Испании и странах проживания за последние 5 лет.</p>
+    </div>
+    </li>
+    <li class="flex items-start gap-4">
+    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-1">
+    <span class="material-symbols-outlined text-[18px]">health_and_safety</span>
+    </div>
+    <div>
+    <h4 class="font-bold text-on-surface font-headline text-lg">Медицинская страховка</h4>
+    <p class="text-on-surface-variant font-body text-sm mt-1">Наличие полиса государственного или частного медицинского страхования, действующего в Испании.</p>
+    </div>
+    </li>
+    <li class="flex items-start gap-4">
+    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-1">
+    <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+    </div>
+    <div>
+    <h4 class="font-bold text-on-surface font-headline text-lg">Достаточность средств</h4>
+    <p class="text-on-surface-variant font-body text-sm mt-1">Доказательство наличия достаточных финансовых средств для себя и членов семьи на период проживания.</p>
+    </div>
+    </li>
+    </ul>
+    </div>
+    <div class="w-full lg:w-1/2 bg-surface-container-high rounded-3xl p-10 relative overflow-hidden">
+    <div class="absolute -right-20 -top-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+    <div class="relative z-10">
+    <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm mb-6 border border-surface-variant/50">
+    <div class="flex justify-between items-center mb-2">
+    <span class="text-sm font-semibold text-on-surface font-headline">Одобрение заявки</span>
+    <span class="text-sm text-primary font-bold">~ 2-3 месяца</span>
+    </div>
+    <div class="w-full bg-surface-variant rounded-full h-2">
+    <div class="bg-primary h-2 rounded-full" style="width: 100%"></div>
+    </div>
+    </div>
+    <h3 class="text-2xl font-bold text-on-surface mb-4 font-headline">Процесс оформления</h3>
+    <p class="text-on-surface-variant font-body mb-6">Мы обеспечиваем полное юридическое сопровождение: от подбора объекта инвестирования до получения карточек резидента.</p>
+    <a class="text-primary font-semibold hover:underline decoration-2 underline-offset-4 font-headline inline-flex items-center gap-1" href="process.html">
+                                Читать подробнее об этапах
+                                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+    </a>
+    </div>
+    </div>
+    </div>
+    </section>
+<!-- Final CTA -->
+<section class="max-w-5xl mx-auto px-6 lg:px-8 py-16 mb-8">
+<div class="bg-gradient-to-br from-surface-container-high to-surface-variant rounded-[2rem] p-12 text-center shadow-[0px_20px_40px_rgba(117,118,130,0.06)]">
+<h2 class="font-headline text-3xl md:text-4xl font-extrabold text-on-background mb-6">Готовы к релокации?</h2>
+<p class="font-body text-lg text-on-surface-variant mb-10 max-w-2xl mx-auto">Получите персональный разбор вашего кейса от наших экспертов. Мы оценим шансы и составим пошаговый план.</p>
+<button class="bg-primary-container text-on-primary font-body text-base font-bold py-4 px-8 rounded-xl hover:bg-primary transition-colors shadow-lg shadow-primary-container/30">
+                    Записаться на аудит
+                </button>
+</div>
+</section>
+</main>
+<div id="site-footer"></div>
+<script src="shared/layout.js"></script>
+</body></html>

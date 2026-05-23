@@ -1,0 +1,338 @@
+﻿<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<style id="lk-gate-nav-css">[data-lk-gate]:not(.lk-gate-visible){display:none!important}</style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
+<link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="Spainza" />
+<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<title>Поддержка | Spainza</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<link rel="stylesheet" href="/frontend/css/portal.css?v=1"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .tonal-architecture-shift { background: linear-gradient(180deg, rgba(243, 242, 255, 1) 0%, rgba(251, 248, 255, 1) 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); }
+        
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            z-index: 50;
+            overflow: hidden;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #475569;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .dropdown-item:hover {
+            background: #f8fafc;
+            color: #0052ff;
+        }
+        
+        /* Notification badge pulse animation */
+        .pulser {
+          position: relative;
+        }
+        
+        .pulser::after {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          background: #0052ff;
+          border-radius: 50%;
+          z-index: -1;
+          animation: pulse 1500ms cubic-bezier(0.9, 0.7, 0.5, 0.9) infinite;
+        }
+        
+        @keyframes pulse {
+          0% {
+            opacity: 0;
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.3);
+            opacity: 0.3;
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.5);
+          }
+        }
+
+        /* Callback submit: morph → progress → success check (anime.js) */
+        /* Ячейка тянется по высоте ряда, сама кнопка внутри остаётся по вертикали по центру при сжатии */
+        .support-submit-wrap {
+            flex: 1 1 0%;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-self: stretch;
+        }
+        .support-submit-btn {
+            position: relative;
+            display: block;
+            width: 100%;
+            height: 48px;
+            min-height: 0;
+            cursor: pointer;
+            border: none;
+            border-radius: 0.75rem;
+            background: #003ec7;
+            box-shadow: 0 1px 2px rgba(0, 62, 199, 0.2);
+            overflow: visible;
+        }
+        .support-submit-btn.support-submit-busy {
+            cursor: wait;
+            pointer-events: none;
+        }
+        .support-submit-text {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+            font-weight: 600;
+            font-size: 0.875rem;
+            line-height: 1.25;
+            color: #ffffff;
+            text-align: center;
+            pointer-events: none;
+        }
+        .support-submit-progress {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            height: 8px;
+            width: 0;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .support-submit-svg {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px;
+            height: auto;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .support-submit-check {
+            fill: none;
+            stroke: #003ec7;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen flex overflow-x-hidden" data-layout-header="false" data-layout-footer="false" data-lk-nav-active="support">
+<!-- Side Navigation (Visible on md+) -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 pt-10 pb-8 bg-surface-container-lowest border-r border-outline-variant/15 z-40">
+<div class="px-8 mb-12">
+<a href="./dashboard.html" class="text-2xl font-black tracking-tighter text-primary-container font-headline mb-1 inline-block no-underline hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">Spainza</a>
+<div class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant font-label">Elite Intelligence</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6">
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./dashboard.html">
+<span class="material-symbols-outlined">dashboard</span>
+                <span data-i18n="nav.dashboard">Главная</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./clients.html" data-lk-gate="clients">
+<span class="material-symbols-outlined">groups</span>
+                <span data-i18n="nav.clients">Клиенты</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./documents.html" data-lk-gate="documents">
+<span class="material-symbols-outlined">description</span>
+                <span data-i18n="nav.documents">Документы</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./configurator.html" data-lk-gate="configurator">
+<span class="material-symbols-outlined">rule_settings</span>
+                <span data-i18n="nav.configurator">Шаблоны кейсов</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./messages.html" data-lk-gate="messages">
+<span class="material-symbols-outlined">chat_bubble</span>
+                <span data-i18n="nav.messages">Сообщения</span>
+            </a>
+</nav>
+<div class="px-6 mb-8">
+<!-- <button class="w-full py-3 px-4 bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline text-sm font-semibold rounded-[12px] flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                Новая заявка
+            </button> -->
+</div>
+<nav class="flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6 border-t border-outline-variant/15 pt-6">
+<div class="px-6 mb-3">
+<div class="text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant font-label mb-2 text-center" data-i18n="common.interfaceLanguage">Язык интерфейса</div>
+<div class="flex p-1 bg-surface-container rounded-xl border border-outline-variant/20">
+<button class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-primary" data-locale-btn="ru" type="button" data-i18n="common.langRu">Русский</button>
+<button class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-primary transition-colors" data-locale-btn="en" type="button" data-i18n="common.langEn">English</button>
+</div>
+</div>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./profile.html">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+                <span data-i18n="nav.profile">Профиль</span>
+            </a>
+<a class="flex items-center gap-4 text-primary-container bg-primary-fixed/30 rounded-r-xl border-l-4 border-primary-container px-6 py-2 transition-transform active:scale-[0.98]" href="./support.html">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">help_center</span>
+                <span data-i18n="nav.support">Поддержка</span>
+            </a>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all mt-4" href="../login.html" id="logout-btn">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                <span data-i18n="nav.logout">Выход</span>
+            </a>
+</nav>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="flex-1 md:ml-64 pt-24 md:pt-4 px-4 sm:px-6 md:px-12 pb-12 max-w-[1600px] mx-auto w-full">
+    <!-- Header & Search Hero -->
+    <section class="mb-16 relative">
+    <div class="absolute inset-0 bg-gradient-to-br from-surface-container to-background rounded-3xl -z-10"></div>
+    <div class="py-8 px-8 md:px-16 flex flex-col items-center text-center">
+    <h1 class="font-headline font-bold text-4xl md:text-5xl text-on-surface tracking-tight mb-4" id="support-hero-title">Центр поддержки</h1>
+    <p class="font-body text-lg text-on-surface-variant max-w-2xl mb-4" id="support-hero-subtitle">Найдите ответы на ваши вопросы или свяжитесь с нами.</p>
+    <div class="w-full max-w-2xl relative">
+    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+    <input class="w-full bg-surface-container-lowest border-none rounded-xl pl-12 pr-4 py-4 font-body text-on-surface shadow-[0_10px_30px_rgba(117,118,130,0.05)] focus:ring-1 focus:ring-primary focus:shadow-[0_0_15px_rgba(0,62,199,0.15)] transition-all placeholder:text-outline-variant text-lg" id="support-kb-search" placeholder="Поиск по базе знаний..." type="search" autocomplete="off"/>
+    </div>
+    </div>
+    </section>
+    <!-- Bento Grid Layout for Main Content -->
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-8">
+    <!-- FAQ Accordion -->
+    <div class="lg:col-span-2 lg:col-start-1 lg:row-start-1 space-y-6">
+    <div class="bg-surface-container-lowest rounded-xl p-8 shadow-[0_10px_40px_rgba(117,118,130,0.04)]">
+    <h2 class="font-headline font-semibold text-2xl text-on-surface mb-8 tracking-tight" id="support-faq-heading">Частые вопросы</h2>
+    <div id="support-faq-mount" class="space-y-2 min-h-[120px]"></div>
+    <p class="hidden mt-4 text-center text-sm text-on-surface-variant font-body" id="support-faq-empty" role="status"></p>
+    </div>
+    </div>
+    <!-- Right Column: Contact Block -->
+    <div class="lg:col-span-1 lg:col-start-3 lg:row-span-2 lg:row-start-1">
+    <div class="bg-gradient-to-b from-primary to-secondary rounded-xl p-8 shadow-[0_20px_40px_rgba(0,62,199,0.15)] text-on-primary lg:sticky lg:top-24">
+    <h2 class="font-headline font-bold text-2xl mb-2" id="support-contact-heading">Связаться с нами</h2>
+    <p class="font-body text-on-primary-container text-sm mb-8" id="support-contact-lead">Нужна индивидуальная помощь? Наши эксперты на связи.</p>
+    <div class="space-y-4">
+    <button type="button" class="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 rounded-xl p-4 flex items-center gap-4 transition-colors text-left group" id="support-btn-chat">
+    <span class="material-symbols-outlined text-on-primary" data-weight="fill">chat</span>
+    <div>
+    <div class="font-headline font-semibold text-sm" id="support-chat-title">Живой чат</div>
+    <div class="font-body text-xs text-on-primary-container" id="support-chat-hint">Время ответа: ~5 минут</div>
+    </div>
+    <span class="material-symbols-outlined ml-auto opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+    </button>
+    <button type="button" class="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 rounded-xl p-4 flex items-center gap-4 transition-colors text-left group" id="support-btn-email">
+    <span class="material-symbols-outlined text-on-primary" data-weight="fill">mail</span>
+    <div>
+    <div class="font-headline font-semibold text-sm" id="support-email-title">Email поддержка</div>
+    <div class="font-body text-xs text-on-primary-container" id="support-email-address">support@spainza.com</div>
+    </div>
+    <span class="material-symbols-outlined ml-auto opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+    </button>
+    <button type="button" class="w-full bg-white text-primary hover:bg-surface-bright rounded-xl p-4 flex items-center justify-center gap-2 transition-colors font-headline font-semibold text-sm mt-4 shadow-sm" id="support-btn-callback">
+    <span class="material-symbols-outlined text-lg" data-weight="fill">call_made</span>
+    <span id="support-callback-btn-label">Заказать звонок</span>
+    </button>
+    </div>
+    </div>
+    </div>
+    <!-- Resources (guides + legal) -->
+    <div class="lg:col-span-2 lg:col-start-1 lg:row-start-2 space-y-6">
+    <div class="grid grid-cols-2 gap-3 sm:gap-6">
+    <a class="bg-surface-container-low hover:bg-surface-container transition-colors rounded-xl p-4 sm:p-6 flex flex-col gap-3 sm:gap-4 group min-w-0" href="../ru/process.html" id="support-link-guides" target="_blank" rel="noopener noreferrer">
+    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-lg sm:rounded-xl shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+    <span class="material-symbols-outlined text-secondary text-[22px] sm:text-[24px]" data-weight="fill">menu_book</span>
+    </div>
+    <div class="min-w-0">
+    <h3 class="font-headline font-semibold text-sm sm:text-lg text-on-surface mb-0.5 sm:mb-1 leading-snug" id="support-guides-title">Руководства</h3>
+    <p class="font-body text-xs sm:text-sm text-on-surface-variant leading-snug" id="support-guides-desc">Подробные инструкции по платформе и процессу.</p>
+    </div>
+    </a>
+    <a class="bg-surface-container-low hover:bg-surface-container transition-colors rounded-xl p-4 sm:p-6 flex flex-col gap-3 sm:gap-4 group min-w-0" href="../ru/privacy-policy.html" id="support-link-legal" target="_blank" rel="noopener noreferrer">
+    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-lg sm:rounded-xl shadow-sm flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+    <span class="material-symbols-outlined text-secondary text-[22px] sm:text-[24px]" data-weight="fill">gavel</span>
+    </div>
+    <div class="min-w-0">
+    <h3 class="font-headline font-semibold text-sm sm:text-lg text-on-surface mb-0.5 sm:mb-1 leading-snug" id="support-legal-title">Юридическая база</h3>
+    <p class="font-body text-xs sm:text-sm text-on-surface-variant leading-snug" id="support-legal-desc">Политика конфиденциальности и ключевые документы.</p>
+    </div>
+    </a>
+    </div>
+    </div>
+    </div>
+    <div class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-on-surface/50 backdrop-blur-sm" id="support-callback-modal" aria-hidden="true" role="dialog" aria-labelledby="support-modal-title">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8 border border-outline-variant/20">
+    <h3 class="font-headline font-bold text-xl text-on-surface mb-2" id="support-modal-title">Обратный звонок</h3>
+    <p class="text-sm text-on-surface-variant mb-2" id="support-modal-lead">Укажите телефон и удобное время — ответим на почту или перезвоним.</p>
+    <p class="text-xs text-on-surface-variant/90 mb-6 leading-relaxed" id="support-modal-mailto-hint"></p>
+    <form class="space-y-4" id="support-callback-form">
+    <div>
+    <label class="block text-xs font-semibold uppercase tracking-wide text-on-surface-variant mb-1.5" for="support-callback-name" id="support-label-name">Имя</label>
+    <input class="w-full rounded-xl border border-outline-variant/40 bg-surface px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary focus:border-primary" id="support-callback-name" name="name" type="text" autocomplete="name"/>
+    </div>
+    <div>
+    <label class="block text-xs font-semibold uppercase tracking-wide text-on-surface-variant mb-1.5" for="support-callback-phone" id="support-label-phone">Телефон</label>
+    <input class="w-full rounded-xl border border-outline-variant/40 bg-surface px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary focus:border-primary" id="support-callback-phone" name="phone" type="tel" required autocomplete="tel"/>
+    </div>
+    <div>
+    <label class="block text-xs font-semibold uppercase tracking-wide text-on-surface-variant mb-1.5" for="support-callback-comment" id="support-label-comment">Комментарий</label>
+    <textarea class="w-full rounded-xl border border-outline-variant/40 bg-surface px-4 py-3 text-on-surface focus:ring-2 focus:ring-primary focus:border-primary min-h-[88px] resize-y" id="support-callback-comment" name="comment" rows="3"></textarea>
+    </div>
+    <div class="flex flex-col-reverse sm:flex-row gap-3 pt-2 items-stretch">
+    <div class="support-submit-wrap">
+    <button type="submit" class="support-submit-btn hover:opacity-[0.97] transition-opacity" id="support-modal-submit" aria-busy="false">
+    <span class="support-submit-text" id="support-modal-submit-label">Отправить запрос</span>
+    <span class="support-submit-progress" aria-hidden="true"></span>
+    <svg class="support-submit-svg" x="0px" y="0px" viewBox="0 0 25 30" aria-hidden="true" focusable="false">
+    <path class="support-submit-check" d="M2,19.2C5.9,23.6,9.4,28,9.4,28L23,2"/>
+    </svg>
+    </button>
+    </div>
+    <button type="button" class="flex-1 py-3 rounded-xl border border-outline-variant text-on-surface font-headline font-semibold text-sm hover:bg-surface-container transition-colors" id="support-modal-cancel">Отмена</button>
+    </div>
+    </form>
+    </div>
+    </div>
+    </main>
+    <script src="../js/lk-i18n.js" defer></script>
+<script src="../js/mobile-nav.js" defer></script>
+    <script src="../js/lk.js?v=21" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js" defer></script>
+    <script src="../js/support.js?v=4" defer></script>
+    </body></html>

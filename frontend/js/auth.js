@@ -26,6 +26,10 @@
   })();
 
   const errorBox = document.getElementById("login-error");
+  const dashboardUrl =
+    window.location.protocol === "file:"
+      ? "../lk/dashboard.html"
+      : "/frontend/lk/dashboard.html";
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -47,6 +51,7 @@
             headers: {
               "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify({ email, password }),
           });
 
@@ -63,12 +68,11 @@
         throw new Error("Cannot reach API. Check backend at http://localhost:5000");
       }
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Login failed");
+        throw new Error(data.message_ru || data.message_en || data.error || "Login failed");
       }
 
-      // Backend token field is expected here.
-      localStorage.setItem("token", data.token || "");
-      window.location.href = "/lk/dashboard.html";
+      localStorage.removeItem("token");
+      window.location.href = dashboardUrl;
     } catch (error) {
       if (errorBox) {
         errorBox.textContent = error.message || "Login error";

@@ -1,0 +1,17 @@
+.git
+.gitignore
+.cursor
+.vscode
+.idea
+node_modules
+__pycache__
+*.pyc
+.venv
+venv
+env
+database
+storage
+.env
+.env.*
+!.env.production.example
+*.log

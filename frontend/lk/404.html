@@ -1,0 +1,281 @@
+﻿<!DOCTYPE html>
+<html class="light" lang="ru">
+<head>
+<style id="lk-gate-nav-css">[data-lk-gate]:not(.lk-gate-visible){display:none!important}</style>
+<script src="../js/lk-access.js?v=1"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
+<link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="Spainza" />
+<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<title>404 | Spainza</title>
+<link rel="stylesheet" href="/frontend/css/portal.css?v=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+  .lk-not-found {
+    --nf-blue: #191b25;
+    --nf-pink: #fdabaf;
+    --nf-surface: #fbf8ff;
+    --nf-btn: #0052ff;
+    --nf-btn-hover: #003ec7;
+    background: var(--nf-surface);
+    font-family: 'Inter', sans-serif;
+    color: var(--nf-blue);
+  }
+  .lk-not-found__center {
+    min-height: calc(100vh - 6rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    box-sizing: border-box;
+  }
+  @media (min-width: 768px) {
+    .lk-not-found__center { min-height: 100vh; }
+  }
+  .lk-not-found__error {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 0.25rem;
+  }
+  .lk-not-found__number {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: clamp(6rem, 18vw, 15rem);
+    line-height: 1;
+    color: var(--nf-blue);
+  }
+  .lk-not-found__illustration {
+    position: relative;
+    width: 12.2rem;
+    height: 13rem;
+    margin: 0 2.1rem;
+    flex-shrink: 0;
+  }
+  .lk-not-found__circle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 12.2rem;
+    height: 11.4rem;
+    border-radius: 50%;
+    background-color: var(--nf-blue);
+  }
+  .lk-not-found__clip {
+    position: absolute;
+    bottom: 0.3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    overflow: hidden;
+    width: 12.5rem;
+    height: 13rem;
+    border-radius: 0 0 50% 50%;
+  }
+  .lk-not-found__paper {
+    position: absolute;
+    bottom: -0.3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 9.2rem;
+    height: 12.4rem;
+    border: 0.3rem solid var(--nf-blue);
+    background-color: #fff;
+    border-radius: 0.8rem;
+    box-sizing: border-box;
+  }
+  .lk-not-found__paper::before {
+    content: "";
+    position: absolute;
+    top: -0.7rem;
+    right: -0.7rem;
+    width: 1.4rem;
+    height: 1rem;
+    background-color: #fff;
+    border-bottom: 0.3rem solid var(--nf-blue);
+    transform: rotate(45deg);
+  }
+  .lk-not-found__face {
+    position: relative;
+    width: 9.2rem;
+    height: 5rem;
+    margin-top: 2.3rem;
+  }
+  .lk-not-found__eyes {
+    position: absolute;
+    top: 0;
+    left: 2.4rem;
+    width: 4.6rem;
+    height: 0.8rem;
+  }
+  .lk-not-found__eye {
+    position: absolute;
+    bottom: 0;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    background-color: var(--nf-blue);
+    animation: lk-not-found-blink 4s ease-in-out infinite;
+  }
+  .lk-not-found__eye-left { left: 0; }
+  .lk-not-found__eye-right { right: 0; }
+  @keyframes lk-not-found-blink {
+    0%, 50%, 54%, 100% { height: 0.8rem; }
+    52% { height: 0.1rem; }
+  }
+  .lk-not-found__cheek {
+    position: absolute;
+    top: 1.6rem;
+    width: 1rem;
+    height: 0.2rem;
+    border-radius: 50%;
+    background-color: var(--nf-pink);
+  }
+  .lk-not-found__cheek-left { left: 1.4rem; }
+  .lk-not-found__cheek-right { right: 1.4rem; }
+  .lk-not-found__mouth {
+    position: absolute;
+    top: 3.1rem;
+    left: 50%;
+    width: 1.6rem;
+    height: 0.2rem;
+    border-radius: 0.1rem;
+    transform: translateX(-50%);
+    background-color: var(--nf-blue);
+  }
+  @media (max-width: 480px) {
+    .lk-not-found__number { font-size: 6rem; }
+    .lk-not-found__illustration {
+      width: 8.5rem;
+      height: 9rem;
+      margin: 0 0.75rem;
+    }
+    .lk-not-found__circle { width: 8.5rem; height: 8rem; }
+    .lk-not-found__clip { width: 8.7rem; height: 9rem; }
+    .lk-not-found__paper { width: 6.4rem; height: 8.5rem; }
+    .lk-not-found__face { width: 6.4rem; margin-top: 1.6rem; }
+    .lk-not-found__eyes { left: 1.6rem; width: 3.2rem; }
+    .lk-not-found__cheek-left { left: 0.8rem; }
+    .lk-not-found__cheek-right { right: 0.8rem; }
+  }
+  .lk-not-found__text {
+    margin-top: clamp(2rem, 6vw, 5rem);
+    max-width: 28rem;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--nf-blue);
+  }
+  .lk-not-found__button {
+    margin-top: clamp(1.5rem, 4vw, 4rem);
+    padding: 1rem 2.5rem;
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #fff;
+    background-color: var(--nf-btn);
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    box-shadow: 0 10px 24px rgba(0, 82, 255, 0.22);
+  }
+  .lk-not-found__button:hover {
+    background-color: var(--nf-btn-hover);
+    transform: translateY(-1px);
+  }
+  .lk-not-found__button:active {
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen flex overflow-x-hidden" data-layout-header="false" data-layout-footer="false" data-lk-nav-active="" data-lk-page-gate="none">
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 pt-10 pb-8 bg-surface-container-lowest border-r border-outline-variant/15 z-40">
+  <div class="px-8 mb-12">
+    <a href="./dashboard.html" class="text-2xl font-black tracking-tighter text-primary-container font-headline mb-1 inline-block no-underline hover:opacity-90">Spainza</a>
+    <div class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant font-label">Elite Intelligence</div>
+  </div>
+  <nav class="flex-1 flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6">
+    <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./dashboard.html">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span data-i18n="nav.dashboard">Главная</span>
+    </a>
+    <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./clients.html" data-lk-gate="clients">
+      <span class="material-symbols-outlined">groups</span>
+      <span data-i18n="nav.clients">Клиенты</span>
+    </a>
+    <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./documents.html" data-lk-gate="documents">
+      <span class="material-symbols-outlined">description</span>
+      <span data-i18n="nav.documents">Документы</span>
+    </a>
+    <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./configurator.html" data-lk-gate="configurator">
+      <span class="material-symbols-outlined">rule_settings</span>
+      <span data-i18n="nav.configurator">Шаблоны кейсов</span>
+    </a>
+    <a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./messages.html" data-lk-gate="messages">
+      <span class="material-symbols-outlined">chat_bubble</span>
+      <span data-i18n="nav.messages">Сообщения</span>
+    </a>
+  </nav>
+  <nav class="flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6 border-t border-outline-variant/15 pt-6">
+    <div class="px-6 mb-3">
+      <div class="text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant font-label mb-2 text-center" data-i18n="common.interfaceLanguage">Язык интерфейса</div>
+      <div class="flex p-1 bg-surface-container rounded-xl border border-outline-variant/20">
+        <button class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-primary" data-locale-btn="ru" type="button" data-i18n="common.langRu">Русский</button>
+        <button class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-primary transition-colors" data-locale-btn="en" type="button" data-i18n="common.langEn">English</button>
+      </div>
+    </div>
+    <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./profile.html">
+      <span class="material-symbols-outlined text-[20px]">tune</span>
+      <span data-i18n="nav.profile">Профиль</span>
+    </a>
+    <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./support.html">
+      <span class="material-symbols-outlined text-[20px]">help_center</span>
+      <span data-i18n="nav.support">Поддержка</span>
+    </a>
+    <a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all mt-4" href="../login.html" id="logout-btn">
+      <span class="material-symbols-outlined text-[20px]">logout</span>
+      <span data-i18n="nav.logout">Выход</span>
+    </a>
+  </nav>
+</aside>
+
+<main class="flex-1 md:ml-64 w-full min-h-screen lk-not-found pt-24 md:pt-0">
+  <div class="lk-not-found__center">
+    <div class="lk-not-found__error" aria-hidden="true">
+      <div class="lk-not-found__number">4</div>
+      <div class="lk-not-found__illustration">
+        <div class="lk-not-found__circle"></div>
+        <div class="lk-not-found__clip">
+          <div class="lk-not-found__paper">
+            <div class="lk-not-found__face">
+              <div class="lk-not-found__eyes">
+                <div class="lk-not-found__eye lk-not-found__eye-left"></div>
+                <div class="lk-not-found__eye lk-not-found__eye-right"></div>
+              </div>
+              <div class="lk-not-found__cheek lk-not-found__cheek-left"></div>
+              <div class="lk-not-found__cheek lk-not-found__cheek-right"></div>
+              <div class="lk-not-found__mouth"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="lk-not-found__number">4</div>
+    </div>
+    <p class="lk-not-found__text" id="lk-not-found-text">Кажется, вы заблудились. Вот кнопка, которая вернёт вас на главную страницу.</p>
+    <a class="lk-not-found__button" id="lk-not-found-button" href="./dashboard.html">На главную</a>
+  </div>
+</main>
+
+<script src="../js/lk-i18n.js?v=4" defer></script>
+<script src="../js/lk.js?v=21" defer></script>
+<script src="../js/mobile-nav.js" defer></script>
+<script src="../js/lk-404.js" defer></script>
+</body>
+</html>

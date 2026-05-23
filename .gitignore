@@ -1,0 +1,66 @@
+# OS / editor noise
+Thumbs.db
+.DS_Store
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python cache and virtualenv
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.venv/
+venv/
+env/
+
+# Build and coverage artifacts
+dist/
+build/
+coverage/
+.coverage
+.coverage.*
+htmlcov/
+.cache/
+
+# IDE settings
+.cursor/
+.vscode/
+.idea/
+
+# Runtime databases and local app data
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+*.db
+*.sqlite
+*.sqlite3
+
+# User-uploaded/generated files
+storage/documents/
+
+# Temporary HTML pages (do not commit)
+draft-*.html
+*_draft.html
+tmp-*.html
+test-*.html
+*_old.html
+*_backup.html
+playground*.html
