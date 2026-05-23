@@ -60,7 +60,7 @@ if [[ ! -f "$ENV_FILE" ]]; then
   cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
   echo "Created $ENV_FILE from template."
 fi
-python - <<'PY'
+python3 - <<'PY'
 from pathlib import Path
 import os
 import secrets
