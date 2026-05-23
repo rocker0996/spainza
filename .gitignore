@@ -56,6 +56,14 @@ database/*.sqlite3
 # User-uploaded/generated files
 storage/documents/
 
+# Local dev launch scripts (keep on machine only)
+start-dev.bat
+start-dev.ps1
+start-local.bat
+start-local.ps1
+start_server.bat
+docker-compose.local.yml
+
 # Temporary HTML pages (do not commit)
 draft-*.html
 *_draft.html
