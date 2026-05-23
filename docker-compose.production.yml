@@ -40,6 +40,7 @@ services:
       - "5000"
     networks:
       - spainza-internal
+      - edge
     healthcheck:
       test:
         [
@@ -62,7 +63,7 @@ services:
     expose:
       - "80"
     networks:
-      - spainza-internal
+      - edge
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/"]
       interval: 10s
@@ -73,6 +74,9 @@ services:
 networks:
   spainza-internal:
     internal: true
+  edge:
+    external: true
+    name: ${EDGE_NETWORK:-boletus_default}
 
 volumes:
   spainza-postgres-data:
