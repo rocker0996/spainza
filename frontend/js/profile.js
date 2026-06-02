@@ -30,7 +30,7 @@
     return window.LkI18n ? window.LkI18n.t(key, params) : key;
   }
   /** Тот же ID, что в chat.js (чат поддержки). */
-  const SUPPORT_USER_ID = 11;
+  const SUPPORT_USER_ID = 3;
   /** Маркер должен совпадать с chat.js для оформления в переписке. */
   const COMPLAINT_MESSAGE_PREFIX = "[[SPAINZA_MANAGER_COMPLAINT]]\n";
 

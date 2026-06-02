@@ -32,6 +32,8 @@ function pickCasePlural(n, keyOne, keyFew, keyMany) {
 }
 
 // Global state
+let caseEditorsReady = false;
+let caseSaveSeq = 0;
 let currentUserId = null;
 let currentUser = null;
 let loggedInUser = null; // Current logged-in user (manager/admin)
@@ -153,19 +155,22 @@ function showEnableEditModeToast() {
         'info'
     );
 
-    const toggleLabel = document.getElementById('edit-mode-toggle')?.closest('label');
-    if (!toggleLabel) {
+    const toggleTrack = document
+        .getElementById('edit-mode-toggle')
+        ?.closest('.relative')
+        ?.querySelector('.block');
+    if (!toggleTrack) {
         return;
     }
 
-    toggleLabel.classList.add('ring-2', 'ring-blue-300', 'ring-offset-2', 'ring-offset-slate-50', 'animate-pulse');
+    toggleTrack.classList.add('case-toggle-hint');
     if (editModeHintResetTimer) {
         clearTimeout(editModeHintResetTimer);
     }
     editModeHintResetTimer = setTimeout(() => {
-        toggleLabel.classList.remove('ring-2', 'ring-blue-300', 'ring-offset-2', 'ring-offset-slate-50', 'animate-pulse');
+        toggleTrack.classList.remove('case-toggle-hint');
         editModeHintResetTimer = null;
-    }, 1800);
+    }, 1200);
 }
 
 function ruDocumentsWordForm(n) {
@@ -409,9 +414,10 @@ function renderVisaTypeOptions() {
             option.value = visaType.value;
             const i18nLabel = window.LkI18n ? window.LkI18n.visaLabel(visaType.value) : '';
             option.textContent =
-                (locale === 'en' && i18nLabel) ||
                 visaType[labelKey] ||
+                i18nLabel ||
                 visaType.label_ru ||
+                visaType.label_en ||
                 visaType.value;
             visaSelect.appendChild(option);
         });
@@ -542,7 +548,22 @@ function mapTemplateDocsToCase(items) {
  * Таймлайн и документы: при отсутствии «ручного» флага всегда подставляется актуальный шаблон;
  * после ручных правок соответствующая часть не перезаписывается шаблоном.
  */
+function caseRequestsHaveSentFlag(requests) {
+    return (
+        Array.isArray(requests) &&
+        requests.some(
+            (item) =>
+                item &&
+                (item.sent === true ||
+                    item.sent === 1 ||
+                    item.sent === "1" ||
+                    String(item.sent).toLowerCase() === "true")
+        )
+    );
+}
+
 async function bootstrapCaseEditors(loadedCaseData) {
+    caseEditorsReady = false;
     const timelineManual = !!(loadedCaseData && loadedCaseData.timeline_manual);
     const documentRequestsManual = !!(loadedCaseData && loadedCaseData.document_requests_manual);
     caseData.timelineManual = timelineManual;
@@ -633,8 +654,17 @@ async function bootstrapCaseEditors(loadedCaseData) {
             (needTemplateFetch && tplHadContent));
 
     if (persistNeeded) {
+        const prevDocs =
+            loadedCaseData && Array.isArray(loadedCaseData.document_requests)
+                ? loadedCaseData.document_requests
+                : [];
+        if (caseRequestsHaveSentFlag(prevDocs)) {
+            caseData.documentRequests = prevDocs.map((item) => ({ ...item }));
+            caseData.documentRequestsManual = true;
+        }
         await saveCaseData();
     }
+    caseEditorsReady = true;
 }
 
 function updateCaseArchiveFileLabel() {
@@ -1263,6 +1293,7 @@ function recallDocumentRequest(docId) {
         }
         doc.sent = false;
         doc.checked = false;
+        doc.fulfilled = false;
         markDocumentRequestsManual();
         renderDocumentRequests();
         showSaveNotification();
@@ -1272,32 +1303,73 @@ function recallDocumentRequest(docId) {
 /**
  * Send document requests
  */
-function sendDocumentRequests() {
+async function sendDocumentRequests() {
     if (!isEditMode) {
         showEnableEditModeToast();
         return;
     }
-    const checkedDocs = caseData.documentRequests.filter(d => d.checked && !d.sent);
+    if (!caseEditorsReady) {
+        showCaseToast(t("case.toast.caseLoading"), "info");
+        return;
+    }
+    const checkedDocs = caseData.documentRequests.filter((d) => d.checked && !d.sent);
     if (checkedDocs.length === 0) {
         showCaseToast(t("case.selectDocToSend"), "error");
         return;
     }
 
-    checkedDocs.forEach((doc) => {
-        doc.sent = true;
-        doc.checked = false;
-    });
+    const requestIds = checkedDocs.map((doc) => doc.id);
 
-    markDocumentRequestsManual();
-    renderDocumentRequests();
-    showSaveNotification();
+    if (window.saveTimeout) {
+        clearTimeout(window.saveTimeout);
+        window.saveTimeout = null;
+    }
+    caseSaveSeq += 1;
 
-    const n = checkedDocs.length;
-    showCaseToast(
-        t("case.sentToClient", { n, word: ruDocumentsWordForm(n) }),
-        "success"
-    );
-    console.log('Sent document requests:', checkedDocs);
+    const sendBtn = document.getElementById("send-doc-requests-btn");
+    if (sendBtn) {
+        sendBtn.disabled = true;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_BASE}/case-data/${currentUserId}/document-requests/send`,
+            {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ request_ids: requestIds }),
+            }
+        );
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        if (Array.isArray(data.document_requests)) {
+            caseData.documentRequests = data.document_requests;
+        } else {
+            checkedDocs.forEach((doc) => {
+                doc.sent = true;
+                doc.checked = false;
+            });
+        }
+        caseData.documentRequestsManual = true;
+        renderDocumentRequests();
+
+        const n = checkedDocs.length;
+        showCaseToast(
+            t("case.sentToClient", { n, word: ruDocRequestWordForm(n) }),
+            "success"
+        );
+    } catch (error) {
+        console.error("Failed to send document requests:", error);
+        showCaseToast(t("case.toast.saveFailed", { error: error.message }), "error");
+    } finally {
+        if (sendBtn) {
+            sendBtn.disabled = !isEditMode;
+        }
+    }
 }
 
 /**
@@ -1365,9 +1437,12 @@ function toggleEditMode(enabled) {
     });
 
     if (enabled) {
-        const toggleLabel = document.getElementById('edit-mode-toggle')?.closest('label');
-        if (toggleLabel) {
-            toggleLabel.classList.remove('ring-2', 'ring-blue-300', 'ring-offset-2', 'ring-offset-slate-50', 'animate-pulse');
+        const toggleTrack = document
+            .getElementById('edit-mode-toggle')
+            ?.closest('.relative')
+            ?.querySelector('.block');
+        if (toggleTrack) {
+            toggleTrack.classList.remove('case-toggle-hint');
         }
     }
 }
@@ -1428,8 +1503,10 @@ function showSaveNotification() {
 async function saveCaseData() {
     if (!currentUserId) {
         console.error('Cannot save: missing userId', { currentUserId });
-        return;
+        return false;
     }
+
+    const saveSeq = ++caseSaveSeq;
 
     try {
         const payload = {
@@ -1465,13 +1542,23 @@ async function saveCaseData() {
 
         const data = await response.json();
         console.log('Save response data:', data);
+
+        if (saveSeq !== caseSaveSeq) {
+            return true;
+        }
         
         if (data.success) {
             console.log('Case data saved successfully');
+            return true;
         }
+        return false;
     } catch (error) {
+        if (saveSeq !== caseSaveSeq) {
+            return true;
+        }
         console.error('Error saving case data:', error);
         showCaseToast(t('case.toast.saveFailed', { error: error.message }), "error");
+        return false;
     }
 }
 
@@ -2005,7 +2092,7 @@ async function fetchStaffUserByDisplayForCase(displayToken, errorField) {
 async function applyAssignedManagerUser(user, role) {
     const errorField = role === "referral" ? "referral" : "manager";
     const userRoleKey = (user.role && user.role.key ? String(user.role.key) : "").toLowerCase().trim();
-    const allowedRoles = ["management", "admin", "moderator", "manager"];
+    const allowedRoles = ["management", "admin", "support", "moderator", "manager"];
     if (!allowedRoles.includes(userRoleKey)) {
         showManagerError(
             errorField,

@@ -4,9 +4,10 @@ import re
 from pathlib import Path
 
 from flask import Flask, g, jsonify, redirect, request, send_from_directory
+from werkzeug.exceptions import RequestEntityTooLarge
 
 from config import Config, is_production_env
-from models.document import create_documents_table
+from models.document import create_documents_table, ensure_documents_columns
 from models.security_log import create_security_logs_table
 from models.user import (
     create_users_table,
@@ -311,6 +312,7 @@ def create_app() -> Flask:
     init_connection = get_db_connection()
     create_users_table(init_connection)
     create_documents_table(init_connection)
+    ensure_documents_columns(init_connection)
     create_security_logs_table(init_connection)
     create_manager_clients_table(init_connection)
     create_case_data_table(init_connection)
@@ -555,6 +557,12 @@ def create_app() -> Flask:
         if request.path.startswith("/api/"):
             return jsonify({"success": False, "error": "not found"}), 404
         return send_from_directory(str(PROJECT_ROOT), "404.html"), 404
+
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_request_entity_too_large(error):
+        if request.path.startswith("/api/"):
+            return jsonify({"success": False, "error": "file too large"}), 413
+        return send_from_directory(str(PROJECT_ROOT), "404.html"), 413
 
     return app
 

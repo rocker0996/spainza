@@ -67,13 +67,16 @@ function hasViewUsersPermission(permissions) {
  */
 function getRoleBadgeColor(roleKey) {
     const colors = {
-        'management': 'bg-purple-100 text-purple-600',
-        'admin': 'bg-red-100 text-red-600',
-        'moderator': 'bg-blue-100 text-blue-600',
-        'manager': 'bg-green-100 text-green-600',
-        'digital_nomad': 'bg-yellow-100 text-yellow-600',
-        'golden_visa': 'bg-amber-100 text-amber-600',
-        'user': 'bg-slate-100 text-slate-600'
+        management: 'bg-purple-100 text-purple-600',
+        admin: 'bg-red-100 text-red-600',
+        support: 'bg-blue-50 text-blue-700',
+        moderator: 'bg-blue-100 text-blue-600',
+        manager: 'bg-green-100 text-green-600',
+        client: 'bg-green-50 text-green-700',
+        digital_nomad: 'bg-yellow-100 text-yellow-600',
+        golden_visa: 'bg-amber-100 text-amber-600',
+        other: 'bg-stone-100 text-slate-600',
+        user: 'bg-slate-100 text-slate-500',
     };
     return colors[roleKey] || 'bg-slate-100 text-slate-600';
 }

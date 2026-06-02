@@ -23,4 +23,8 @@ def get_db_connection() -> sqlite3.Connection:
     from models.case_template import create_manager_case_templates_table
     create_manager_case_templates_table(connection)
 
+    from models.document import ensure_documents_columns
+    ensure_documents_columns(connection)
+
     return connection
+

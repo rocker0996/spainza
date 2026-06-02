@@ -92,14 +92,216 @@ def get_case_data_by_user_id(connection: sqlite3.Connection, user_id: int) -> Op
     }
 
 
+def case_data_flag_is_true(value) -> bool:
+    """Interpret boolean flags stored in case JSON (bool, 0/1, strings)."""
+    if value is True or value == 1:
+        return True
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return False
+
+
+def merge_document_requests_preserve_sent(
+    previous: Optional[list[dict[str, Any]]],
+    incoming: Optional[list[dict[str, Any]]],
+) -> list[dict[str, Any]]:
+    """Keep sent/fulfilled flags when a concurrent save sends stale document_requests."""
+    if not incoming:
+        return []
+    if not previous:
+        return [dict(item) for item in incoming if isinstance(item, dict)]
+
+    prev_by_id: dict[int, dict[str, Any]] = {}
+    for item in previous:
+        if not isinstance(item, dict) or item.get("id") is None:
+            continue
+        try:
+            prev_by_id[int(item["id"])] = item
+        except (TypeError, ValueError):
+            continue
+
+    merged: list[dict[str, Any]] = []
+    for item in incoming:
+        if not isinstance(item, dict):
+            continue
+        out = dict(item)
+        try:
+            rid = int(out.get("id"))
+        except (TypeError, ValueError):
+            merged.append(out)
+            continue
+        prev = prev_by_id.get(rid)
+        if prev and case_data_flag_is_true(prev.get("sent")) and not case_data_flag_is_true(
+            out.get("sent")
+        ):
+            out["sent"] = True
+        if prev and case_data_flag_is_true(prev.get("fulfilled")) and not case_data_flag_is_true(
+            out.get("fulfilled")
+        ):
+            out["fulfilled"] = True
+        merged.append(out)
+    return merged
+
+
+def mark_document_requests_sent(
+    connection: sqlite3.Connection,
+    user_id: int,
+    request_ids: list[int],
+) -> tuple[bool, list[dict[str, Any]], int]:
+    """Atomically mark document requests as sent to the client."""
+    if not request_ids:
+        return False, [], 0
+
+    case_data = get_case_data_by_user_id(connection, user_id)
+    if not case_data:
+        return False, [], 0
+
+    requests = case_data.get("document_requests")
+    if not isinstance(requests, list):
+        return False, [], 0
+
+    id_set = {int(rid) for rid in request_ids}
+    updated = 0
+    matched = 0
+    for req in requests:
+        if not isinstance(req, dict):
+            continue
+        try:
+            rid = int(req.get("id"))
+        except (TypeError, ValueError):
+            continue
+        if rid not in id_set:
+            continue
+        matched += 1
+        if not case_data_flag_is_true(req.get("sent")):
+            updated += 1
+        req["sent"] = True
+        req["checked"] = False
+
+    if matched == 0:
+        return False, requests, 0
+
+    ok = upsert_case_data(
+        connection,
+        user_id,
+        case_data.get("visa_type") or "digital_nomad",
+        case_data.get("target_date"),
+        case_data.get("country") or "",
+        case_data.get("archive_file_path"),
+        case_data.get("archive_file_name"),
+        case_data.get("timeline") or [],
+        requests,
+        referral_id=case_data.get("referral_id"),
+        manager_id=case_data.get("manager_id"),
+        timeline_manual=bool(case_data.get("timeline_manual")),
+        document_requests_manual=True,
+    )
+    return ok, requests, updated
+
+
+def _parse_case_document_request_id(request_id_raw: str | None) -> int | None:
+    """Parse ``req_3`` or ``3`` into a numeric case document-request id."""
+    if request_id_raw is None:
+        return None
+    raw = str(request_id_raw).strip()
+    if not raw:
+        return None
+    if raw.startswith("req_"):
+        raw = raw[4:]
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return None
+
+
+def find_case_document_request(
+    case_data: Optional[dict[str, Any]], request_id_raw: str | None
+) -> Optional[dict[str, Any]]:
+    """Return a document request row from case_data by id."""
+    parsed_id = _parse_case_document_request_id(request_id_raw)
+    if parsed_id is None or not case_data:
+        return None
+    requests = case_data.get("document_requests")
+    if not isinstance(requests, list):
+        return None
+    for req in requests:
+        if not isinstance(req, dict):
+            continue
+        try:
+            if int(req.get("id")) == parsed_id:
+                return req
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def set_case_document_request_fulfilled(
+    connection: sqlite3.Connection,
+    user_id: int,
+    request_id_raw: str | None,
+    *,
+    fulfilled: bool = True,
+) -> bool:
+    """Mark a sent document request as fulfilled (or reset on recall)."""
+    parsed_id = _parse_case_document_request_id(request_id_raw)
+    if parsed_id is None:
+        return False
+
+    case_data = get_case_data_by_user_id(connection, user_id)
+    if not case_data:
+        return False
+
+    requests = case_data.get("document_requests")
+    if not isinstance(requests, list):
+        return False
+
+    updated = False
+    for req in requests:
+        if not isinstance(req, dict):
+            continue
+        try:
+            if int(req.get("id")) != parsed_id:
+                continue
+        except (TypeError, ValueError):
+            continue
+        req["fulfilled"] = bool(fulfilled)
+        updated = True
+        break
+
+    if not updated:
+        return False
+
+    return upsert_case_data(
+        connection,
+        user_id,
+        case_data.get("visa_type") or "digital_nomad",
+        case_data.get("target_date"),
+        case_data.get("country") or "",
+        case_data.get("archive_file_path"),
+        case_data.get("archive_file_name"),
+        case_data.get("timeline") or [],
+        requests,
+        referral_id=case_data.get("referral_id"),
+        manager_id=case_data.get("manager_id"),
+        timeline_manual=bool(case_data.get("timeline_manual")),
+        document_requests_manual=bool(case_data.get("document_requests_manual")),
+    )
+
+
 def count_sent_document_requests(case_data: Optional[dict[str, Any]]) -> int:
-    """Count manager document requests marked as sent (nav badge)."""
+    """Count open manager document requests waiting for client upload (nav badge)."""
     if not case_data:
         return 0
     requests = case_data.get("document_requests")
     if not isinstance(requests, list):
         return 0
-    return sum(1 for req in requests if isinstance(req, dict) and req.get("sent", False))
+    return sum(
+        1
+        for req in requests
+        if isinstance(req, dict)
+        and case_data_flag_is_true(req.get("sent"))
+        and not case_data_flag_is_true(req.get("fulfilled"))
+    )
 
 
 def upsert_case_data(

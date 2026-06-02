@@ -1,8 +1,8 @@
 (function () {
 
   const defaultAvatar = "../img/Avatar.jpg";
-  /** Чат поддержки (совпадает с chat.js / profile.js). */
-  const SUPPORT_USER_ID = 11;
+  /** Запасной id поддержки, если в сессии ещё нет support_user_id. */
+  const SUPPORT_USER_ID_FALLBACK = 3;
   let dashboardSessionUser = null;
   let dashboardConversations = [];
   let dashboardLastCaseData = null;
@@ -12,6 +12,15 @@
    * Кому показывать превью: персональный менеджер из сессии, иначе поддержка.
    * @param {Record<string, unknown> | null | undefined} sessionUser — ответ GET /api/user
    */
+  function supportUserIdFromSession(sessionUser) {
+    const raw = sessionUser?.support_user_id;
+    const parsed = raw != null ? Number(raw) : NaN;
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+    return SUPPORT_USER_ID_FALLBACK;
+  }
+
   function resolveMessageDeskTarget(sessionUser) {
     const am = sessionUser?.assigned_manager;
     const rawId = am && typeof am === "object" ? am.id : null;
@@ -26,7 +35,51 @@
     const sd = sessionUser?.support_display_id
       ? String(sessionUser.support_display_id).trim().toUpperCase()
       : "";
-    return { mode: "support", userId: SUPPORT_USER_ID, displayId: sd, manager: null };
+    return {
+      mode: "support",
+      userId: supportUserIdFromSession(sessionUser),
+      displayId: sd,
+      manager: null,
+    };
+  }
+
+  /** Найти чат с менеджером или поддержкой (учитывает display_id и входящие от поддержки). */
+  function findDeskConversation(items, target) {
+    const list = Array.isArray(items) ? items : [];
+    const uid = Number(target.userId);
+    const displayId = target.displayId ? String(target.displayId).trim().toUpperCase() : "";
+
+    let conv =
+      list.find((c) => Number(c.other_user_id) === uid) ||
+      (displayId
+        ? list.find(
+            (c) =>
+              String(c.other_user_display_id || "").trim().toUpperCase() === displayId
+          )
+        : null) ||
+      list.find((c) => String(c.other_user_role || "").toLowerCase() === "support");
+
+    if (!conv && target.mode === "support") {
+      const withInbound = list.filter((c) => {
+        const txt = c.last_inbound_message;
+        return txt != null && String(txt).trim() !== "";
+      });
+      if (withInbound.length === 1) {
+        conv = withInbound[0];
+      } else if (withInbound.length > 1) {
+        conv =
+          withInbound.find((c) => Number(c.other_user_id) === uid) ||
+          (displayId
+            ? withInbound.find(
+                (c) =>
+                  String(c.other_user_display_id || "").trim().toUpperCase() === displayId
+              )
+            : null) ||
+          withInbound[0];
+      }
+    }
+
+    return conv || null;
   }
 
   async function apiGet(path) {
@@ -208,7 +261,7 @@
 
     const items = Array.isArray(conversations) ? conversations : [];
     const target = resolveMessageDeskTarget(sessionUser);
-    const conv = items.find((c) => Number(c.other_user_id) === target.userId);
+    const conv = findDeskConversation(items, target);
     const mgr = target.manager && typeof target.manager === "object" ? target.manager : null;
     const managerRoleRu =
       mgr && mgr.role && typeof mgr.role === "object" ? String(mgr.role.name_ru || "").trim() : "";

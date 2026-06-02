@@ -32,8 +32,11 @@ from models.user import (
     get_internal_user_id_by_display_id,
 )
 from models.case_data import (
+    case_data_flag_is_true,
     count_sent_document_requests,
     get_case_data_by_user_id,
+    mark_document_requests_sent,
+    merge_document_requests_preserve_sent,
     upsert_case_data,
 )
 from services.case_template_apply import (
@@ -82,6 +85,12 @@ def _case_archive_download_url(user_id: int, archive_file_path: str | None) -> s
     if not archive_file_path:
         return None
     return f"/api/case-data/{int(user_id)}/archive/download"
+
+
+def _portal_support_user_row(connection):
+    """Аккаунт поддержки из PORTAL_SUPPORT_USER_ID (для чата и превью на главной)."""
+    row = get_user_by_id(connection, Config.PORTAL_SUPPORT_USER_ID)
+    return row if row else None
 
 
 def _assigned_manager_payload(connection, client_user_id: int) -> dict | None:
@@ -344,10 +353,11 @@ def get_current_user():
     role_key = normalize_role_key(user["role_key"] or "")
     role_data = get_role_definition(role_key)
 
-    support_row = get_user_by_id(g.db, Config.PORTAL_SUPPORT_USER_ID)
+    support_row = _portal_support_user_row(g.db)
     support_display_id = (
         (support_row["display_id"] or "").strip() if support_row else ""
     ) or None
+    support_user_id = int(support_row["id"]) if support_row else None
 
     return (
         jsonify(
@@ -388,6 +398,7 @@ def get_current_user():
                 "assigned_manager": _assigned_manager_payload(g.db, int(user["id"])),
                 "display_id": (user["display_id"] or "").strip() or None,
                 "support_display_id": support_display_id,
+                "support_user_id": support_user_id,
             }
         ),
         200,
@@ -984,6 +995,55 @@ def get_case_data(user_id: int):
     }), 200
 
 
+@lk_bp.post("/case-data/<int:user_id>/document-requests/send")
+def send_case_document_requests(user_id: int):
+    """Mark selected document requests as sent (atomic, avoids full-case save races)."""
+    current_user = get_user_by_id(g.db, g.current_user_id)
+    if not current_user:
+        return jsonify({"success": False, "error": "user not found"}), 404
+
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+
+    if not get_user_by_id(g.db, user_id):
+        return jsonify({"success": False, "error": "target user not found"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    raw_ids = payload.get("request_ids")
+    if not isinstance(raw_ids, list) or not raw_ids:
+        return jsonify({"success": False, "error": "request_ids required"}), 400
+
+    parsed_ids: list[int] = []
+    for raw_id in raw_ids:
+        try:
+            parsed_ids.append(int(raw_id))
+        except (TypeError, ValueError):
+            continue
+    if not parsed_ids:
+        return jsonify({"success": False, "error": "request_ids required"}), 400
+
+    ok, requests, updated = mark_document_requests_sent(g.db, user_id, parsed_ids)
+    if not ok:
+        return jsonify({"success": False, "error": "failed to send document requests"}), 500
+
+    if updated > 0:
+        add_history_entry(
+            g.db,
+            user_id,
+            g.current_user_id,
+            "Отправлены запросы документов",
+            f"Количество: {updated}",
+        )
+
+    return jsonify(
+        {
+            "success": True,
+            "document_requests": requests,
+            "updated": updated,
+        }
+    ), 200
+
+
 @lk_bp.get("/case-history/<int:user_id>")
 def get_case_history_endpoint(user_id: int):
     """Get case history for a specific user."""
@@ -1078,6 +1138,18 @@ def update_case_data(user_id: int):
         )
     else:
         document_requests_manual = bool(payload.get("document_requests_manual"))
+
+    if old_case_data:
+        document_requests = merge_document_requests_preserve_sent(
+            old_case_data.get("document_requests"),
+            document_requests,
+        )
+    if any(
+        case_data_flag_is_true(item.get("sent"))
+        for item in document_requests
+        if isinstance(item, dict)
+    ):
+        document_requests_manual = True
 
     # Validate manager IDs if provided
     if referral_id is not None:

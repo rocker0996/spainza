@@ -125,12 +125,19 @@ async function loadTemplate(visaType) {
 
 function visaLabelFromMeta(meta) {
     if (!meta) return '';
+    const key = meta.visa_type;
+    if (window.LkI18n && key) {
+        const localized = window.LkI18n.visaLabel(key);
+        if (localized && localized !== key) {
+            return localized;
+        }
+    }
     const loc = window.LkI18n
         ? window.LkI18n.getLocale()
         : (loggedInUser && loggedInUser.locale) || 'ru';
     return loc === 'en'
-        ? meta.label_en || meta.label_ru || meta.visa_type
-        : meta.label_ru || meta.label_en || meta.visa_type;
+        ? meta.label_en || meta.label_ru || key
+        : meta.label_ru || meta.label_en || key;
 }
 
 function renderVisaList() {

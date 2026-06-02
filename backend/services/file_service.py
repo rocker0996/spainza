@@ -42,7 +42,20 @@ ALLOWED_MIME_BY_EXTENSION = {
     "gz": {"application/gzip", "application/x-gzip"},
 }
 
-GENERIC_ALLOWED_MIME = {"application/octet-stream"}
+GENERIC_ALLOWED_MIME = {"application/octet-stream", "binary/octet-stream"}
+
+# Browser / OS variants that differ from the canonical MIME in ALLOWED_MIME_BY_EXTENSION.
+MIME_CANONICAL_ALIASES = {
+    "image/jpg": "image/jpeg",
+    "image/pjpeg": "image/jpeg",
+    "image/x-png": "image/png",
+    "image/x-citrix-png": "image/png",
+    "application/x-pdf": "application/pdf",
+    "application/x-zip-compressed": "application/zip",
+    "application/x-rar-compressed": "application/vnd.rar",
+    "text/x-plain": "text/plain",
+}
+
 
 class FileService:
     """Service for handling file uploads and storage."""
@@ -115,16 +128,32 @@ class FileService:
             return b"\x00" not in header
         return False
 
-    def _validate_declared_mime(self, ext, filename, file):
-        declared_mime = (getattr(file, "mimetype", "") or "").strip().lower()
+    def _normalize_mime(self, mime: str) -> str:
+        base = (mime or "").split(";", 1)[0].strip().lower()
+        return MIME_CANONICAL_ALIASES.get(base, base)
+
+    def _validate_declared_mime(self, ext, filename, file, *, magic_ok: bool = False):
+        declared_mime = self._normalize_mime(getattr(file, "mimetype", "") or "")
+        if not declared_mime:
+            return
+
         guessed_mime, _ = mimetypes.guess_type(filename)
-        guessed_mime = (guessed_mime or "").lower()
+        guessed_mime = self._normalize_mime(guessed_mime or "")
+
         allowed = set(ALLOWED_MIME_BY_EXTENSION.get(ext, set())) | GENERIC_ALLOWED_MIME
+        for value in list(allowed):
+            allowed.add(self._normalize_mime(value))
         if guessed_mime:
             allowed.add(guessed_mime)
 
-        if declared_mime and declared_mime not in allowed:
-            raise ValueError("Invalid file content type")
+        if declared_mime in allowed:
+            return
+
+        # Trust file signature when the payload matches the extension.
+        if magic_ok and ext not in {"txt"}:
+            return
+
+        raise ValueError("Invalid file content type")
 
     def _validate_openxml_container(self, file, ext):
         expected_prefix = OPENXML_EXPECTED_PREFIX.get(ext)
@@ -145,10 +174,11 @@ class FileService:
             raise ValueError("Invalid Office document structure")
 
     def _validate_by_content(self, file, ext, filename):
-        self._validate_declared_mime(ext, filename, file)
         header = self._read_file_head(file, MAX_SNIFF_BYTES)
-        if not self._matches_magic_signature(ext, header):
+        magic_ok = self._matches_magic_signature(ext, header)
+        if not magic_ok:
             raise ValueError("Invalid file signature")
+        self._validate_declared_mime(ext, filename, file, magic_ok=magic_ok)
         if ext in OPENXML_EXPECTED_PREFIX:
             self._validate_openxml_container(file, ext)
     
@@ -166,8 +196,13 @@ class FileService:
         if not self._allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
             raise ValueError(f"File type not allowed. Allowed types: {', '.join(ALLOWED_IMAGE_EXTENSIONS)}")
 
-        safe_original_name = secure_filename(file.filename)
-        ext = self._extract_extension(safe_original_name)
+        original_name = file.filename or ""
+        ext = self._extract_extension(original_name)
+        safe_original_name = secure_filename(original_name)
+        if not self._extract_extension(safe_original_name) and ext:
+            safe_original_name = f"upload.{ext}"
+        else:
+            ext = self._extract_extension(safe_original_name) or ext
         self._check_size(file, MAX_IMAGE_SIZE)
         self._validate_by_content(file, ext, safe_original_name)
         
@@ -193,8 +228,13 @@ class FileService:
         if not self._allowed_file(file.filename, ALLOWED_MESSAGE_FILE_EXTENSIONS):
             raise ValueError(f"File type not allowed. Allowed types: {', '.join(ALLOWED_MESSAGE_FILE_EXTENSIONS)}")
 
-        safe_original_name = secure_filename(file.filename)
-        ext = self._extract_extension(safe_original_name)
+        original_name = file.filename or ""
+        ext = self._extract_extension(original_name)
+        safe_original_name = secure_filename(original_name)
+        if not self._extract_extension(safe_original_name) and ext:
+            safe_original_name = f"upload.{ext}"
+        else:
+            ext = self._extract_extension(safe_original_name) or ext
         self._check_size(file, MAX_MESSAGE_FILE_SIZE)
         self._validate_by_content(file, ext, safe_original_name)
         
@@ -220,8 +260,13 @@ class FileService:
         if not self._allowed_file(file.filename, ALLOWED_DOCUMENT_WITH_IMAGES):
             raise ValueError(f"File type not allowed. Allowed types: {', '.join(ALLOWED_DOCUMENT_WITH_IMAGES)}")
 
-        safe_original_name = secure_filename(file.filename)
-        ext = self._extract_extension(safe_original_name)
+        original_name = file.filename or ""
+        ext = self._extract_extension(original_name)
+        safe_original_name = secure_filename(original_name)
+        if not self._extract_extension(safe_original_name) and ext:
+            safe_original_name = f"upload.{ext}"
+        else:
+            ext = self._extract_extension(safe_original_name) or ext
         self._check_size(file, MAX_DOCUMENT_SIZE)
         self._validate_by_content(file, ext, safe_original_name)
         

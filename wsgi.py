@@ -12,4 +12,8 @@ import sys
 ROOT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT_DIR / "backend"))
 
+from bootstrap_sqlite import ensure_bootstrap_users  # noqa: E402
+
 from app import app as application  # noqa: E402
+
+ensure_bootstrap_users()

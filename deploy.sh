@@ -175,6 +175,8 @@ server {
   listen 443 ssl;
   server_name ${DOMAIN} ${WWW_DOMAIN};
 
+  client_max_body_size 55m;
+
   ssl_certificate ${EDGE_SSL_CERT};
   ssl_certificate_key ${EDGE_SSL_KEY};
 

@@ -31,15 +31,13 @@ services:
     environment:
       APP_ENV: production
       FLASK_ENV: production
-      POSTGRES_HOST: spainza-postgres
-      POSTGRES_PORT: 5432
-    depends_on:
-      spainza-postgres:
-        condition: service_healthy
+      SECRET_KEY: ${JWT_SECRET}
+    volumes:
+      - spainza-app-data:/app/database
+      - spainza-storage:/app/storage
     expose:
       - "5000"
     networks:
-      - spainza-internal
       - edge
     healthcheck:
       test:
@@ -80,3 +78,5 @@ networks:
 
 volumes:
   spainza-postgres-data:
+  spainza-app-data:
+  spainza-storage:

@@ -75,7 +75,7 @@ class Config:
     FLASK_RUN_PORT = _parse_int_env("FLASK_RUN_PORT", 5000)
     FLASK_USE_RELOADER = _parse_bool_env("FLASK_USE_RELOADER", default=True)
     """Аккаунт поддержки в ЛК (числовой id в БД). Для чата по умолчанию используется его публичный display_id из профиля."""
-    PORTAL_SUPPORT_USER_ID = int(os.getenv("PORTAL_SUPPORT_USER_ID", "11"))
+    PORTAL_SUPPORT_USER_ID = int(os.getenv("PORTAL_SUPPORT_USER_ID", "3"))
     PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "")
 
     EMAIL_VERIFICATION_TTL_SECONDS = int(os.getenv("EMAIL_VERIFICATION_TTL_SECONDS", "172800"))
@@ -101,4 +101,6 @@ class Config:
     MESSAGE_RATE_LIMIT_IP_WINDOW_SECONDS = _parse_int_env("MESSAGE_RATE_LIMIT_IP_WINDOW_SECONDS", 60)
     MESSAGE_RATE_LIMIT_USER_MAX = _parse_int_env("MESSAGE_RATE_LIMIT_USER_MAX", 160)
     MESSAGE_RATE_LIMIT_USER_WINDOW_SECONDS = _parse_int_env("MESSAGE_RATE_LIMIT_USER_WINDOW_SECONDS", 60)
+    # Must be >= largest upload limit in file_service (documents: 50 MB).
+    MAX_CONTENT_LENGTH = _parse_int_env("MAX_UPLOAD_BYTES", 55 * 1024 * 1024)
 

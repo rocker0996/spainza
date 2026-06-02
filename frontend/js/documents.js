@@ -94,12 +94,45 @@
     }, 4200);
   }
 
+  function stripClientParamFromUrl() {
+    try {
+      const nu = new URL(window.location.href);
+      if (!nu.searchParams.has("client")) {
+        return;
+      }
+      nu.searchParams.delete("client");
+      const qs = nu.searchParams.toString();
+      window.history.replaceState(null, "", nu.pathname + (qs ? `?${qs}` : ""));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function isViewingOwnDocuments() {
+    if (!targetUserId) {
+      return true;
+    }
+    return (
+      currentUserId != null && Number(targetUserId) === Number(currentUserId)
+    );
+  }
+
   async function resolveTargetUserIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
-    const clientRaw = (urlParams.get("client") || "").trim().toUpperCase();
+    const clientParam = urlParams.get("client");
     const legacy = urlParams.get("userId");
 
-    if (clientRaw && /^[A-Z]{2}\d{4}$/.test(clientRaw)) {
+    if (clientParam !== null) {
+      const clientRaw = clientParam.trim().toUpperCase();
+      if (!clientRaw) {
+        stripClientParamFromUrl();
+        return null;
+      }
+      if (!/^[A-Z]{2}\d{4}$/.test(clientRaw)) {
+        stripClientParamFromUrl();
+        showDocumentsToast(t("documents.toast.clientUnknown"), "error");
+        return null;
+      }
       for (const baseUrl of apiBases) {
         try {
           const response = await fetch(
@@ -216,6 +249,7 @@
   }
 
   async function fetchFromApi(path) {
+    let lastError = null;
     for (const baseUrl of apiBases) {
       try {
         const response = await fetch(baseUrl + path, {
@@ -223,16 +257,25 @@
           credentials: "include",
         });
 
+        const data = await response.json().catch(() => ({}));
+
         if (!response.ok) {
+          lastError =
+            (typeof data.error === "string" && data.error) ||
+            (typeof data.message === "string" && data.message) ||
+            `HTTP ${response.status}`;
           continue;
         }
 
-        return await response.json();
+        return data;
       } catch (error) {
-        // Try next base URL.
+        lastError = error instanceof Error ? error.message : String(error);
       }
     }
 
+    if (lastError) {
+      console.error("documents API error:", path, lastError);
+    }
     return null;
   }
 
@@ -794,47 +837,135 @@
     return targetClientDisplayId;
   }
 
+  const HEADER_ACTION_PRIMARY_CLASS =
+    "flex-1 min-[420px]:flex-none justify-center px-4 py-2.5 min-h-[44px] rounded-xl bg-gradient-to-r from-primary-container to-secondary text-white font-manrope font-bold text-sm transition-opacity shadow-md hover:opacity-90 flex items-center gap-2 active:scale-[0.98]";
+
+  function showHeaderToolbarButton(element, visible, href) {
+    if (!element) {
+      return;
+    }
+    element.style.display = visible ? "flex" : "none";
+    if (href) {
+      element.setAttribute("href", href);
+    }
+  }
+
   function setupClientOwnCaseButtons() {
     const backBtn = document.getElementById("back-btn");
     const historyBtn = document.getElementById("history-btn");
     const filterBtn = document.getElementById("filter-btn");
 
-    if (backBtn) {
-      backBtn.style.display = "flex";
-      backBtn.setAttribute("href", "./dashboard.html");
-    }
-
-    if (historyBtn) {
-      historyBtn.style.display = "flex";
-    }
+    showHeaderToolbarButton(backBtn, true, "./dashboard.html");
+    showHeaderToolbarButton(historyBtn, true);
 
     if (filterBtn && filterBtn.parentElement && !document.getElementById("own-document-btn")) {
       const ownDocBtn = document.createElement("button");
       ownDocBtn.id = "own-document-btn";
       ownDocBtn.type = "button";
-      ownDocBtn.className =
-        "px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-container to-secondary text-white font-manrope font-bold text-sm transition-all shadow-md hover:opacity-90 flex items-center gap-2";
+      ownDocBtn.className = HEADER_ACTION_PRIMARY_CLASS;
       ownDocBtn.innerHTML =
-        `<span class="material-symbols-outlined text-[15px] sm:text-[18px]">add</span> ${t("documents.card.ownDocument")}`;
+        `<span class="material-symbols-outlined text-[18px] shrink-0">add</span><span class="truncate">${t("documents.card.ownDocument")}</span>`;
       ownDocBtn.addEventListener("click", () => handleUploadClick(null, null));
       filterBtn.parentElement.insertBefore(ownDocBtn, filterBtn);
+    }
+  }
+
+  function refreshDocumentsHeaderI18n() {
+    const manageBtn = document.getElementById("manage-case-btn");
+    if (manageBtn && manageBtn.style.display !== "none") {
+      manageBtn.innerHTML = `<span class="material-symbols-outlined text-[18px] shrink-0">folder_managed</span><span class="truncate">${t("clients.manageCase")}</span>`;
+    }
+    const ownDocBtn = document.getElementById("own-document-btn");
+    if (ownDocBtn) {
+      ownDocBtn.innerHTML = `<span class="material-symbols-outlined text-[18px] shrink-0">add</span><span class="truncate">${t("documents.card.ownDocument")}</span>`;
     }
   }
 
   function setupManagementClientDocumentsButtons() {
     const clientId = getClientDisplayIdForLinks();
     const filterBtn = document.getElementById("filter-btn");
-    if (!clientId || !filterBtn?.parentElement || document.getElementById("request-document-btn")) {
+    if (!clientId || !filterBtn?.parentElement) {
       return;
     }
 
-    const reqBtn = document.createElement("a");
-    reqBtn.id = "request-document-btn";
-    reqBtn.href = `./case.html?client=${encodeURIComponent(clientId)}`;
-    reqBtn.className =
-      "px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-container to-secondary text-white font-manrope font-bold text-sm transition-all shadow-md hover:opacity-90 flex items-center gap-2 no-underline";
-    reqBtn.innerHTML = `<span class="material-symbols-outlined text-[15px] sm:text-[18px]">note_add</span> ${t("documents.requestDocument")}`;
-    filterBtn.parentElement.insertBefore(reqBtn, filterBtn);
+    let manageBtn = document.getElementById("manage-case-btn");
+    if (!manageBtn) {
+      manageBtn = document.createElement("a");
+      manageBtn.id = "manage-case-btn";
+      manageBtn.className = `${HEADER_ACTION_PRIMARY_CLASS} no-underline`;
+      filterBtn.parentElement.insertBefore(manageBtn, filterBtn);
+    }
+    manageBtn.href = `./case.html?client=${encodeURIComponent(clientId)}`;
+    manageBtn.innerHTML = `<span class="material-symbols-outlined text-[18px] shrink-0">folder_managed</span><span class="truncate">${t("clients.manageCase")}</span>`;
+    manageBtn.style.display = "flex";
+
+    const legacyRequestBtn = document.getElementById("request-document-btn");
+    if (legacyRequestBtn) {
+      legacyRequestBtn.remove();
+    }
+  }
+
+  async function applyDocumentsHeaderActions() {
+    const backBtn = document.getElementById("back-btn");
+    const historyBtn = document.getElementById("history-btn");
+    const pageSubtitle = document.getElementById("page-subtitle");
+    const clientCodeInUrl = getClientDisplayIdFromUrl();
+
+    if (
+      !targetUserId &&
+      clientCodeInUrl &&
+      canModerateUsersForHeader()
+    ) {
+      targetClientDisplayId = clientCodeInUrl;
+      showHeaderToolbarButton(backBtn, true, "./clients.html");
+      showHeaderToolbarButton(historyBtn, true);
+      if (pageSubtitle) {
+        pageSubtitle.style.display = "none";
+      }
+      setupManagementClientDocumentsButtons();
+      return;
+    }
+
+    if (isViewingOwnDocuments()) {
+      const isClientUploader =
+        currentUserPermissions.includes("upload_documents") && !canModerateUsersForHeader();
+      if (isClientUploader || !targetUserId) {
+        setupClientOwnCaseButtons();
+      } else if (backBtn) {
+        showHeaderToolbarButton(backBtn, true, "./dashboard.html");
+        showHeaderToolbarButton(historyBtn, true);
+      }
+      if (pageSubtitle) {
+        pageSubtitle.style.display = "";
+      }
+      return;
+    }
+
+    showHeaderToolbarButton(backBtn, true, "./clients.html");
+    showHeaderToolbarButton(historyBtn, true);
+    if (pageSubtitle) {
+      pageSubtitle.style.display = "none";
+    }
+
+    const pageTitle = document.getElementById("page-title");
+    if (pageTitle && currentUserName) {
+      pageTitle.textContent = t("documents.pageTitleClient", { name: currentUserName });
+    }
+
+    await ensureTargetClientDisplayId();
+    setupManagementClientDocumentsButtons();
+  }
+
+  function canModerateUsersForHeader() {
+    return (
+      currentUserPermissions.includes("full_access") ||
+      currentUserPermissions.includes("review_documents") ||
+      currentUserPermissions.includes("approve_documents") ||
+      currentUserPermissions.includes("view_all_users") ||
+      currentUserPermissions.includes("view_lower_users") ||
+      currentUserPermissions.includes("view_assignable_users") ||
+      currentUserPermissions.includes("view_assigned_clients")
+    );
   }
 
   async function initDocumentsPage() {
@@ -851,18 +982,8 @@
       isPortalStaff = !Number.isNaN(roleLevel) && roleLevel <= 4;
     }
 
-    const canModerateUsers =
-      currentUserPermissions.includes("full_access") ||
-      currentUserPermissions.includes("review_documents") ||
-      currentUserPermissions.includes("approve_documents") ||
-      currentUserPermissions.includes("view_all_users") ||
-      currentUserPermissions.includes("view_lower_users") ||
-      currentUserPermissions.includes("view_assignable_users") ||
-      currentUserPermissions.includes("view_assigned_clients");
-    const isClientOwnCase =
-      !targetUserId &&
-      !canModerateUsers &&
-      currentUserPermissions.includes("upload_documents");
+    const canModerateUsers = canModerateUsersForHeader();
+    const viewingOwnDocuments = isViewingOwnDocuments();
 
     const canViewAssignedClientDocuments =
       Boolean(targetUserId) &&
@@ -890,14 +1011,23 @@
       return;
     }
 
+    await applyDocumentsHeaderActions();
+
     // Fetch documents with optional userId parameter
-    const documentsUrl = targetUserId ? `/documents?userId=${targetUserId}` : "/documents";
+    const documentsUrl =
+      targetUserId && !viewingOwnDocuments
+        ? `/documents?userId=${targetUserId}`
+        : "/documents";
     console.log('🔍 Fetching documents from:', documentsUrl);
     console.log('🔍 Target user ID:', targetUserId);
     
     const documentsPayload = await fetchFromApi(documentsUrl);
     console.log('📦 Documents payload received:', documentsPayload);
     
+    if (!documentsPayload) {
+      showDocumentsToast(t("documents.toast.loadFailed"), "error");
+    }
+
     if (documentsPayload) {
       allDocuments = documentsPayload.documents || [];
       currentUserName = documentsPayload.user_name || t("common.user");
@@ -910,38 +1040,6 @@
       
       console.log('📄 Total documents loaded:', allDocuments.length);
       console.log('📄 Documents:', allDocuments);
-      
-      // Update page title and show/hide buttons if viewing specific user's documents
-      if (targetUserId) {
-        const pageTitle = document.getElementById("page-title");
-        if (pageTitle) {
-          pageTitle.textContent = t("documents.pageTitleClient", { name: currentUserName });
-        }
-        
-        // Show back and history buttons
-        const backBtn = document.getElementById("back-btn");
-        const historyBtn = document.getElementById("history-btn");
-        if (backBtn) backBtn.style.display = 'flex';
-        if (historyBtn) historyBtn.style.display = 'flex';
-        
-        // Hide the subtitle link
-        const pageSubtitle = document.getElementById("page-subtitle");
-        if (pageSubtitle) {
-          pageSubtitle.style.display = 'none';
-        }
-
-        const canOpenCaseDocumentRequests =
-          isPortalStaff ||
-          canModerateUsers ||
-          isManagementDocumentsView ||
-          canViewAssignedClientDocuments;
-        if (canOpenCaseDocumentRequests) {
-          await ensureTargetClientDisplayId();
-          setupManagementClientDocumentsButtons();
-        }
-      } else if (isClientOwnCase) {
-        setupClientOwnCaseButtons();
-      }
     } else {
       allDocuments = [];
       console.error('❌ No documents payload received');
@@ -1203,8 +1301,11 @@
         });
         
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Upload failed');
+          if (response.status === 413) {
+            throw new Error(t("documents.fileTooLarge"));
+          }
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `HTTP ${response.status}`);
         }
         
         const data = await response.json();
@@ -1423,6 +1524,10 @@
               showDocumentsToast(t("documents.toast.replaced"), "success");
               return;
             }
+
+            if (replaceResponse.status === 413) {
+              throw new Error(t("documents.fileTooLarge"));
+            }
           } catch (err) {
             console.error('Replace error:', err);
           }
@@ -1531,6 +1636,7 @@
 
   window.addEventListener("lk-locale-change", () => {
     if (window.LkI18n) window.LkI18n.applyDocument();
+    refreshDocumentsHeaderI18n();
     renderDocuments();
     const historyModal = document.getElementById("history-modal");
     if (historyModal && !historyModal.classList.contains("hidden")) {

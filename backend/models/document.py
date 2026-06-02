@@ -4,6 +4,24 @@ from datetime import datetime, timedelta
 import sqlite3
 
 
+def ensure_documents_columns(connection: sqlite3.Connection) -> None:
+    """Add columns introduced after initial deploy (SQLite)."""
+    cursor = connection.execute("PRAGMA table_info(documents)")
+    columns = {row[1] for row in cursor.fetchall()}
+    if not columns:
+        return
+
+    if "file_path" not in columns:
+        connection.execute("ALTER TABLE documents ADD COLUMN file_path TEXT")
+    if "rejection_comment" not in columns:
+        connection.execute("ALTER TABLE documents ADD COLUMN rejection_comment TEXT")
+    if "status" not in columns:
+        connection.execute(
+            "ALTER TABLE documents ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'"
+        )
+    connection.commit()
+
+
 def create_documents_table(connection: sqlite3.Connection) -> None:
     """Create documents table if it does not exist."""
     connection.execute(
@@ -12,17 +30,20 @@ def create_documents_table(connection: sqlite3.Connection) -> None:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             title TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'uploaded',
+            status TEXT NOT NULL DEFAULT 'pending',
             icon TEXT NOT NULL DEFAULT 'description',
             file_type TEXT NOT NULL DEFAULT 'PDF',
             file_size TEXT NOT NULL DEFAULT '1.0 MB',
             is_priority INTEGER NOT NULL DEFAULT 0,
             last_action_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            file_path TEXT,
+            rejection_comment TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
         """
     )
+    ensure_documents_columns(connection)
     connection.commit()
 
 

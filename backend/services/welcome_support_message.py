@@ -2,12 +2,13 @@
 
 import logging
 
+from config import Config
 from models.message import Message
 from models.user import get_user_by_id
 
 logger = logging.getLogger(__name__)
 
-SUPPORT_USER_ID = 11
+SUPPORT_USER_ID = Config.PORTAL_SUPPORT_USER_ID
 
 REGISTRATION_WELCOME_MESSAGE = """Рады видеть вас в клиентском портале Spainza. 
 

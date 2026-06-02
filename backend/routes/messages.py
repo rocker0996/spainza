@@ -226,7 +226,9 @@ def send_message(conversation_id):
         receiver_id = user2_id if user_id == user1_id else user1_id
         
         # Handle multipart form data (for images and files)
-        if request.content_type and 'multipart/form-data' in request.content_type:
+        if request.files or (
+            request.content_type and "multipart/form-data" in request.content_type
+        ):
             message_text = request.form.get('message_text')
             image_file = request.files.get('image')
             file_upload = request.files.get('file')

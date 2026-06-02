@@ -5,7 +5,11 @@ from __future__ import annotations
 import sqlite3
 from typing import Any, Optional
 
-from models.case_data import get_case_data_by_user_id, upsert_case_data
+from models.case_data import (
+    case_data_flag_is_true,
+    get_case_data_by_user_id,
+    upsert_case_data,
+)
 from models.case_template import get_template_for_manager
 from models.user import (
     GLOBAL_USER_ROLE_TEMPLATE_OWNER_ID,
@@ -118,6 +122,13 @@ def materialize_case_from_template_if_needed(
 
     timeline = list(case["timeline"]) if case and case.get("timeline") else []
     docs = list(case["document_requests"]) if case and case.get("document_requests") else []
+
+    if any(
+        case_data_flag_is_true(item.get("sent"))
+        for item in docs
+        if isinstance(item, dict)
+    ):
+        return False
 
     need_timeline = not timeline_manual and len(timeline) == 0
     need_docs = not document_requests_manual and len(docs) == 0

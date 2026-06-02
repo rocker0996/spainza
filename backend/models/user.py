@@ -47,6 +47,22 @@ ROLE_DEFINITIONS = {
             "view_lower_users",
         ),
     },
+    "support": {
+        "level": "2",
+        "name_ru": "Поддержка",
+        "description_ru": "Доступ как у админа: клиенты, документы, кейсы, сообщения.",
+        "visa_label_ru": "Поддержка",
+        "visa_label_en": "Support",
+        "permissions": (
+            "assign_moderator_and_lower",
+            "review_documents",
+            "approve_documents",
+            "communicate_with_clients",
+            "respond_to_applications",
+            "respond_to_messages",
+            "view_lower_users",
+        ),
+    },
     "moderator": {
         "level": "3",
         "name_ru": "Модератор",
@@ -112,6 +128,18 @@ ROLE_DEFINITIONS = {
             "download_documents",
         ),
     },
+    "other": {
+        "level": "5",
+        "name_ru": "Другое",
+        "description_ru": "Клиент с прочим или индивидуальным визовым маршрутом.",
+        "visa_label_ru": "Другое",
+        "visa_label_en": "Other",
+        "permissions": (
+            "request_role_change",
+            "upload_documents",
+            "download_documents",
+        ),
+    },
     "user": {
         "level": "6",
         "name_ru": "Пользователь",
@@ -123,13 +151,25 @@ ROLE_DEFINITIONS = {
 }
 
 ASSIGNABLE_ROLE_KEYS_BY_ACTOR = {
-    "management": ("admin", "moderator", "manager", "client", "digital_nomad", "golden_visa", "user"),
-    "admin": ("moderator", "manager", "client", "digital_nomad", "golden_visa", "user"),
-    "moderator": ("manager", "client", "digital_nomad", "golden_visa", "user"),
-    "manager": ("client", "digital_nomad", "golden_visa", "user"),
+    "management": (
+        "admin",
+        "support",
+        "moderator",
+        "manager",
+        "client",
+        "digital_nomad",
+        "golden_visa",
+        "other",
+        "user",
+    ),
+    "admin": ("moderator", "manager", "client", "digital_nomad", "golden_visa", "other", "user"),
+    "support": ("moderator", "manager", "client", "digital_nomad", "golden_visa", "other", "user"),
+    "moderator": ("manager", "client", "digital_nomad", "golden_visa", "other", "user"),
+    "manager": ("client", "digital_nomad", "golden_visa", "other", "user"),
     "client": (),
     "digital_nomad": (),
     "golden_visa": (),
+    "other": (),
     "user": (),
 }
 
@@ -139,13 +179,24 @@ ASSIGNABLE_ROLE_KEYS_BY_ACTOR = {
 # Moderator видит все роли ниже себя (не видит management, admin, moderator)
 # Manager видит только клиентские роли (digital_nomad, golden_visa, user)
 ASSIGNABLE_VISA_TYPES_BY_ROLE = {
-    "management": ("admin", "moderator", "manager", "client", "digital_nomad", "golden_visa", "user"),
-    "admin": ("moderator", "manager", "client", "digital_nomad", "golden_visa", "user"),
-    "moderator": ("manager", "client", "digital_nomad", "golden_visa", "user"),
-    "manager": ("client", "digital_nomad", "golden_visa", "user"),  # Менеджеры видят только клиентские роли
+    "management": (
+        "admin",
+        "support",
+        "moderator",
+        "manager",
+        "client",
+        "digital_nomad",
+        "golden_visa",
+        "other",
+        "user",
+    ),
+    "admin": ("moderator", "manager", "client", "digital_nomad", "golden_visa", "other", "user"),
+    "moderator": ("manager", "client", "digital_nomad", "golden_visa", "other", "user"),
+    "manager": ("client", "digital_nomad", "golden_visa", "other", "user"),  # Менеджеры видят только клиентские роли
     "client": (),
     "digital_nomad": (),
     "golden_visa": (),
+    "other": (),
     "user": (),
 }
 
@@ -499,7 +550,7 @@ def get_assignable_visa_types(actor_role_key: str) -> list[dict]:
 
 # Роли персонала: не показываем в «Шаблонах кейсов» (только клиентские визовые пути).
 CASE_TEMPLATE_EXCLUDED_ROLE_KEYS = frozenset(
-    {"management", "admin", "moderator", "manager"}
+    {"management", "admin", "support", "moderator", "manager"}
 )
 
 # Шаблон для роли «Пользователь» (ожидание) хранится у этого менеджера; в конфигураторе виден только ему.

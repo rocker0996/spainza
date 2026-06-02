@@ -67,7 +67,18 @@ class Message:
             )
         ''')
         Message._ensure_conversation_columns(db)
+        Message._ensure_message_columns(db)
         db.commit()
+
+    @staticmethod
+    def _ensure_message_columns(db):
+        """Add columns introduced after initial deploy (SQLite)."""
+        cursor = db.execute("PRAGMA table_info(messages)")
+        columns = {row[1] for row in cursor.fetchall()}
+        if "file_path" not in columns:
+            db.execute("ALTER TABLE messages ADD COLUMN file_path TEXT")
+        if "file_name" not in columns:
+            db.execute("ALTER TABLE messages ADD COLUMN file_name TEXT")
 
     @staticmethod
     def _ensure_conversation_columns(db):
@@ -409,6 +420,7 @@ class Message:
             raise ValueError("Message must contain text, image, or file")
         
         db = get_db_connection()
+        Message._ensure_message_columns(db)
         
         # If receiver has deleted this conversation, restore it for them
         Message.restore_conversation_for_user(conversation_id, receiver_id)

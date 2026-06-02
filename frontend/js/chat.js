@@ -62,6 +62,38 @@
     });
   }
 
+  function resolveApiBases() {
+    if (window.API_BASE_URL) {
+      return [String(window.API_BASE_URL).replace(/\/+$/, "")];
+    }
+    if (window.location.protocol === "file:") {
+      return ["http://localhost:5000/api"];
+    }
+    const localHosts = ["localhost", "127.0.0.1", "0.0.0.0"];
+    const isLocalHost = localHosts.includes(window.location.hostname);
+    if (isLocalHost && window.location.port && window.location.port !== "5000") {
+      return [
+        "/api",
+        `${window.location.protocol}//${window.location.hostname}:5000/api`,
+      ];
+    }
+    return ["/api"];
+  }
+
+  const apiBases = resolveApiBases();
+
+  /** Strip leading /api so bases like /api can be prefixed once. */
+  function toApiPath(path) {
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+    if (normalized.startsWith("/api/")) {
+      return normalized.slice(4);
+    }
+    if (normalized === "/api") {
+      return "";
+    }
+    return normalized;
+  }
+
   const messagesMain = document.getElementById("messages-main");
   const chatBackBtn = document.getElementById("chat-back-btn");
   const MOBILE_MQ = window.matchMedia("(max-width: 767px)");
@@ -128,7 +160,7 @@
   }
 
   /** Чат поддержки (совпадает с profile.js). */
-  const SUPPORT_USER_ID = 11;
+  const SUPPORT_USER_ID = 3;
   const COMPLAINT_MESSAGE_PREFIX = "[[SPAINZA_MANAGER_COMPLAINT]]";
 
   let conversations = [];
@@ -492,23 +524,36 @@
   }
 
   async function apiRequest(url, options = {}) {
+    const pathSuffix = toApiPath(url);
+    const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
     const headers = {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      ...apiLocaleHeaders(),
       ...options.headers,
     };
 
-    const response = await fetch(url, {
-      ...options,
-      credentials: "include",
-      headers,
-    });
+    let lastError = null;
+    for (const baseUrl of apiBases) {
+      try {
+        const response = await fetch(`${baseUrl}${pathSuffix}`, {
+          ...options,
+          credentials: "include",
+          headers,
+        });
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Request failed" }));
-      throw new Error(error.error || `HTTP ${response.status}`);
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({ error: "Request failed" }));
+          lastError = new Error(error.error || `HTTP ${response.status}`);
+          continue;
+        }
+
+        return await response.json();
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+      }
     }
 
-    return response.json();
+    throw lastError || new Error("Request failed");
   }
 
   async function loadCurrentUser() {
@@ -724,7 +769,7 @@
       return;
     }
 
-    // Сортировка: чат с поддержкой (ID 11) всегда наверху
+    // Сортировка: чат с поддержкой (ID 3) всегда наверху
     const sorted = filtered.sort((a, b) => {
       const isSupportA = a.other_user_id === SUPPORT_USER_ID;
       const isSupportB = b.other_user_id === SUPPORT_USER_ID;
@@ -981,6 +1026,38 @@
     }
   }
 
+  async function postMessageAttachment(formData) {
+    const pathSuffix = toApiPath(`/api/conversations/${activeConversationId}/messages`);
+    let lastError = null;
+
+    for (const baseUrl of apiBases) {
+      try {
+        const response = await fetch(`${baseUrl}${pathSuffix}`, {
+          method: "POST",
+          credentials: "include",
+          headers: apiLocaleHeaders(),
+          body: formData,
+        });
+
+        if (!response.ok) {
+          if (response.status === 413) {
+            lastError = new Error(t("chat.fileTooLarge"));
+            continue;
+          }
+          const payload = await response.json().catch(() => ({}));
+          lastError = new Error(payload.error || `HTTP ${response.status}`);
+          continue;
+        }
+
+        return await response.json();
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+      }
+    }
+
+    throw lastError || new Error("Upload failed");
+  }
+
   async function sendImage(file) {
     if (!activeConversationId) {
       alert(t("chat.selectChat"));
@@ -991,16 +1068,7 @@
     formData.append("image", file);
 
     try {
-      const response = await fetch(`/api/conversations/${activeConversationId}/messages`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload image");
-      }
-
+      await postMessageAttachment(formData);
       await loadMessages(activeConversationId);
       await loadConversations();
     } catch (error) {
@@ -1019,16 +1087,7 @@
     formData.append("file", file);
 
     try {
-      const response = await fetch(`/api/conversations/${activeConversationId}/messages`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to upload file");
-      }
-
+      await postMessageAttachment(formData);
       await loadMessages(activeConversationId);
       await loadConversations();
     } catch (error) {
@@ -1226,7 +1285,7 @@
       return;
     }
 
-    // Запретить удаление чата с поддержкой (ID 11)
+    // Запретить удаление чата с поддержкой (ID 3)
     if (activeConversation.other_user_id === SUPPORT_USER_ID) {
       await showChatAlert({
         title: t("chat.cannotDeleteTitle"),

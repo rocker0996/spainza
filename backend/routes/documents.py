@@ -18,7 +18,12 @@ from models.user import (
     normalize_role_key,
     staff_may_access_target_user_workspace,
 )
-from models.case_data import get_case_data_by_user_id
+from models.case_data import (
+    case_data_flag_is_true,
+    find_case_document_request,
+    get_case_data_by_user_id,
+    set_case_document_request_fulfilled,
+)
 from services.case_template_apply import materialize_case_from_template_if_needed
 from services.file_service import FileService
 import os
@@ -105,8 +110,10 @@ def list_documents():
     if case_data and case_data.get("document_requests"):
         # Convert document requests to document format
         for idx, req in enumerate(case_data["document_requests"]):
-            # Only include sent requests (those marked as sent by manager)
-            if req.get("sent", False):
+            # Only include sent requests still waiting for client upload
+            if case_data_flag_is_true(req.get("sent")) and not case_data_flag_is_true(
+                req.get("fulfilled")
+            ):
                 document_requests.append({
                     "id": f"req_{req.get('id', idx)}",
                     "title": req.get("name", "Документ"),
@@ -187,7 +194,7 @@ def upload_document():
     # Get optional parameters
     title = request.form.get('title', file.filename)
     is_priority = request.form.get('is_priority', '0')
-    request_id = request.form.get('request_id')  # If uploading for a specific request
+    request_id = (request.form.get("request_id") or "").strip()  # req_<id> from documents UI
     raw_target_uid = request.form.get("user_id")
     try:
         parsed_target_uid = int(raw_target_uid) if raw_target_uid not in (None, "") else None
@@ -204,7 +211,18 @@ def upload_document():
         if not can_upload_own:
             return jsonify({"success": False, "error": "forbidden - no upload permission"}), 403
         document_user_id = g.current_user_id
-    
+
+    case_data = get_case_data_by_user_id(g.db, document_user_id)
+    matched_request = (
+        find_case_document_request(case_data, request_id) if request_id else None
+    )
+    if matched_request:
+        request_title = (matched_request.get("name") or "").strip()
+        if request_title:
+            title = request_title
+        if matched_request.get("priority") == "urgent":
+            is_priority = "1"
+
     try:
         # Save file using FileService
         file_path = file_service.save_document(file, document_user_id, 'general')
@@ -237,6 +255,11 @@ def upload_document():
             action="Документ загружен",
             details=f"Документ '{title}' был загружен"
         )
+
+        if request_id and matched_request:
+            set_case_document_request_fulfilled(
+                g.db, document_user_id, request_id, fulfilled=True
+            )
         
         return jsonify({
             "success": True,
