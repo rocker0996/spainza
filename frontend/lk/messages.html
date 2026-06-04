@@ -199,6 +199,7 @@
   <div class="flex-grow min-h-0 p-4 md:p-6 overflow-y-auto flex flex-col gap-4 bg-stone-50/30" id="messages-container"></div>
   <!-- Input Bar -->
   <div id="chat-compose" class="p-3 md:p-6 bg-white border-t border-stone-50 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+  <div id="chat-reply-preview" class="chat-reply-preview hidden mb-3" aria-live="polite"></div>
   <div id="chat-attachment-preview" class="chat-attachment-preview hidden mb-3" aria-live="polite"></div>
   <div class="flex items-center gap-2 md:gap-3 bg-stone-50 p-1.5 md:p-2 pl-3 md:pl-4 rounded-2xl focus-within:ring-2 focus-within:ring-primary-container transition-all">
   <div class="flex items-center gap-1">
@@ -243,6 +244,18 @@
   <div class="flex-grow min-h-0 overflow-y-auto overscroll-contain" id="conversations-list"></div>
   </section>
 </main>
+</div>
+
+<!-- Действия по сообщению: ответ / удаление -->
+<div id="message-actions-menu" class="message-actions-menu hidden fixed z-[55] min-w-[180px] bg-white rounded-xl shadow-lg border border-stone-100 py-1 overflow-hidden" role="menu" aria-hidden="true">
+  <button type="button" id="msg-action-reply" class="message-actions-menu__btn w-full px-4 py-2.5 text-left text-sm text-on-surface hover:bg-stone-50 flex items-center gap-2" role="menuitem">
+    <span class="material-symbols-outlined text-[18px] text-primary-container">reply</span>
+    <span class="msg-action-reply-label">Ответить</span>
+  </button>
+  <button type="button" id="msg-action-delete" class="message-actions-menu__btn w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" role="menuitem">
+    <span class="material-symbols-outlined text-[18px]">delete</span>
+    <span class="msg-action-delete-label">Удалить</span>
+  </button>
 </div>
 
 <!-- Modal for creating new conversation -->
@@ -470,6 +483,147 @@
     transition: width 0.15s ease;
     width: 0%;
   }
+
+  .chat-reply-preview__card {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 228, 196, 0.45);
+    border-radius: 12px;
+    border: 1px solid #e7e5e4;
+    border-left: 4px solid #e07a3a;
+  }
+
+  .msg-reply-quote {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 100%;
+  }
+  .msg-reply-quote__bar {
+    width: 4px;
+    flex-shrink: 0;
+    border-radius: 4px 0 0 4px;
+  }
+  .msg-reply-quote__body {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 10px 7px;
+    border-radius: 0 8px 8px 0;
+  }
+  .msg-reply-quote--in .msg-reply-quote__bar {
+    background: #e07a3a;
+  }
+  .msg-reply-quote--in .msg-reply-quote__body {
+    background: rgba(255, 228, 196, 0.65);
+  }
+  .msg-reply-quote--in .msg-reply-quote__author {
+    color: #c45c1a;
+  }
+  .msg-reply-quote--out .msg-reply-quote__bar {
+    background: #3b82f6;
+  }
+  .msg-reply-quote--out .msg-reply-quote__body {
+    background: rgba(219, 234, 254, 0.85);
+  }
+  .msg-reply-quote--out .msg-reply-quote__author {
+    color: #2563eb;
+  }
+  .msg-reply-quote__author {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 2px;
+  }
+  .msg-reply-quote__text {
+    font-size: 13px;
+    color: #1c1917;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  .msg-bubble--peer-deleted {
+    box-shadow: inset 0 0 0 1px rgba(120, 113, 108, 0.25);
+  }
+
+  .msg-deleted-hint {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    color: #78716c;
+    background: rgba(120, 113, 108, 0.12);
+    cursor: help;
+    flex-shrink: 0;
+  }
+  .msg-deleted-hint__tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+    max-width: min(240px, 70vw);
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.35;
+    font-style: normal;
+    font-weight: 500;
+    color: #1c1917;
+    text-align: center;
+    white-space: normal;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
+  }
+  .msg-row--out .msg-deleted-hint__tooltip {
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+  .msg-deleted-hint:hover .msg-deleted-hint__tooltip,
+  .msg-deleted-hint:focus-visible .msg-deleted-hint__tooltip,
+  .msg-deleted-hint.is-open .msg-deleted-hint__tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .msg-reply-quote__author {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .msg-reply-quote__deleted-icon {
+    color: #78716c;
+    flex-shrink: 0;
+  }
+
+  .msg-bubble--interactive {
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+  .msg-bubble--interactive:hover {
+    box-shadow: 0 0 0 1px rgba(0, 82, 255, 0.12);
+  }
+
+  .message-actions-menu.is-open {
+    display: block;
+    animation: menu-pop 0.22s var(--msg-ease-spring) both;
+  }
   .msg-row--pop {
     animation: msg-pop 0.38s var(--msg-ease-spring) both;
   }
@@ -676,9 +830,9 @@
   }
 </style>
 
-<script src="../js/lk-i18n.js" defer></script>
+<script src="../js/lk-i18n.js?v=23" defer></script>
 <script src="../js/mobile-nav.js" defer></script>
 <script src="../js/lk.js?v=21" defer></script>
-<script src="../js/chat.js?v=20" defer></script>
+<script src="../js/chat.js?v=26" defer></script>
 <script src="../../shared/layout.js?v=9" defer></script>
 </body></html>

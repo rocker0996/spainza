@@ -34,8 +34,61 @@
     return;
   }
 
+  const CHAT_I18N_FALLBACK = {
+    ru: {
+      "chat.you": "Вы",
+      "chat.reply": "Ответить",
+      "chat.deleteMessage": "Удалить",
+      "chat.deleteMessageTitle": "Удалить сообщение?",
+      "chat.deleteMessageConfirm":
+        "Сообщение исчезнет у вас. У собеседника текст останется, рядом появится пометка, что вы удалили сообщение.",
+      "chat.messageDeletedByPeer": "{name} удалил(а) это сообщение",
+      "chat.replyingTo": "Ответ для {name}",
+      "chat.replyDeletedPreview": "Удалённое сообщение",
+      "chat.cancelReply": "Отменить ответ",
+      "chat.deleteMessageError": "Не удалось удалить сообщение. {error}",
+    },
+    en: {
+      "chat.you": "You",
+      "chat.reply": "Reply",
+      "chat.deleteMessage": "Delete",
+      "chat.deleteMessageTitle": "Delete message?",
+      "chat.deleteMessageConfirm":
+        "The message will disappear for you. Your chat partner will still see the text with a note that you deleted it.",
+      "chat.messageDeletedByPeer": "{name} deleted this message",
+      "chat.replyingTo": "Reply to {name}",
+      "chat.replyDeletedPreview": "Deleted message",
+      "chat.cancelReply": "Cancel reply",
+      "chat.deleteMessageError": "Could not delete message. {error}",
+    },
+  };
+
+  function chatLocale() {
+    return window.LkI18n && window.LkI18n.getLocale() === "en" ? "en" : "ru";
+  }
+
+  function interpolateTemplate(template, params) {
+    if (!params || typeof template !== "string") {
+      return template;
+    }
+    return template.replace(/\{(\w+)\}/g, (_m, key) =>
+      params[key] != null ? String(params[key]) : ""
+    );
+  }
+
   function t(key, params) {
-    return window.LkI18n ? window.LkI18n.t(key, params) : key;
+    if (window.LkI18n) {
+      const value = window.LkI18n.t(key, params);
+      if (value && value !== key) {
+        return value;
+      }
+    }
+    const bucket = CHAT_I18N_FALLBACK[chatLocale()] || CHAT_I18N_FALLBACK.ru;
+    const fallback = bucket[key];
+    if (fallback) {
+      return interpolateTemplate(fallback, params);
+    }
+    return key;
   }
 
   function roleLabel(roleKey) {
@@ -72,10 +125,7 @@
     const localHosts = ["localhost", "127.0.0.1", "0.0.0.0"];
     const isLocalHost = localHosts.includes(window.location.hostname);
     if (isLocalHost && window.location.port && window.location.port !== "5000") {
-      return [
-        `${window.location.protocol}//${window.location.hostname}:5000/api`,
-        "/api",
-      ];
+      return [`${window.location.protocol}//${window.location.hostname}:5000/api`];
     }
     return ["/api"];
   }
@@ -99,6 +149,10 @@
   const chatPane = document.getElementById("chat-pane");
   const chatDropOverlay = document.getElementById("chat-drop-overlay");
   const chatAttachmentPreview = document.getElementById("chat-attachment-preview");
+  const chatReplyPreview = document.getElementById("chat-reply-preview");
+  const messageActionsMenu = document.getElementById("message-actions-menu");
+  const msgActionReply = document.getElementById("msg-action-reply");
+  const msgActionDelete = document.getElementById("msg-action-delete");
   const MOBILE_MQ = window.matchMedia("(max-width: 767px)");
 
   const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp"]);
@@ -110,6 +164,9 @@
 
   /** @type {{ file: File, kind: 'image'|'file', previewUrl: string|null, status: 'ready'|'uploading' } | null} */
   let pendingAttachment = null;
+  /** @type {{ id: number, senderId: number, senderName: string, previewText: string } | null} */
+  let pendingReply = null;
+  let messageActionsMessageId = null;
   let dragDepth = 0;
 
   let mobileViewState = "list";
@@ -537,14 +594,35 @@
     return normalized.startsWith("/") ? normalized : `/${normalized}`;
   }
 
+  async function parseApiResponseBody(response) {
+    const text = await response.text();
+    if (!text || !text.trim()) {
+      return {};
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error("Invalid server response");
+    }
+  }
+
+  function buildApiHeaders(options = {}) {
+    const isFormData =
+      typeof FormData !== "undefined" && options.body instanceof FormData;
+    const hasBody = options.body != null && options.body !== "";
+    const headers = {
+      ...apiLocaleHeaders(),
+      ...(options.headers || {}),
+    };
+    if (hasBody && !isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
+    return headers;
+  }
+
   async function apiRequest(url, options = {}) {
     const pathSuffix = toApiPath(url);
-    const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
-    const headers = {
-      ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      ...apiLocaleHeaders(),
-      ...options.headers,
-    };
+    const headers = buildApiHeaders(options);
 
     let lastError = null;
     for (const baseUrl of apiBases) {
@@ -556,18 +634,44 @@
         });
 
         if (!response.ok) {
-          const error = await response.json().catch(() => ({ error: "Request failed" }));
+          const error = await parseApiResponseBody(response).catch(() => ({
+            error: "Request failed",
+          }));
           lastError = new Error(error.error || `HTTP ${response.status}`);
           continue;
         }
 
-        return await response.json();
+        return await parseApiResponseBody(response);
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
       }
     }
 
     throw lastError || new Error("Request failed");
+  }
+
+  async function deleteMessageById(messageId) {
+    const id = Number(messageId);
+    if (!Number.isFinite(id) || id < 1) {
+      throw new Error(
+        chatLocale() === "en" ? "Invalid message id" : "Некорректный id сообщения"
+      );
+    }
+    if (!activeConversationId) {
+      throw new Error(
+        chatLocale() === "en" ? "Select a chat first" : "Сначала выберите чат"
+      );
+    }
+    const convPath = `/api/conversations/${activeConversationId}/messages/${id}/delete`;
+    try {
+      return await apiRequest(convPath, { method: "POST" });
+    } catch (convErr) {
+      try {
+        return await apiRequest(`/api/messages/${id}`, { method: "DELETE" });
+      } catch (deleteErr) {
+        return apiRequest(`/api/messages/${id}/delete`, { method: "POST" });
+      }
+    }
   }
 
   async function loadCurrentUser() {
@@ -663,7 +767,7 @@
       const isNewConversation = lastLoadedConversationId !== conversationId;
 
       if (conversation) {
-        conversation.messages = messages;
+        conversation.messages = (messages || []).map(normalizeApiMessage);
         conversation.unread_count = 0;
       }
 
@@ -943,6 +1047,350 @@
     }
   }
 
+  function getDisplayMessageText(message) {
+    if (!message) {
+      return "";
+    }
+    const raw =
+      message.message_text ??
+      message.body_text ??
+      message.messageText ??
+      message.bodyText ??
+      "";
+    return String(raw);
+  }
+
+  function normalizeApiMessage(raw) {
+    const m = { ...raw };
+    const text = getDisplayMessageText(m);
+    m.message_text = text;
+    m.body_text = text;
+    if (m.reply_to_message_id != null) {
+      m.reply_to_message_id = Number(m.reply_to_message_id);
+    }
+    const reply = m.reply_to || m.replyTo;
+    if (reply && typeof reply === "object") {
+      m.reply_to = {
+        id: reply.id,
+        sender_id: reply.sender_id ?? reply.senderId,
+        sender_name: reply.sender_name ?? reply.senderName ?? "",
+        preview_text: reply.preview_text ?? reply.previewText ?? "",
+        is_deleted: Boolean(reply.is_deleted ?? reply.isDeleted),
+      };
+    }
+    return m;
+  }
+
+  function getReplyToForMessage(message) {
+    if (!message) {
+      return null;
+    }
+    const replyId = message.reply_to_message_id;
+    if (message.reply_to && typeof message.reply_to === "object") {
+      const preview = String(message.reply_to.preview_text || "").trim();
+      if (preview || message.reply_to.is_deleted) {
+        return message.reply_to;
+      }
+      if (!replyId && message.reply_to.id) {
+        const ref = findMessageById(message.reply_to.id);
+        if (ref) {
+          return {
+            id: ref.id,
+            sender_id: ref.sender_id,
+            sender_name: message.reply_to.sender_name || ref.sender_name || "",
+            preview_text: getMessagePreviewText(ref),
+            is_deleted: Boolean(ref.is_deleted_by_peer),
+          };
+        }
+      }
+    }
+    if (replyId) {
+      const ref = findMessageById(replyId);
+      if (ref) {
+        return {
+          id: ref.id,
+          sender_id: ref.sender_id,
+          sender_name: ref.sender_name || "",
+          preview_text: getMessagePreviewText(ref),
+          is_deleted: Boolean(ref.is_deleted_by_peer),
+        };
+      }
+    }
+    return message.reply_to || null;
+  }
+
+  function findMessageById(messageId) {
+    const conv = findConversation(activeConversationId);
+    if (!conv || !conv.messages) {
+      return null;
+    }
+    return conv.messages.find((m) => Number(m.id) === Number(messageId)) || null;
+  }
+
+  function resolveMessageFromRow(row) {
+    if (!row) {
+      return null;
+    }
+    const conv = findConversation(activeConversationId);
+    if (!conv || !conv.messages) {
+      return null;
+    }
+    const idAttr = row.getAttribute("data-message-id");
+    if (idAttr) {
+      const byId = findMessageById(idAttr);
+      if (byId) {
+        return byId;
+      }
+    }
+    const indexAttr = row.getAttribute("data-message-index");
+    if (indexAttr != null && indexAttr !== "") {
+      const idx = Number(indexAttr);
+      if (Number.isFinite(idx) && conv.messages[idx]) {
+        return conv.messages[idx];
+      }
+    }
+    return null;
+  }
+
+  function getMessagePreviewText(message) {
+    if (!message) {
+      return "";
+    }
+    if (message.image_url) {
+      return t("chat.photo");
+    }
+    if (message.file_url) {
+      return message.file_name || t("chat.file");
+    }
+    if (message.message_text && isComplaintMessage(message.message_text)) {
+      return t("chat.complaintPreview");
+    }
+    const text = getDisplayMessageText(message).trim();
+    if (text.length > 160) {
+      return `${text.slice(0, 160)}…`;
+    }
+    return text;
+  }
+
+  function renderReplyQuoteHtml(replyTo, isOutgoing) {
+    if (!replyTo) {
+      return "";
+    }
+    const author =
+      replyTo.sender_id === currentUserId
+        ? escapeHtml(t("chat.you"))
+        : escapeHtml(replyTo.sender_name || "");
+    const previewRaw = String(
+      replyTo.preview_text ?? replyTo.previewText ?? ""
+    ).trim();
+    const preview = escapeHtml(previewRaw || (replyTo.is_deleted ? t("chat.replyDeletedPreview") : "…"));
+    const deletedMark = replyTo.is_deleted
+      ? `<span class="msg-reply-quote__deleted-icon material-symbols-outlined text-[14px]" title="${escapeHtml(t("chat.replyDeletedPreview"))}">block</span>`
+      : "";
+    const variant = isOutgoing ? "msg-reply-quote--out" : "msg-reply-quote--in";
+    return `
+      <div class="msg-reply-quote ${variant}">
+        <div class="msg-reply-quote__bar" aria-hidden="true"></div>
+        <div class="msg-reply-quote__body">
+          <div class="msg-reply-quote__author">${author}${deletedMark}</div>
+          <div class="msg-reply-quote__text">${preview}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDeletedByPeerHint(message) {
+    if (!message.is_deleted_by_peer) {
+      return "";
+    }
+    const name = message.deleted_by_name || t("roles.user");
+    const tip = t("chat.messageDeletedByPeer", { name });
+    return `
+      <span class="msg-deleted-hint" tabindex="0" role="button" aria-label="${escapeHtml(tip)}" title="${escapeHtml(tip)}">
+        <span class="material-symbols-outlined text-[16px]">info</span>
+        <span class="msg-deleted-hint__tooltip">${escapeHtml(tip)}</span>
+      </span>
+    `;
+  }
+
+  function clearPendingReply() {
+    pendingReply = null;
+    renderReplyPreview();
+  }
+
+  function renderReplyPreview() {
+    const replyHost =
+      chatReplyPreview || document.getElementById("chat-reply-preview");
+    if (!replyHost) {
+      return;
+    }
+    if (!pendingReply) {
+      replyHost.classList.add("hidden");
+      replyHost.innerHTML = "";
+      return;
+    }
+
+    replyHost.classList.remove("hidden");
+    replyHost.innerHTML = `
+      <div class="chat-reply-preview__card">
+        <div class="flex-1 min-w-0">
+          <div class="text-xs font-bold mb-0.5" style="color:#c45c1a">${escapeHtml(
+            pendingReply.senderName
+          )}</div>
+          <div class="text-xs text-on-surface truncate">${escapeHtml(pendingReply.previewText)}</div>
+        </div>
+        <button type="button" class="p-2 hover:bg-stone-200 rounded-lg transition-colors text-outline shrink-0 chat-reply-cancel" title="${escapeHtml(t("chat.cancelReply"))}">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+    `;
+
+    const cancelBtn = replyHost.querySelector(".chat-reply-cancel");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", clearPendingReply);
+    }
+  }
+
+  function startReplyToMessage(message) {
+    if (!message || message.is_system_message) {
+      return;
+    }
+    pendingReply = {
+      id: Number(message.id),
+      senderId: message.sender_id,
+      senderName:
+        message.sender_id === currentUserId
+          ? t("chat.you")
+          : message.sender_name || chatDisplayName(findConversation(activeConversationId)),
+      previewText: getMessagePreviewText(message),
+    };
+    renderReplyPreview();
+    hideMessageActionsMenu();
+    if (byId.messageInput) {
+      byId.messageInput.focus();
+    }
+  }
+
+  function hideMessageActionsMenu() {
+    messageActionsMessageId = null;
+    if (!messageActionsMenu) {
+      return;
+    }
+    messageActionsMenu.classList.add("hidden");
+    messageActionsMenu.classList.remove("is-open");
+    messageActionsMenu.setAttribute("aria-hidden", "true");
+  }
+
+  function showMessageActionsMenu(messageOrId, clientX, clientY) {
+    if (!messageActionsMenu) {
+      return;
+    }
+    const message =
+      typeof messageOrId === "object" && messageOrId
+        ? messageOrId
+        : findMessageById(messageOrId);
+    if (!message || message.is_system_message || !message.id) {
+      return;
+    }
+
+    messageActionsMessageId = Number(message.id);
+    messageActionsMenu.classList.remove("hidden");
+    messageActionsMenu.classList.add("is-open");
+    messageActionsMenu.setAttribute("aria-hidden", "false");
+
+    const menuRect = { width: 200, height: 96 };
+    const pad = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let left = clientX - menuRect.width / 2;
+    let top = clientY - menuRect.height - 12;
+    left = Math.max(pad, Math.min(left, vw - menuRect.width - pad));
+    top = Math.max(pad, Math.min(top, vh - menuRect.height - pad));
+
+    messageActionsMenu.style.left = `${left}px`;
+    messageActionsMenu.style.top = `${top}px`;
+
+    const replyLabel = msgActionReply && msgActionReply.querySelector(".msg-action-reply-label");
+    const deleteLabel = msgActionDelete && msgActionDelete.querySelector(".msg-action-delete-label");
+    if (replyLabel) replyLabel.textContent = t("chat.reply");
+    if (deleteLabel) deleteLabel.textContent = t("chat.deleteMessage");
+  }
+
+  async function deleteSelectedMessage() {
+    const messageId = messageActionsMessageId;
+    hideMessageActionsMenu();
+    if (!messageId || !activeConversationId) {
+      return;
+    }
+
+    const confirmDelete = await showChatConfirm({
+      title: t("chat.deleteMessageTitle"),
+      message: t("chat.deleteMessageConfirm"),
+      confirmText: t("chat.deleteMessage"),
+      variant: "danger",
+    });
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      await deleteMessageById(messageId);
+      if (pendingReply && pendingReply.id === messageId) {
+        clearPendingReply();
+      }
+      await loadMessages(activeConversationId);
+      await loadConversations();
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+      const errText =
+        error && error.message
+          ? error.message
+          : chatLocale() === "en"
+            ? "Unknown error"
+            : "Неизвестная ошибка";
+      await showChatAlert({
+        title: t("chat.errorTitle"),
+        message: t("chat.deleteMessageError", { error: errText }),
+        icon: "error",
+      });
+    }
+  }
+
+  function renderMessageBody(message, isOutgoing) {
+    let content = renderReplyQuoteHtml(getReplyToForMessage(message), isOutgoing);
+    if (message.image_url) {
+      content += `<img src="${escapeHtml(buildProtectedApiUrl(message.image_url))}" class="max-w-xs rounded-lg" alt="Image"/>`;
+    }
+    if (message.file_url) {
+      const fileName = message.file_name || "file";
+      const fileExt = fileName.split(".").pop().toLowerCase();
+      const fileIcon = getFileIcon(fileExt);
+      content += `
+        <a href="${escapeHtml(buildProtectedApiUrl(message.file_url))}" download="${escapeHtml(fileName)}"
+           class="flex items-center gap-3 p-3 bg-stone-50 rounded-lg hover:bg-stone-100 transition-colors border border-stone-200">
+          <span class="material-symbols-outlined text-[32px] text-primary-container">${fileIcon}</span>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-on-surface truncate">${escapeHtml(fileName)}</div>
+            <div class="text-xs text-outline">${t("chat.clickToDownload")}</div>
+          </div>
+          <span class="material-symbols-outlined text-outline">download</span>
+        </a>
+      `;
+    }
+    const displayText = getDisplayMessageText(message);
+    if (displayText.trim()) {
+      if (isComplaintMessage(displayText)) {
+        content += renderComplaintCardHtml(displayText);
+      } else {
+        const textContent = messageSearchTerm
+          ? highlightText(displayText, messageSearchTerm)
+          : escapeHtml(displayText);
+        content += `<div class="text-sm leading-relaxed whitespace-pre-wrap break-words msg-text-body">${textContent}</div>`;
+      }
+    }
+    return content;
+  }
+
   function bindDragAndDrop() {
     const target = chatPane || byId.messagesContainer;
     if (!target) {
@@ -1152,45 +1600,21 @@
         
         const isMe = message.sender_id === currentUserId;
         const time = formatMessageTime(message.created_at);
-        
-        let content = '';
-        if (message.image_url) {
-          content = `<img src="${escapeHtml(buildProtectedApiUrl(message.image_url))}" class="max-w-xs rounded-lg" alt="Image"/>`;
-        }
-        if (message.file_url) {
-          const fileName = message.file_name || 'file';
-          const fileExt = fileName.split('.').pop().toLowerCase();
-          const fileIcon = getFileIcon(fileExt);
-          content += `
-            <a href="${escapeHtml(buildProtectedApiUrl(message.file_url))}" download="${escapeHtml(fileName)}"
-               class="flex items-center gap-3 p-3 bg-stone-50 rounded-lg hover:bg-stone-100 transition-colors border border-stone-200">
-              <span class="material-symbols-outlined text-[32px] text-primary-container">${fileIcon}</span>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-on-surface truncate">${escapeHtml(fileName)}</div>
-                <div class="text-xs text-outline">${t("chat.clickToDownload")}</div>
-              </div>
-              <span class="material-symbols-outlined text-outline">download</span>
-            </a>
-          `;
-        }
-        if (message.message_text) {
-          if (isComplaintMessage(message.message_text)) {
-            content += renderComplaintCardHtml(message.message_text);
-          } else {
-            const textContent = messageSearchTerm
-              ? highlightText(message.message_text, messageSearchTerm)
-              : escapeHtml(message.message_text);
-            content += `<div class="text-sm leading-relaxed whitespace-pre-wrap break-words">${textContent}</div>`;
-          }
-        }
+        const content = renderMessageBody(message, isMe);
+        const msgIdAttr =
+          message.id != null ? ` data-message-id="${Number(message.id)}"` : "";
+        const bubbleClass = "msg-bubble msg-bubble--interactive";
+        const deletedHint = renderDeletedByPeerHint(message);
+        const peerDeletedClass = message.is_deleted_by_peer ? " msg-bubble--peer-deleted" : "";
 
         if (isMe) {
           return `${dateSeparatorHtml}
-            <div class="msg-row msg-row--out flex flex-col items-end gap-1.5 self-end max-w-[85%]" data-message-index="${index}" style="--msg-i: ${index}">
-              <div class="bg-white p-4 rounded-2xl rounded-br-none chat-shadow text-on-surface-variant">
+            <div class="msg-row msg-row--out flex flex-col items-end gap-1.5 self-end max-w-[85%]" data-message-index="${index}"${msgIdAttr} style="--msg-i: ${index}">
+              <div class="${bubbleClass}${peerDeletedClass} bg-white p-4 rounded-2xl rounded-br-none chat-shadow text-on-surface-variant">
                 ${content}
               </div>
               <div class="flex items-center gap-1.5 px-1">
+                ${deletedHint}
                 <span class="text-[10px] text-outline font-medium">${escapeHtml(time)}</span>
                 <span class="material-symbols-outlined text-[14px] text-blue-500" style="font-variation-settings: 'FILL' 1;">check_circle</span>
               </div>
@@ -1206,13 +1630,16 @@
              </div>`;
 
         return `${dateSeparatorHtml}
-          <div class="msg-row msg-row--in flex gap-3 max-w-[85%] items-end" data-message-index="${index}" style="--msg-i: ${index}">
+          <div class="msg-row msg-row--in flex gap-3 max-w-[85%] items-end" data-message-index="${index}"${msgIdAttr} style="--msg-i: ${index}">
             ${senderAvatar}
             <div class="flex flex-col gap-1.5">
-              <div class="bg-primary-fixed/30 p-4 rounded-2xl rounded-bl-none text-on-surface-variant shadow-lg shadow-primary/10">
+              <div class="${bubbleClass}${peerDeletedClass} bg-primary-fixed/30 p-4 rounded-2xl rounded-bl-none text-on-surface-variant shadow-lg shadow-primary/10">
                 ${content}
               </div>
-              <span class="text-[10px] text-outline font-medium px-1">${escapeHtml(time)}</span>
+              <div class="flex items-center gap-1.5 px-1">
+                ${deletedHint}
+                <span class="text-[10px] text-outline font-medium">${escapeHtml(time)}</span>
+              </div>
             </div>
           </div>
         `;
@@ -1244,12 +1671,72 @@
       }
     }
 
+    bindMessageBubbleActions();
+    bindDeletedHints();
+
     byId.messagesContainer.scrollTop = byId.messagesContainer.scrollHeight;
+  }
+
+  let deletedHintsDocumentBound = false;
+
+  function bindDeletedHints() {
+    if (!byId.messagesContainer) {
+      return;
+    }
+    byId.messagesContainer.querySelectorAll(".msg-deleted-hint").forEach((hint) => {
+      hint.addEventListener("click", (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        const open = hint.classList.toggle("is-open");
+        if (!open) {
+          return;
+        }
+        byId.messagesContainer.querySelectorAll(".msg-deleted-hint.is-open").forEach((other) => {
+          if (other !== hint) {
+            other.classList.remove("is-open");
+          }
+        });
+      });
+    });
+    if (!deletedHintsDocumentBound) {
+      deletedHintsDocumentBound = true;
+      document.addEventListener("click", () => {
+        byId.messagesContainer
+          ?.querySelectorAll(".msg-deleted-hint.is-open")
+          .forEach((el) => el.classList.remove("is-open"));
+      });
+    }
+  }
+
+  function bindMessageBubbleActions() {
+    if (!byId.messagesContainer) {
+      return;
+    }
+    byId.messagesContainer.querySelectorAll(".msg-bubble--interactive").forEach((bubble) => {
+      bubble.addEventListener("click", (event) => {
+        if (event.target.closest("a")) {
+          return;
+        }
+        const row = bubble.closest("[data-message-index]");
+        if (!row) {
+          return;
+        }
+        const message = resolveMessageFromRow(row);
+        if (!message || !message.id) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        showMessageActionsMenu(message, event.clientX, event.clientY);
+      });
+    });
   }
 
   async function selectConversation(id) {
     if (id !== activeConversationId) {
       clearPendingAttachment();
+      clearPendingReply();
+      hideMessageActionsMenu();
     }
     activeConversationId = id;
     await loadMessages(id);
@@ -1412,18 +1899,27 @@
         } else {
           formData.append("file", file);
         }
+        if (pendingReply) {
+          formData.append("reply_to_message_id", String(pendingReply.id));
+        }
 
         await postMessageAttachmentWithProgress(formData, (percent) => {
           renderAttachmentPreview(percent);
         });
 
         clearPendingAttachment();
+        clearPendingReply();
         input.value = "";
       } else {
+        const payload = { message_text: text };
+        if (pendingReply) {
+          payload.reply_to_message_id = pendingReply.id;
+        }
         await apiRequest(`/api/conversations/${activeConversationId}/messages`, {
           method: "POST",
-          body: JSON.stringify({ message_text: text }),
+          body: JSON.stringify(payload),
         });
+        clearPendingReply();
         input.value = "";
       }
 
@@ -1715,9 +2211,39 @@
     }
   }
 
+  if (msgActionReply) {
+    msgActionReply.addEventListener("click", () => {
+      const message = findMessageById(messageActionsMessageId);
+      if (message) {
+        startReplyToMessage(message);
+      }
+    });
+  }
+
+  if (msgActionDelete) {
+    msgActionDelete.addEventListener("click", () => {
+      deleteSelectedMessage();
+    });
+  }
+
+  document.addEventListener("click", (event) => {
+    if (!messageActionsMenu || messageActionsMenu.classList.contains("hidden")) {
+      return;
+    }
+    if (messageActionsMenu.contains(event.target)) {
+      return;
+    }
+    if (event.target.closest(".msg-bubble--interactive")) {
+      return;
+    }
+    hideMessageActionsMenu();
+  });
+
   if (chatBackBtn) {
     chatBackBtn.addEventListener("click", () => {
       clearPendingAttachment();
+      clearPendingReply();
+      hideMessageActionsMenu();
       lastLoadedConversationId = null;
       setMobileView("list");
     });
@@ -1905,6 +2431,10 @@
     }
     if (alertModal && alertModal.classList.contains("is-open")) {
       finishChatAlert();
+      return;
+    }
+    if (messageActionsMenu && messageActionsMenu.classList.contains("is-open")) {
+      hideMessageActionsMenu();
     }
   });
 
@@ -1976,9 +2506,14 @@
     if (window.LkI18n) {
       window.LkI18n.applyDocument();
     }
+    const replyLabel = msgActionReply && msgActionReply.querySelector(".msg-action-reply-label");
+    const deleteLabel = msgActionDelete && msgActionDelete.querySelector(".msg-action-delete-label");
+    if (replyLabel) replyLabel.textContent = t("chat.reply");
+    if (deleteLabel) deleteLabel.textContent = t("chat.deleteMessage");
     renderConversations();
     renderMessages();
     renderAttachmentPreview();
+    renderReplyPreview();
   });
 
   // Initialize

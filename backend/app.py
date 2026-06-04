@@ -209,9 +209,17 @@ def _is_allowed_cors_origin(app: Flask, origin: str | None) -> bool:
     if not normalized_origin:
         return False
     allowed_origins = app.config.get("CORS_ALLOWED_ORIGINS", tuple())
-    if not allowed_origins:
-        return False
-    return normalized_origin in {_normalize_origin(item) for item in allowed_origins}
+    if allowed_origins and normalized_origin in {
+        _normalize_origin(item) for item in allowed_origins
+    }:
+        return True
+    # Local dev: Live Server / Vite on other ports still talk to Flask on :5000.
+    if app.config.get("DEBUG") or not is_production_env():
+        if normalized_origin.startswith("http://localhost:") or normalized_origin.startswith(
+            "http://127.0.0.1:"
+        ):
+            return True
+    return False
 
 
 def _viewer_permissions_for_storage(db, viewer_user_id: int) -> set[str]:

@@ -56,6 +56,12 @@ def _serialize_message_for_api(message: dict) -> dict:
     image_path = payload.pop("image_path", None)
     file_path = payload.pop("file_path", None)
 
+    body = payload.get("body_text") or payload.get("message_text")
+    if body is None or str(body).strip() == "":
+        body = ""
+    payload["message_text"] = body
+    payload["body_text"] = body
+
     payload["image_url"] = (
         f"/api/messages/{message_id}/image" if message_id > 0 and image_path else None
     )
@@ -248,6 +254,13 @@ def send_message(conversation_id):
             
             if not message_text and not image_path and not file_path:
                 return jsonify({'error': 'Message must contain text, image, or file'}), 400
+
+            reply_to_message_id = request.form.get('reply_to_message_id')
+            if reply_to_message_id:
+                try:
+                    reply_to_message_id = int(reply_to_message_id)
+                except (TypeError, ValueError):
+                    return jsonify({'error': 'Invalid reply_to_message_id'}), 400
             
             message_id = Message.send_message(
                 conversation_id,
@@ -256,21 +269,30 @@ def send_message(conversation_id):
                 message_text,
                 image_path,
                 file_path,
-                file_name
+                file_name,
+                reply_to_message_id=reply_to_message_id,
             )
         else:
             # Handle JSON data
-            data = request.get_json()
+            data = request.get_json() or {}
             message_text = data.get('message_text')
             
             if not message_text:
                 return jsonify({'error': 'message_text is required'}), 400
+
+            reply_to_message_id = data.get('reply_to_message_id')
+            if reply_to_message_id is not None:
+                try:
+                    reply_to_message_id = int(reply_to_message_id)
+                except (TypeError, ValueError):
+                    return jsonify({'error': 'Invalid reply_to_message_id'}), 400
             
             message_id = Message.send_message(
                 conversation_id, 
                 user_id, 
                 receiver_id, 
-                message_text
+                message_text,
+                reply_to_message_id=reply_to_message_id,
             )
         
         return jsonify({
@@ -301,6 +323,8 @@ def download_message_image(message_id):
         return jsonify({'error': 'Message not found'}), 404
     if not _viewer_may_access_message_row(message, int(g.current_user_id)):
         return jsonify({'error': 'Unauthorized'}), 403
+    if message["deleted_by"] and int(message["deleted_by"]) == int(g.current_user_id):
+        return jsonify({'error': 'Message deleted'}), 404
     image_path = message["image_path"]
     if not image_path:
         return jsonify({'error': 'Image not found'}), 404
@@ -320,6 +344,8 @@ def download_message_file(message_id):
         return jsonify({'error': 'Message not found'}), 404
     if not _viewer_may_access_message_row(message, int(g.current_user_id)):
         return jsonify({'error': 'Unauthorized'}), 403
+    if message["deleted_by"] and int(message["deleted_by"]) == int(g.current_user_id):
+        return jsonify({'error': 'Message deleted'}), 404
     relative_path = message["file_path"]
     if not relative_path:
         return jsonify({'error': 'File not found'}), 404
@@ -356,6 +382,76 @@ def delete_conversation(conversation_id):
     except Exception as e:
         print(f"Error deleting conversation: {e}")
         return jsonify({'error': str(e)}), 500
+
+def _verify_conversation_participant(conversation_id, user_id):
+    parts = conversation_id.split('_')
+    if len(parts) != 3 or parts[0] != 'conv':
+        return None, (jsonify({'error': 'Invalid conversation ID'}), 400)
+    user1_id = int(parts[1])
+    user2_id = int(parts[2])
+    if user_id not in [user1_id, user2_id]:
+        return None, (jsonify({'error': 'Unauthorized'}), 403)
+    return (user1_id, user2_id), None
+
+
+def _delete_single_message_handler(message_id, conversation_id=None):
+    user_id = g.current_user_id
+    row = Message.get_message_by_id(message_id)
+    if not row:
+        return jsonify({'error': 'Message not found'}), 404
+
+    if conversation_id and row["conversation_id"] != conversation_id:
+        return jsonify({'error': 'Message not in this conversation'}), 400
+
+    _, err = _verify_conversation_participant(row["conversation_id"], user_id)
+    if err:
+        return err
+
+    Message.delete_message_for_user(message_id, user_id)
+    return jsonify({'success': True}), 200
+
+
+@messages_bp.route(
+    '/api/conversations/<conversation_id>/messages/<int:message_id>/delete',
+    methods=['POST'],
+)
+@login_required
+def delete_message_in_conversation(conversation_id, message_id):
+    """Delete one message (preferred URL — same prefix as send/list messages)."""
+    try:
+        return _delete_single_message_handler(message_id, conversation_id=conversation_id)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        print(f"Error deleting message in conversation: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@messages_bp.route('/api/messages/<int:message_id>', methods=['DELETE'])
+@login_required
+def delete_single_message(message_id):
+    """Delete one message for the current user (tombstone for the other participant)."""
+    try:
+        return _delete_single_message_handler(message_id)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        print(f"Error deleting message: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@messages_bp.route('/api/messages/<int:message_id>/delete', methods=['POST'])
+@login_required
+def delete_single_message_post(message_id):
+    """POST fallback when DELETE is blocked by a proxy."""
+    try:
+        return _delete_single_message_handler(message_id)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        print(f"Error deleting message: {e}")
+        return jsonify({'error': str(e)}), 500
+
 
 @messages_bp.route('/api/conversations/<conversation_id>/clear', methods=['POST'])
 @login_required

@@ -79,6 +79,14 @@ class Message:
             db.execute("ALTER TABLE messages ADD COLUMN file_path TEXT")
         if "file_name" not in columns:
             db.execute("ALTER TABLE messages ADD COLUMN file_name TEXT")
+        if "deleted_by" not in columns:
+            db.execute("ALTER TABLE messages ADD COLUMN deleted_by INTEGER")
+        if "deleted_at" not in columns:
+            db.execute("ALTER TABLE messages ADD COLUMN deleted_at TIMESTAMP")
+        if "reply_to_message_id" not in columns:
+            db.execute("ALTER TABLE messages ADD COLUMN reply_to_message_id INTEGER")
+        if "deleted_content_text" not in columns:
+            db.execute("ALTER TABLE messages ADD COLUMN deleted_content_text TEXT")
 
     @staticmethod
     def _ensure_conversation_columns(db):
@@ -300,6 +308,142 @@ class Message:
         return conversation_id
     
     @staticmethod
+    def _message_preview_text(row):
+        """Short label for replies and list previews."""
+        if not row:
+            return ""
+        text = (row.get("message_text") if isinstance(row, dict) else row["message_text"]) or ""
+        text = str(text).strip()
+        if text:
+            return text[:200]
+        image_path = row.get("image_path") if isinstance(row, dict) else row["image_path"]
+        if image_path and str(image_path).strip():
+            return "Фото"
+        file_path = row.get("file_path") if isinstance(row, dict) else row["file_path"]
+        if file_path and str(file_path).strip():
+            file_name = row.get("file_name") if isinstance(row, dict) else row["file_name"]
+            return (str(file_name).strip() if file_name else "") or "Файл"
+        return ""
+
+    @staticmethod
+    def _build_reply_snapshot(db, reply_to_message_id):
+        if not reply_to_message_id:
+            return None
+        row = db.execute(
+            """
+            SELECT
+                m.id,
+                m.sender_id,
+                m.message_text,
+                m.image_path,
+                m.file_path,
+                m.file_name,
+                m.deleted_by,
+                u.name AS sender_name
+            FROM messages m
+            JOIN users u ON m.sender_id = u.id
+            WHERE m.id = ?
+            LIMIT 1
+            """,
+            (int(reply_to_message_id),),
+        ).fetchone()
+        if not row:
+            return None
+        deleted_by = row["deleted_by"]
+        preview = None if deleted_by else Message._message_preview_text(row)
+        return {
+            "id": row["id"],
+            "sender_id": row["sender_id"],
+            "sender_name": row["sender_name"],
+            "preview_text": preview,
+            "is_deleted": bool(deleted_by),
+        }
+
+    @staticmethod
+    def _row_to_message_dict(row, viewer_user_id=None):
+        """Map DB row to API dict.
+
+        Who deleted: message hidden for them only. Other participant keeps full content
+        and gets is_deleted_by_peer for a UI hint.
+        """
+        deleted_by = row["deleted_by"] if "deleted_by" in row.keys() else None
+        if deleted_by and viewer_user_id is not None and int(deleted_by) == int(viewer_user_id):
+            return None
+
+        reply_to = None
+        reply_id = row["reply_to_message_id"] if "reply_to_message_id" in row.keys() else None
+        if reply_id is not None:
+            reply_sender_name = row["reply_sender_name"] if "reply_sender_name" in row.keys() else None
+            reply_sender_id = row["reply_sender_id"] if "reply_sender_id" in row.keys() else None
+            reply_deleted_by = row["reply_deleted_by"] if "reply_deleted_by" in row.keys() else None
+            reply_ref = {
+                "message_text": row["reply_message_text"]
+                if "reply_message_text" in row.keys()
+                else None,
+                "image_path": row["reply_image_path"]
+                if "reply_image_path" in row.keys()
+                else None,
+                "file_path": row["reply_file_path"]
+                if "reply_file_path" in row.keys()
+                else None,
+                "file_name": row["reply_file_name"]
+                if "reply_file_name" in row.keys()
+                else None,
+            }
+            if reply_deleted_by:
+                is_reply_deleted = True
+                if viewer_user_id is not None and int(reply_deleted_by) == int(viewer_user_id):
+                    reply_preview = None
+                else:
+                    reply_preview = Message._message_preview_text(reply_ref)
+            else:
+                reply_preview = Message._message_preview_text(reply_ref)
+                is_reply_deleted = False
+            reply_to = {
+                "id": int(reply_id),
+                "sender_id": reply_sender_id,
+                "sender_name": reply_sender_name or "",
+                "preview_text": (reply_preview or "")[:200] if reply_preview else "",
+                "is_deleted": is_reply_deleted,
+            }
+
+        is_deleted_by_peer = bool(
+            deleted_by
+            and viewer_user_id is not None
+            and int(deleted_by) != int(viewer_user_id)
+        )
+        deleted_by_name = None
+        if is_deleted_by_peer and "deleted_by_name" in row.keys():
+            deleted_by_name = row["deleted_by_name"]
+
+        stored_text = row["message_text"] if "message_text" in row.keys() else None
+        if (stored_text is None or str(stored_text).strip() == "") and "deleted_content_text" in row.keys():
+            stored_text = row["deleted_content_text"]
+        if stored_text is None:
+            stored_text = ""
+
+        return {
+            "id": row["id"],
+            "sender_id": row["sender_id"],
+            "receiver_id": row["receiver_id"],
+            "message_text": stored_text,
+            "body_text": stored_text,
+            "image_path": row["image_path"],
+            "file_path": row["file_path"],
+            "file_name": row["file_name"],
+            "is_system_message": row["is_system_message"],
+            "created_at": row["created_at"],
+            "read_status": row["read_status"],
+            "sender_name": row["sender_name"],
+            "sender_avatar": row["sender_avatar"],
+            "is_deleted_by_peer": is_deleted_by_peer,
+            "deleted_by_user_id": deleted_by,
+            "deleted_by_name": deleted_by_name,
+            "reply_to_message_id": reply_id,
+            "reply_to": reply_to,
+        }
+
+    @staticmethod
     def get_messages(conversation_id, limit=100, viewer_user_id=None, for_audit=False):
         """Get messages for a conversation.
 
@@ -315,25 +459,44 @@ class Message:
                 db, conversation_id, int(viewer_user_id)
             )
 
+        select_sql = """
+            SELECT
+                m.id,
+                m.sender_id,
+                m.receiver_id,
+                m.message_text,
+                m.image_path,
+                m.file_path,
+                m.file_name,
+                m.is_system_message,
+                m.created_at,
+                m.read_status,
+                m.deleted_by,
+                m.deleted_at,
+                m.deleted_content_text,
+                m.reply_to_message_id,
+                u.name AS sender_name,
+                u.avatar AS sender_avatar,
+                du.name AS deleted_by_name,
+                rm.sender_id AS reply_sender_id,
+                rm.message_text AS reply_message_text,
+                rm.image_path AS reply_image_path,
+                rm.file_path AS reply_file_path,
+                rm.file_name AS reply_file_name,
+                rm.deleted_by AS reply_deleted_by,
+                ru.name AS reply_sender_name
+            FROM messages m
+            JOIN users u ON m.sender_id = u.id
+            LEFT JOIN users du ON m.deleted_by = du.id
+            LEFT JOIN messages rm ON m.reply_to_message_id = rm.id
+            LEFT JOIN users ru ON rm.sender_id = ru.id
+            WHERE m.conversation_id = ?
+        """
+
         if cleared_at:
             cursor = db.execute(
-                """
-                SELECT
-                    m.id,
-                    m.sender_id,
-                    m.receiver_id,
-                    m.message_text,
-                    m.image_path,
-                    m.file_path,
-                    m.file_name,
-                    m.is_system_message,
-                    m.created_at,
-                    m.read_status,
-                    u.name as sender_name,
-                    u.avatar as sender_avatar
-                FROM messages m
-                JOIN users u ON m.sender_id = u.id
-                WHERE m.conversation_id = ?
+                select_sql
+                + """
                   AND m.created_at >= ?
                 ORDER BY m.created_at ASC
                 LIMIT ?
@@ -342,46 +505,39 @@ class Message:
             )
         else:
             cursor = db.execute(
-                """
-                SELECT
-                    m.id,
-                    m.sender_id,
-                    m.receiver_id,
-                    m.message_text,
-                    m.image_path,
-                    m.file_path,
-                    m.file_name,
-                    m.is_system_message,
-                    m.created_at,
-                    m.read_status,
-                    u.name as sender_name,
-                    u.avatar as sender_avatar
-                FROM messages m
-                JOIN users u ON m.sender_id = u.id
-                WHERE m.conversation_id = ?
+                select_sql
+                + """
                 ORDER BY m.created_at ASC
                 LIMIT ?
                 """,
                 (conversation_id, limit),
             )
-        
+
         messages = []
         for row in cursor.fetchall():
-            messages.append({
-                'id': row[0],
-                'sender_id': row[1],
-                'receiver_id': row[2],
-                'message_text': row[3],
-                'image_path': row[4],
-                'file_path': row[5],
-                'file_name': row[6],
-                'is_system_message': row[7],
-                'created_at': row[8],
-                'read_status': row[9],
-                'sender_name': row[10],
-                'sender_avatar': row[11]
-            })
-        
+            if for_audit:
+                messages.append({
+                    "id": row["id"],
+                    "sender_id": row["sender_id"],
+                    "receiver_id": row["receiver_id"],
+                    "message_text": row["message_text"],
+                    "image_path": row["image_path"],
+                    "file_path": row["file_path"],
+                    "file_name": row["file_name"],
+                    "is_system_message": row["is_system_message"],
+                    "created_at": row["created_at"],
+                    "read_status": row["read_status"],
+                    "sender_name": row["sender_name"],
+                    "sender_avatar": row["sender_avatar"],
+                    "deleted_by": row["deleted_by"],
+                    "reply_to_message_id": row["reply_to_message_id"],
+                })
+                continue
+
+            item = Message._row_to_message_dict(row, viewer_user_id=viewer_user_id)
+            if item is not None:
+                messages.append(item)
+
         return messages
 
     @staticmethod
@@ -404,7 +560,8 @@ class Message:
                 receiver_id,
                 image_path,
                 file_path,
-                file_name
+                file_name,
+                deleted_by
             FROM messages
             WHERE id = ?
             LIMIT 1
@@ -414,21 +571,65 @@ class Message:
         return row
     
     @staticmethod
-    def send_message(conversation_id, sender_id, receiver_id, message_text=None, image_path=None, file_path=None, file_name=None, is_system_message=False):
+    def send_message(
+        conversation_id,
+        sender_id,
+        receiver_id,
+        message_text=None,
+        image_path=None,
+        file_path=None,
+        file_name=None,
+        is_system_message=False,
+        reply_to_message_id=None,
+    ):
         """Send a message in a conversation."""
         if not message_text and not image_path and not file_path:
             raise ValueError("Message must contain text, image, or file")
         
         db = get_db_connection()
         Message._ensure_message_columns(db)
+
+        if reply_to_message_id is not None:
+            reply_to_message_id = int(reply_to_message_id)
+            ref = db.execute(
+                """
+                SELECT id, conversation_id, is_system_message
+                FROM messages
+                WHERE id = ?
+                LIMIT 1
+                """,
+                (reply_to_message_id,),
+            ).fetchone()
+            if not ref:
+                raise ValueError("Reply message not found")
+            if ref["conversation_id"] != conversation_id:
+                raise ValueError("Reply message is not in this conversation")
+            if ref["is_system_message"]:
+                raise ValueError("Cannot reply to a system message")
         
         # If receiver has deleted this conversation, restore it for them
         Message.restore_conversation_for_user(conversation_id, receiver_id)
         
-        cursor = db.execute('''
-            INSERT INTO messages (conversation_id, sender_id, receiver_id, message_text, image_path, file_path, file_name, is_system_message)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (conversation_id, sender_id, receiver_id, message_text, image_path, file_path, file_name, 1 if is_system_message else 0))
+        cursor = db.execute(
+            """
+            INSERT INTO messages (
+                conversation_id, sender_id, receiver_id, message_text,
+                image_path, file_path, file_name, is_system_message, reply_to_message_id
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                conversation_id,
+                sender_id,
+                receiver_id,
+                message_text,
+                image_path,
+                file_path,
+                file_name,
+                1 if is_system_message else 0,
+                reply_to_message_id,
+            ),
+        )
         
         # Update conversation last_message_at
         db.execute(
@@ -595,5 +796,45 @@ class Message:
             (conversation_id,),
         )
 
+        db.commit()
+        return True
+
+    @staticmethod
+    def delete_message_for_user(message_id, user_id):
+        """Soft-delete one message: hidden for deleter, tombstone for the other participant."""
+        db = get_db_connection()
+        Message._ensure_message_columns(db)
+
+        row = db.execute(
+            """
+            SELECT id, conversation_id, sender_id, receiver_id, is_system_message, deleted_by
+            FROM messages
+            WHERE id = ?
+            LIMIT 1
+            """,
+            (int(message_id),),
+        ).fetchone()
+        if not row:
+            raise ValueError("Message not found")
+        if row["is_system_message"]:
+            raise ValueError("Cannot delete system message")
+        if row["deleted_by"]:
+            raise ValueError("Message already deleted")
+
+        participants = Message._conversation_participant_ids(row["conversation_id"])
+        if not participants or int(user_id) not in participants:
+            raise ValueError("User not part of this conversation")
+
+        deleted_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        db.execute(
+            """
+            UPDATE messages
+            SET deleted_by = ?,
+                deleted_at = ?,
+                deleted_content_text = COALESCE(NULLIF(TRIM(message_text), ''), deleted_content_text, message_text)
+            WHERE id = ?
+            """,
+            (int(user_id), deleted_at, int(message_id)),
+        )
         db.commit()
         return True
