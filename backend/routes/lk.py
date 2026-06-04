@@ -1107,15 +1107,14 @@ def update_case_data(user_id: int):
     if not isinstance(document_requests, list):
         return jsonify({"success": False, "error": "document_requests must be a list"}), 400
     
-    # Validate that user can assign this role through "visa path" field (костыль)
-    # Исключение: если пользователь редактирует свой собственный кейс и роль не меняется,
-    # то проверка не нужна (он просто обновляет график/документы)
-    old_role = target_user["role_key"]
-    is_editing_own_case = (user_id == g.current_user_id)
-    role_unchanged = (old_role == visa_type)
-    
-    if not (is_editing_own_case and role_unchanged):
-        # Проверяем права на назначение роли только если это не редактирование своего кейса
+    # Права на «визовый путь» нужны только при смене роли клиента (не при правке графика/даты и т.д.)
+    old_role = normalize_role_key(target_user["role_key"] or "")
+    visa_type = normalize_role_key(visa_type)
+    role_unchanged = old_role == visa_type
+
+    if not role_unchanged:
+        if user_id == g.current_user_id:
+            return jsonify({"success": False, "error": "cannot change own role"}), 403
         if not can_assign_visa_type(role_key, visa_type):
             return jsonify({
                 "success": False,
@@ -1262,12 +1261,7 @@ def update_case_data(user_id: int):
             )
 
     # Update user's actual role (костыль - visa_type is actually role_key)
-    old_role = target_user["role_key"]
-    if old_role != visa_type:
-        # Запрет на изменение собственной роли (только если роль действительно меняется)
-        if user_id == g.current_user_id:
-            return jsonify({"success": False, "error": "cannot change own role"}), 403
-        
+    if not role_unchanged:
         success = update_user_role(g.db, user_id, visa_type)
         if success:
             new_role_def = get_role_definition(visa_type)

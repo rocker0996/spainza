@@ -160,57 +160,10 @@ if ! docker network inspect "$EDGE_NETWORK" >/dev/null 2>&1; then
   echo "Missing Docker network: $EDGE_NETWORK" >&2
   exit 1
 fi
-if [[ ! -d "$EDGE_CONF_DIR" ]]; then
-  echo "Missing edge config directory: $EDGE_CONF_DIR" >&2
-  exit 1
-fi
-if ! docker ps --format '{{.Names}}' | grep -qx "$EDGE_CONTAINER"; then
-  echo "Missing edge container: $EDGE_CONTAINER" >&2
-  exit 1
-fi
 
-cat > "${EDGE_CONF_DIR}/20-spainza.conf" <<NGINX
-server {
-  listen 80;
-  listen 443 ssl;
-  server_name ${DOMAIN} ${WWW_DOMAIN};
-
-  client_max_body_size 55m;
-
-  ssl_certificate ${EDGE_SSL_CERT};
-  ssl_certificate_key ${EDGE_SSL_KEY};
-
-  location /health {
-    access_log off;
-    add_header Content-Type text/plain;
-    return 200 "ok\\n";
-  }
-
-  location /api/ {
-    proxy_pass http://spainza-backend:5000;
-    proxy_http_version 1.1;
-    proxy_set_header Host \$host;
-    proxy_set_header X-Real-IP \$remote_addr;
-    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto \$scheme;
-  }
-
-  location / {
-    proxy_pass http://spainza-site:80;
-    proxy_http_version 1.1;
-    proxy_set_header Host \$host;
-    proxy_set_header X-Real-IP \$remote_addr;
-    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto \$scheme;
-  }
-}
-NGINX
-
-docker compose -f "$EDGE_COMPOSE_FILE" exec -T nginx nginx -t
-docker compose -f "$EDGE_COMPOSE_FILE" exec -T nginx nginx -s reload
+bash "$ROOT_DIR/tools/update_edge_nginx.sh"
 
 curl -fsS -H "Host: ${DOMAIN}" http://127.0.0.1/ >/dev/null
-curl -fsS -H "Host: ${DOMAIN}" http://127.0.0.1/api/health >/dev/null
 
 echo "Deployment complete"
 compose ps

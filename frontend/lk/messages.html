@@ -124,7 +124,13 @@
 <!-- Main Content Area (Messaging Canvas) -->
 <main id="messages-main" class="messages-main messages-view-list flex-grow flex flex-col md:flex-row p-0 md:p-8 gap-0 md:gap-6 md:overflow-hidden fixed md:relative inset-x-0 top-14 bottom-0 md:top-auto md:inset-auto md:h-[calc(100vh-80px)] z-30 md:z-auto w-full min-h-0 max-md:h-auto">
 <!-- Chat pane (desktop left; mobile full screen when open) -->
-<section id="chat-pane" class="messages-pane flex flex-col flex-grow min-w-0 md:h-full bg-white md:rounded-2xl chat-shadow overflow-hidden max-md:rounded-none max-md:h-full max-md:min-h-0">
+<section id="chat-pane" class="messages-pane relative flex flex-col flex-grow min-w-0 md:h-full bg-white md:rounded-2xl chat-shadow overflow-hidden max-md:rounded-none max-md:h-full max-md:min-h-0">
+  <div id="chat-drop-overlay" class="chat-drop-overlay hidden absolute inset-0 z-20 flex items-center justify-center p-6 bg-primary-container/10 backdrop-blur-[2px] border-2 border-dashed border-primary-container/40 rounded-none md:rounded-2xl pointer-events-none" aria-hidden="true">
+    <div class="text-center max-w-sm">
+      <span class="material-symbols-outlined text-[48px] text-primary-container mb-3">upload_file</span>
+      <p class="text-base font-semibold text-on-surface" data-i18n="chat.dragDropHint">Перетащите файл сюда для отправки</p>
+    </div>
+  </div>
   <!-- Chat Header -->
   <div class="chat-header px-4 md:px-6 py-3 md:py-4 border-b border-stone-50 bg-white/50 backdrop-blur-sm z-10 shrink-0">
   <div class="flex items-center justify-between mb-3">
@@ -193,6 +199,7 @@
   <div class="flex-grow min-h-0 p-4 md:p-6 overflow-y-auto flex flex-col gap-4 bg-stone-50/30" id="messages-container"></div>
   <!-- Input Bar -->
   <div id="chat-compose" class="p-3 md:p-6 bg-white border-t border-stone-50 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+  <div id="chat-attachment-preview" class="chat-attachment-preview hidden mb-3" aria-live="polite"></div>
   <div class="flex items-center gap-2 md:gap-3 bg-stone-50 p-1.5 md:p-2 pl-3 md:pl-4 rounded-2xl focus-within:ring-2 focus-within:ring-primary-container transition-all">
   <div class="flex items-center gap-1">
   <button class="p-2 text-outline hover:bg-stone-100 rounded-xl transition-colors" id="attach-document-btn" title="Attach Document" type="button">
@@ -404,8 +411,64 @@
     animation: msg-system-in 0.4s var(--msg-ease-out) backwards;
     animation-delay: calc(min(var(--msg-i, 0), 14) * 32ms);
   }
-  .messages-thread-enter .msg-date-pill {
+  .messages-thread-enter .msg-date-pill,
+  .messages-thread-enter .msg-date-separator {
     animation: fade-up 0.45s var(--msg-ease-out) both;
+  }
+
+  .msg-date-separator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 0.75rem 0 0.5rem;
+    pointer-events: none;
+  }
+  .msg-date-separator__pill {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #5c5f6e;
+    background: rgba(255, 255, 255, 0.92);
+    padding: 6px 14px;
+    border-radius: 9999px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  }
+
+  .chat-drop-overlay.is-active {
+    display: flex !important;
+    pointer-events: none;
+  }
+
+  .chat-attachment-preview__card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: #f5f5f4;
+    border-radius: 12px;
+    border: 1px solid #e7e5e4;
+  }
+  .chat-attachment-preview__thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .chat-attachment-preview__progress {
+    height: 4px;
+    background: #e7e5e4;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .chat-attachment-preview__progress-bar {
+    height: 100%;
+    background: #0052ff;
+    border-radius: 9999px;
+    transition: width 0.15s ease;
+    width: 0%;
   }
   .msg-row--pop {
     animation: msg-pop 0.38s var(--msg-ease-spring) both;
@@ -616,6 +679,6 @@
 <script src="../js/lk-i18n.js" defer></script>
 <script src="../js/mobile-nav.js" defer></script>
 <script src="../js/lk.js?v=21" defer></script>
-<script src="../js/chat.js?v=18" defer></script>
+<script src="../js/chat.js?v=20" defer></script>
 <script src="../../shared/layout.js?v=9" defer></script>
 </body></html>

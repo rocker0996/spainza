@@ -21,7 +21,8 @@ def test_visa_permissions():
     
     roles_to_test = [
         "management",
-        "admin", 
+        "admin",
+        "support",
         "moderator",
         "manager",
         "digital_nomad",
@@ -63,6 +64,8 @@ def test_visa_permissions():
         ("management", "digital_nomad", True),
         ("management", "golden_visa", True),
         ("admin", "citizen", True),
+        ("support", "digital_nomad", True),
+        ("support", "golden_visa", True),
         ("moderator", "other", True),
         ("manager", "digital_nomad", True),
         ("digital_nomad", "golden_visa", False),

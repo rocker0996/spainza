@@ -73,8 +73,8 @@
     const isLocalHost = localHosts.includes(window.location.hostname);
     if (isLocalHost && window.location.port && window.location.port !== "5000") {
       return [
-        "/api",
         `${window.location.protocol}//${window.location.hostname}:5000/api`,
+        "/api",
       ];
     }
     return ["/api"];
@@ -96,7 +96,21 @@
 
   const messagesMain = document.getElementById("messages-main");
   const chatBackBtn = document.getElementById("chat-back-btn");
+  const chatPane = document.getElementById("chat-pane");
+  const chatDropOverlay = document.getElementById("chat-drop-overlay");
+  const chatAttachmentPreview = document.getElementById("chat-attachment-preview");
   const MOBILE_MQ = window.matchMedia("(max-width: 767px)");
+
+  const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp"]);
+  const DOCUMENT_EXTENSIONS = new Set([
+    "pdf", "doc", "docx", "txt", "xls", "xlsx", "ppt", "pptx", "zip", "rar", "7z", "tar", "gz",
+  ]);
+  const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+  const MAX_FILE_BYTES = 25 * 1024 * 1024;
+
+  /** @type {{ file: File, kind: 'image'|'file', previewUrl: string|null, status: 'ready'|'uploading' } | null} */
+  let pendingAttachment = null;
+  let dragDepth = 0;
 
   let mobileViewState = "list";
   let lastLoadedConversationId = null;
@@ -680,11 +694,11 @@
 
   function formatTime(timestamp) {
     if (!timestamp) return "--:--";
-    
+
     const date = new Date(timestamp);
     const now = new Date();
     const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-    
+
     const loc = window.LkI18n ? window.LkI18n.dateLocaleTag() : "ru-RU";
     if (diffDays === 0) {
       return date.toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit" });
@@ -697,6 +711,286 @@
       });
     }
     return date.toLocaleDateString(loc, { day: "2-digit", month: "2-digit" });
+  }
+
+  function getDateKey(timestamp) {
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+    return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  }
+
+  function startOfLocalDay(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function formatDateSeparator(timestamp) {
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    const now = new Date();
+    const today = startOfLocalDay(now);
+    const msgDay = startOfLocalDay(date);
+    const diffDays = Math.round((today - msgDay) / 86400000);
+    const loc = window.LkI18n ? window.LkI18n.dateLocaleTag() : "ru-RU";
+
+    if (diffDays === 0) {
+      return t("chat.today");
+    }
+    if (diffDays === 1) {
+      return t("chat.yesterday");
+    }
+
+    const opts = { day: "numeric", month: "long" };
+    if (date.getFullYear() !== now.getFullYear()) {
+      opts.year = "numeric";
+    }
+    return date.toLocaleDateString(loc, opts);
+  }
+
+  /** Время внутри пузыря сообщения — только часы и минуты. */
+  function formatMessageTime(timestamp) {
+    if (!timestamp) return "--:--";
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return "--:--";
+    }
+    const loc = window.LkI18n ? window.LkI18n.dateLocaleTag() : "ru-RU";
+    return date.toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function getFileExtension(filename) {
+    const name = String(filename || "");
+    const dot = name.lastIndexOf(".");
+    if (dot < 1) {
+      return "";
+    }
+    return name.slice(dot + 1).toLowerCase();
+  }
+
+  function classifyAttachmentFile(file) {
+    if (!file) {
+      return null;
+    }
+    const ext = getFileExtension(file.name);
+    if (IMAGE_EXTENSIONS.has(ext) || (file.type && file.type.startsWith("image/"))) {
+      return "image";
+    }
+    if (DOCUMENT_EXTENSIONS.has(ext)) {
+      return "file";
+    }
+    return null;
+  }
+
+  function mapAttachmentError(error) {
+    const raw = error instanceof Error ? error.message : String(error || "");
+    const lower = raw.toLowerCase();
+
+    if (lower.includes("too large") || lower.includes("413")) {
+      if (pendingAttachment && pendingAttachment.kind === "image") {
+        return t("chat.imageTooLarge");
+      }
+      return t("chat.fileTooLarge");
+    }
+    if (lower.includes("not allowed") || lower.includes("file type")) {
+      return t("chat.fileTypeNotAllowed");
+    }
+    if (
+      lower.includes("invalid file") ||
+      lower.includes("signature") ||
+      lower.includes("content type") ||
+      lower.includes("office document")
+    ) {
+      return t("chat.fileUnsafe");
+    }
+    if (pendingAttachment && pendingAttachment.kind === "image") {
+      return t("chat.imageUploadError");
+    }
+    return t("chat.fileUploadError", { error: raw });
+  }
+
+  async function showAttachmentError(message, title) {
+    await showChatAlert({
+      title: title || t("chat.errorTitle"),
+      message,
+      icon: "error",
+    });
+  }
+
+  function revokePendingPreviewUrl() {
+    if (pendingAttachment && pendingAttachment.previewUrl) {
+      URL.revokeObjectURL(pendingAttachment.previewUrl);
+    }
+  }
+
+  function clearPendingAttachment() {
+    revokePendingPreviewUrl();
+    pendingAttachment = null;
+    renderAttachmentPreview();
+  }
+
+  function validateAttachmentFile(file) {
+    const kind = classifyAttachmentFile(file);
+    if (!kind) {
+      return { ok: false, message: t("chat.fileTypeNotAllowed") };
+    }
+    const maxBytes = kind === "image" ? MAX_IMAGE_BYTES : MAX_FILE_BYTES;
+    if (file.size > maxBytes) {
+      return {
+        ok: false,
+        message: kind === "image" ? t("chat.imageTooLarge") : t("chat.fileTooLarge"),
+      };
+    }
+    return { ok: true, kind };
+  }
+
+  function renderAttachmentPreview(uploadPercent) {
+    if (!chatAttachmentPreview) {
+      return;
+    }
+
+    if (!pendingAttachment) {
+      chatAttachmentPreview.classList.add("hidden");
+      chatAttachmentPreview.innerHTML = "";
+      return;
+    }
+
+    const { file, kind, previewUrl, status } = pendingAttachment;
+    const ext = getFileExtension(file.name);
+    const icon = kind === "image" && previewUrl ? "" : getFileIcon(ext);
+    const isUploading = status === "uploading";
+    const percent = typeof uploadPercent === "number" ? Math.min(100, Math.max(0, uploadPercent)) : 0;
+
+    const thumb =
+      kind === "image" && previewUrl
+        ? `<img src="${escapeHtml(previewUrl)}" class="chat-attachment-preview__thumb" alt=""/>`
+        : `<div class="chat-attachment-preview__thumb bg-white flex items-center justify-center border border-stone-200">
+             <span class="material-symbols-outlined text-[28px] text-primary-container">${icon || "insert_drive_file"}</span>
+           </div>`;
+
+    const statusText = isUploading
+      ? t("chat.uploadingAttachment", { percent: Math.round(percent) })
+      : t("chat.attachmentReady");
+
+    chatAttachmentPreview.classList.remove("hidden");
+    chatAttachmentPreview.innerHTML = `
+      <div class="chat-attachment-preview__card">
+        ${thumb}
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-on-surface truncate">${escapeHtml(file.name)}</div>
+          <div class="text-xs text-outline mt-0.5">${escapeHtml(statusText)}</div>
+          ${
+            isUploading
+              ? `<div class="chat-attachment-preview__progress" role="progressbar" aria-valuenow="${Math.round(percent)}" aria-valuemin="0" aria-valuemax="100">
+                   <div class="chat-attachment-preview__progress-bar" style="width: ${percent}%"></div>
+                 </div>`
+              : ""
+          }
+        </div>
+        <button type="button" class="p-2 hover:bg-stone-200 rounded-lg transition-colors text-outline shrink-0 chat-attachment-remove" title="${escapeHtml(t("chat.removeAttachment"))}" ${isUploading ? "disabled" : ""}>
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+    `;
+
+    const removeBtn = chatAttachmentPreview.querySelector(".chat-attachment-remove");
+    if (removeBtn && !isUploading) {
+      removeBtn.addEventListener("click", clearPendingAttachment);
+    }
+  }
+
+  function queueAttachment(file) {
+    if (!activeConversationId) {
+      showAttachmentError(t("chat.selectChatForFile"));
+      return;
+    }
+
+    const validation = validateAttachmentFile(file);
+    if (!validation.ok) {
+      showAttachmentError(validation.message);
+      return;
+    }
+
+    revokePendingPreviewUrl();
+    const kind = validation.kind;
+    let previewUrl = null;
+    if (kind === "image") {
+      previewUrl = URL.createObjectURL(file);
+    }
+
+    pendingAttachment = { file, kind, previewUrl, status: "ready" };
+    renderAttachmentPreview();
+    if (byId.messageInput) {
+      byId.messageInput.focus();
+    }
+  }
+
+  function setDropOverlayVisible(visible) {
+    if (!chatDropOverlay) {
+      return;
+    }
+    if (visible) {
+      chatDropOverlay.classList.remove("hidden");
+      chatDropOverlay.classList.add("is-active");
+      chatDropOverlay.setAttribute("aria-hidden", "false");
+    } else {
+      chatDropOverlay.classList.add("hidden");
+      chatDropOverlay.classList.remove("is-active");
+      chatDropOverlay.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  function bindDragAndDrop() {
+    const target = chatPane || byId.messagesContainer;
+    if (!target) {
+      return;
+    }
+
+    target.addEventListener("dragenter", (event) => {
+      if (!event.dataTransfer || !Array.from(event.dataTransfer.types).includes("Files")) {
+        return;
+      }
+      event.preventDefault();
+      dragDepth += 1;
+      setDropOverlayVisible(true);
+    });
+
+    target.addEventListener("dragover", (event) => {
+      if (!event.dataTransfer || !Array.from(event.dataTransfer.types).includes("Files")) {
+        return;
+      }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      setDropOverlayVisible(true);
+    });
+
+    target.addEventListener("dragleave", (event) => {
+      if (!event.dataTransfer || !Array.from(event.dataTransfer.types).includes("Files")) {
+        return;
+      }
+      const root = chatPane || target;
+      if (event.relatedTarget && root.contains(event.relatedTarget)) {
+        return;
+      }
+      dragDepth = 0;
+      setDropOverlayVisible(false);
+    });
+
+    target.addEventListener("drop", (event) => {
+      if (!event.dataTransfer || !event.dataTransfer.files.length) {
+        return;
+      }
+      event.preventDefault();
+      dragDepth = 0;
+      setDropOverlayVisible(false);
+      const file = event.dataTransfer.files[0];
+      if (file) {
+        queueAttachment(file);
+      }
+    });
   }
 
   function findConversation(id) {
@@ -816,9 +1110,25 @@
     }
 
     const messages = activeConversation.messages || [];
-    
+    let lastDateKey = "";
+
     const messagesMarkup = messages
       .map((message, index) => {
+        let dateSeparatorHtml = "";
+        if (message.created_at) {
+          const dateKey = getDateKey(message.created_at);
+          if (dateKey && dateKey !== lastDateKey) {
+            lastDateKey = dateKey;
+            const dateLabel = formatDateSeparator(message.created_at);
+            if (dateLabel) {
+              dateSeparatorHtml = `
+                <div class="msg-date-separator msg-row" data-message-index="${index}" style="--msg-i: ${index}">
+                  <span class="msg-date-separator__pill">${escapeHtml(dateLabel)}</span>
+                </div>
+              `;
+            }
+          }
+        }
         // Системное сообщение
         if (message.is_system_message) {
           const isDelete = window.LkI18n && window.LkI18n.isSystemDeleteMessage(message.message_text);
@@ -828,7 +1138,7 @@
           const textClass = isDelete ? "text-red-800" : "text-amber-800";
           const icon = isDelete ? "delete" : "info";
           const iconClass = isDelete ? "text-red-600" : "";
-          return `
+          return `${dateSeparatorHtml}
             <div class="msg-row msg-row--system flex justify-center my-4" data-message-index="${index}" style="--msg-i: ${index}">
               <div class="${boxClass} px-4 py-2 rounded-xl max-w-md">
                 <div class="flex items-start gap-2 ${textClass}">
@@ -841,7 +1151,7 @@
         }
         
         const isMe = message.sender_id === currentUserId;
-        const time = formatTime(message.created_at);
+        const time = formatMessageTime(message.created_at);
         
         let content = '';
         if (message.image_url) {
@@ -875,7 +1185,7 @@
         }
 
         if (isMe) {
-          return `
+          return `${dateSeparatorHtml}
             <div class="msg-row msg-row--out flex flex-col items-end gap-1.5 self-end max-w-[85%]" data-message-index="${index}" style="--msg-i: ${index}">
               <div class="bg-white p-4 rounded-2xl rounded-br-none chat-shadow text-on-surface-variant">
                 ${content}
@@ -895,7 +1205,7 @@
                <span class="material-symbols-outlined text-[20px]">person</span>
              </div>`;
 
-        return `
+        return `${dateSeparatorHtml}
           <div class="msg-row msg-row--in flex gap-3 max-w-[85%] items-end" data-message-index="${index}" style="--msg-i: ${index}">
             ${senderAvatar}
             <div class="flex flex-col gap-1.5">
@@ -914,12 +1224,7 @@
     const tailPopIndex =
       animateMode === "tail" && messages.length > 0 ? messages.length - 1 : -1;
 
-    byId.messagesContainer.innerHTML = `
-      <div class="flex justify-center msg-date-pill">
-        <span class="text-[10px] font-bold text-outline bg-white px-3 py-1 rounded-full shadow-sm tracking-widest uppercase">${t("chat.today")}</span>
-      </div>
-      ${messagesMarkup}
-    `;
+    byId.messagesContainer.innerHTML = messagesMarkup || "";
 
     if (!prefersReducedMotion()) {
       if (animateMode === "thread") {
@@ -943,6 +1248,9 @@
   }
 
   async function selectConversation(id) {
+    if (id !== activeConversationId) {
+      clearPendingAttachment();
+    }
     activeConversationId = id;
     await loadMessages(id);
     if (isMobile()) {
@@ -972,7 +1280,11 @@
         );
       } catch (error) {
         console.error("openConversationWithUser:", error);
-        window.alert(t("chat.openChatFailed"));
+        await showChatAlert({
+          title: t("chat.errorTitle"),
+          message: t("chat.openChatFailed"),
+          icon: "error",
+        });
         return;
       }
     }
@@ -986,6 +1298,81 @@
     }
   }
 
+  function postMessageAttachmentWithProgress(formData, onProgress) {
+    const pathSuffix = toApiPath(`/api/conversations/${activeConversationId}/messages`);
+
+    return new Promise((resolve, reject) => {
+      let baseIndex = 0;
+
+      const tryNextBase = () => {
+        if (baseIndex >= apiBases.length) {
+          reject(new Error("Upload failed"));
+          return;
+        }
+
+        const baseUrl = apiBases[baseIndex];
+        baseIndex += 1;
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${baseUrl}${pathSuffix}`, true);
+        xhr.withCredentials = true;
+        const headers = apiLocaleHeaders();
+        Object.keys(headers).forEach((key) => {
+          xhr.setRequestHeader(key, headers[key]);
+        });
+
+        xhr.upload.addEventListener("progress", (event) => {
+          if (event.lengthComputable && typeof onProgress === "function") {
+            onProgress((event.loaded / event.total) * 100);
+          }
+        });
+
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              resolve(JSON.parse(xhr.responseText || "{}"));
+            } catch {
+              resolve({});
+            }
+            return;
+          }
+
+          if (xhr.status === 413) {
+            reject(new Error(t("chat.fileTooLarge")));
+            return;
+          }
+
+          let errMsg = `HTTP ${xhr.status}`;
+          try {
+            const payload = JSON.parse(xhr.responseText || "{}");
+            if (payload.error) {
+              errMsg = payload.error;
+            }
+          } catch {
+            // ignore
+          }
+
+          if (baseIndex < apiBases.length) {
+            tryNextBase();
+            return;
+          }
+          reject(new Error(errMsg));
+        });
+
+        xhr.addEventListener("error", () => {
+          if (baseIndex < apiBases.length) {
+            tryNextBase();
+            return;
+          }
+          reject(new Error("Upload failed"));
+        });
+
+        xhr.send(formData);
+      };
+
+      tryNextBase();
+    });
+  }
+
   async function sendMessage() {
     const input = byId.messageInput;
     if (!input) {
@@ -993,107 +1380,82 @@
     }
 
     const text = input.value.trim();
-    if (!text) {
+    const hasAttachment = Boolean(pendingAttachment && pendingAttachment.file);
+
+    if (!text && !hasAttachment) {
       input.focus();
       return;
     }
 
     if (!activeConversationId) {
-      alert(t("chat.selectChat"));
+      await showAttachmentError(t("chat.selectChat"));
       return;
     }
 
     if (byId.sendButton) {
       byId.sendButton.classList.add("is-sending");
+      byId.sendButton.disabled = true;
     }
 
     try {
-      await apiRequest(`/api/conversations/${activeConversationId}/messages`, {
-        method: "POST",
-        body: JSON.stringify({ message_text: text }),
-      });
+      if (hasAttachment) {
+        const { file, kind } = pendingAttachment;
+        pendingAttachment.status = "uploading";
+        renderAttachmentPreview(0);
 
-      input.value = "";
+        const formData = new FormData();
+        if (text) {
+          formData.append("message_text", text);
+        }
+        if (kind === "image") {
+          formData.append("image", file);
+        } else {
+          formData.append("file", file);
+        }
+
+        await postMessageAttachmentWithProgress(formData, (percent) => {
+          renderAttachmentPreview(percent);
+        });
+
+        clearPendingAttachment();
+        input.value = "";
+      } else {
+        await apiRequest(`/api/conversations/${activeConversationId}/messages`, {
+          method: "POST",
+          body: JSON.stringify({ message_text: text }),
+        });
+        input.value = "";
+      }
+
       await loadMessages(activeConversationId);
       await loadConversations();
     } catch (error) {
       console.error("Failed to send message:", error);
-      alert(t("chat.sendError"));
+      if (pendingAttachment) {
+        pendingAttachment.status = "ready";
+        renderAttachmentPreview();
+      }
+      const message = hasAttachment ? mapAttachmentError(error) : t("chat.sendError");
+      await showAttachmentError(message);
     } finally {
       if (byId.sendButton) {
         byId.sendButton.classList.remove("is-sending");
+        byId.sendButton.disabled = false;
       }
     }
   }
 
-  async function postMessageAttachment(formData) {
-    const pathSuffix = toApiPath(`/api/conversations/${activeConversationId}/messages`);
-    let lastError = null;
-
-    for (const baseUrl of apiBases) {
-      try {
-        const response = await fetch(`${baseUrl}${pathSuffix}`, {
-          method: "POST",
-          credentials: "include",
-          headers: apiLocaleHeaders(),
-          body: formData,
-        });
-
-        if (!response.ok) {
-          if (response.status === 413) {
-            lastError = new Error(t("chat.fileTooLarge"));
-            continue;
-          }
-          const payload = await response.json().catch(() => ({}));
-          lastError = new Error(payload.error || `HTTP ${response.status}`);
-          continue;
-        }
-
-        return await response.json();
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
+  function openFilePicker(accept, onSelected) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = accept;
+    input.onchange = (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        onSelected(file);
       }
-    }
-
-    throw lastError || new Error("Upload failed");
-  }
-
-  async function sendImage(file) {
-    if (!activeConversationId) {
-      alert(t("chat.selectChat"));
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      await postMessageAttachment(formData);
-      await loadMessages(activeConversationId);
-      await loadConversations();
-    } catch (error) {
-      console.error("Failed to send image:", error);
-      alert(t("chat.imageUploadError"));
-    }
-  }
-
-  async function sendFile(file) {
-    if (!activeConversationId) {
-      alert(t("chat.selectChat"));
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      await postMessageAttachment(formData);
-      await loadMessages(activeConversationId);
-      await loadConversations();
-    } catch (error) {
-      console.error("Failed to send file:", error);
-      alert(t("chat.fileUploadError", { error: error.message }));
-    }
+    };
+    input.click();
   }
 
   /** Публичный номер собеседника: 2 латинские буквы + 4 цифры (как в профиле). */
@@ -1355,6 +1717,7 @@
 
   if (chatBackBtn) {
     chatBackBtn.addEventListener("click", () => {
+      clearPendingAttachment();
       lastLoadedConversationId = null;
       setMobileView("list");
     });
@@ -1411,33 +1774,20 @@
 
   if (byId.attachImage) {
     byId.attachImage.addEventListener("click", () => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          sendImage(file);
-        }
-      };
-      input.click();
+      openFilePicker("image/*", queueAttachment);
     });
   }
 
   if (byId.attachDocument) {
     byId.attachDocument.addEventListener("click", () => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = ".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx,.zip,.rar";
-      input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          sendFile(file);
-        }
-      };
-      input.click();
+      openFilePicker(
+        ".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.png,.jpg,.jpeg,.gif,.webp",
+        queueAttachment
+      );
     });
   }
+
+  bindDragAndDrop();
 
   if (byId.sharedDocsButton) {
     byId.sharedDocsButton.addEventListener("click", () => {
@@ -1628,6 +1978,7 @@
     }
     renderConversations();
     renderMessages();
+    renderAttachmentPreview();
   });
 
   // Initialize

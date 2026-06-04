@@ -191,6 +191,7 @@ ASSIGNABLE_VISA_TYPES_BY_ROLE = {
         "user",
     ),
     "admin": ("moderator", "manager", "client", "digital_nomad", "golden_visa", "other", "user"),
+    "support": ("moderator", "manager", "client", "digital_nomad", "golden_visa", "other", "user"),
     "moderator": ("manager", "client", "digital_nomad", "golden_visa", "other", "user"),
     "manager": ("client", "digital_nomad", "golden_visa", "other", "user"),  # Менеджеры видят только клиентские роли
     "client": (),

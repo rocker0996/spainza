@@ -270,8 +270,7 @@
             <div class="space-y-2">
                 <label class="font-manrope text-xs font-bold text-slate-500 uppercase tracking-wider" data-i18n="case.consulateDate">Дата записи в консульство</label>
                 <div class="relative">
-                    <input id="target-date" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 block p-3.5 transition-colors shadow-sm font-body" type="date"/>
-                    <span id="target-date-placeholder" class="absolute inset-y-0 left-0 flex items-center px-3.5 pointer-events-none text-slate-400 text-sm font-semibold font-body select-none" aria-hidden="true"></span>
+                    <input id="target-date" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 block p-3.5 transition-colors shadow-sm font-body" type="text" inputmode="numeric" autocomplete="off" maxlength="10" spellcheck="false"/>
                 </div>
             </div>
         </div>
@@ -490,5 +489,5 @@
 <script src="../js/lk-i18n.js?v=6" defer></script>
 <script src="../js/mobile-nav.js" defer></script>
 <script src="../js/lk.js?v=21" defer></script>
-<script src="../js/case.js?v=21" defer></script>
+<script src="../js/case.js?v=22" defer></script>
 </body></html>

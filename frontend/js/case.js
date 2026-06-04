@@ -570,10 +570,9 @@ async function bootstrapCaseEditors(loadedCaseData) {
     caseData.documentRequestsManual = documentRequestsManual;
 
     if (loadedCaseData && loadedCaseData.target_date) {
-        caseData.targetDate = loadedCaseData.target_date;
-        const targetDate = document.getElementById('target-date');
-        if (targetDate) targetDate.value = loadedCaseData.target_date;
-        syncTargetDatePlaceholder();
+        applyTargetDateInputValue(loadedCaseData.target_date);
+    } else {
+        applyTargetDateInputValue("");
     }
 
     if (loadedCaseData) {
@@ -1744,17 +1743,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Setup target date change
-    const targetDate = document.getElementById('target-date');
-    if (targetDate) {
-        targetDate.addEventListener('change', (e) => {
-            caseData.targetDate = e.target.value;
-            syncTargetDatePlaceholder();
-            showSaveNotification();
-        });
-        targetDate.addEventListener('input', syncTargetDatePlaceholder);
-        syncTargetDatePlaceholder();
-    }
+    bindTargetDateInput();
 
     // Setup country change
     const countryInput = document.getElementById('case-country-input');
@@ -1941,14 +1930,108 @@ function formatTimeAgo(dateInput) {
     return String(dateInput || "");
 }
 
+/** ISO YYYY-MM-DD → dd.mm.yyyy для поля ввода */
+function isoYmdToTargetDateDisplay(ymd) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || "").trim());
+    if (!m) return "";
+    return `${m[3]}.${m[2]}.${m[1]}`;
+}
+
+/** dd.mm.yyyy → ISO YYYY-MM-DD или пустая строка */
+function targetDateDisplayToIsoYmd(display) {
+    const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(String(display || "").trim());
+    if (!m) return "";
+    const day = parseInt(m[1], 10);
+    const month = parseInt(m[2], 10);
+    const year = parseInt(m[3], 10);
+    if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) {
+        return "";
+    }
+    const dt = new Date(year, month - 1, day);
+    if (
+        dt.getFullYear() !== year ||
+        dt.getMonth() !== month - 1 ||
+        dt.getDate() !== day
+    ) {
+        return "";
+    }
+    return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function normalizeTargetDateDisplayInput(raw) {
+    const digits = String(raw || "").replace(/\D/g, "").slice(0, 8);
+    if (!digits.length) return "";
+    let out = digits.slice(0, 2);
+    if (digits.length > 2) out += `.${digits.slice(2, 4)}`;
+    if (digits.length > 4) out += `.${digits.slice(4, 8)}`;
+    return out;
+}
+
 function syncTargetDatePlaceholder() {
     const input = document.getElementById("target-date");
-    const ph = document.getElementById("target-date-placeholder");
-    if (!input || !ph) return;
-    const hasValue = Boolean(String(input.value || "").trim());
-    ph.textContent = t("case.datePlaceholder");
-    ph.classList.toggle("hidden", hasValue);
-    input.classList.toggle("text-transparent", !hasValue);
+    if (!input) return;
+    input.placeholder = t("case.datePlaceholder");
+}
+
+function applyTargetDateInputValue(isoYmd) {
+    const input = document.getElementById("target-date");
+    if (!input) return;
+    const iso = String(isoYmd || "").trim();
+    caseData.targetDate = /^(\d{4})-(\d{2})-(\d{2})$/.test(iso) ? iso : "";
+    input.value = caseData.targetDate ? isoYmdToTargetDateDisplay(caseData.targetDate) : "";
+    syncTargetDatePlaceholder();
+}
+
+function bindTargetDateInput() {
+    const input = document.getElementById("target-date");
+    if (!input || input.dataset.caseDateBound === "1") {
+        return;
+    }
+    input.dataset.caseDateBound = "1";
+    syncTargetDatePlaceholder();
+
+    input.addEventListener("input", () => {
+        const masked = normalizeTargetDateDisplayInput(input.value);
+        if (input.value !== masked) {
+            input.value = masked;
+        }
+        const iso =
+            masked.length === 10 ? targetDateDisplayToIsoYmd(masked) : "";
+        if (caseData.targetDate !== iso) {
+            caseData.targetDate = iso;
+            if (iso || !masked) {
+                showSaveNotification();
+            }
+        }
+    });
+
+    input.addEventListener("blur", () => {
+        const masked = normalizeTargetDateDisplayInput(input.value);
+        if (!masked) {
+            if (caseData.targetDate) {
+                caseData.targetDate = "";
+                showSaveNotification();
+            }
+            input.value = "";
+            return;
+        }
+        if (masked.length < 10) {
+            showCaseToast(t("case.toast.invalidDate"), "error");
+            applyTargetDateInputValue(caseData.targetDate);
+            return;
+        }
+        const iso = targetDateDisplayToIsoYmd(masked);
+        if (!iso) {
+            showCaseToast(t("case.toast.invalidDate"), "error");
+            applyTargetDateInputValue(caseData.targetDate);
+            return;
+        }
+        input.value = masked;
+        if (caseData.targetDate !== iso) {
+            caseData.targetDate = iso;
+            showSaveNotification();
+        }
+    });
 }
 
 /**

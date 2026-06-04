@@ -35,8 +35,8 @@
     const isLocalHost = localHosts.includes(window.location.hostname);
     if (isLocalHost && window.location.port && window.location.port !== "5000") {
       return [
+        `${window.location.protocol}//${window.location.hostname}:5000/api`,
         "/api",
-        window.location.protocol + "//" + window.location.hostname + ":5000/api",
       ];
     }
 
@@ -1291,6 +1291,21 @@
     
     const apiBases = resolveApiBases();
     let lastError = null;
+
+    async function readApiJson(response) {
+      const raw = await response.text();
+      if (!raw) {
+        return {};
+      }
+      try {
+        return JSON.parse(raw);
+      } catch (_err) {
+        if (raw.trimStart().startsWith("<")) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        throw new Error(raw.slice(0, 160));
+      }
+    }
     
     for (const baseUrl of apiBases) {
       try {
@@ -1304,11 +1319,11 @@
           if (response.status === 413) {
             throw new Error(t("documents.fileTooLarge"));
           }
-          const errorData = await response.json().catch(() => ({}));
+          const errorData = await readApiJson(response);
           throw new Error(errorData.error || `HTTP ${response.status}`);
         }
         
-        const data = await response.json();
+        const data = await readApiJson(response);
         if (!data.success) {
           throw new Error(data.error || 'Upload failed');
         }

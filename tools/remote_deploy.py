@@ -26,8 +26,13 @@ ARCHIVE_TOP_LEVEL = (
     "frontend",
     "backend",
     "docker",
+    "tools",
     "wsgi.py",
     "docker-compose.production.yml",
+)
+
+EDGE_COMPOSE_FILE = os.environ.get(
+    "EDGE_COMPOSE_FILE", "/opt/boletus/infra/edge/docker-compose.yml"
 )
 
 
@@ -139,10 +144,30 @@ def main() -> int:
             f"cd {REPO} && docker compose --env-file .env.production "
             f"-f docker-compose.production.yml ps"
         ),
+        f"sed -i 's/\\r$//' {REPO}/tools/update_edge_nginx.sh {REPO}/docker/edge/spainza-site.conf 2>/dev/null || true; bash {REPO}/tools/update_edge_nginx.sh",
         (
             "curl -fsS -H 'Host: spainza.com' http://127.0.0.1/api/health "
             "&& echo && curl -fsS -o /dev/null -w '%{http_code}' -H 'Host: spainza.com' "
             "http://127.0.0.1/frontend/lk/configurator.html"
+        ),
+        (
+            "python3 - <<'PY'\n"
+            "import subprocess, tempfile, os\n"
+            "size = 2 * 1024 * 1024\n"
+            "fd, path = tempfile.mkstemp(suffix='.bin')\n"
+            "os.write(fd, b'0' * size)\n"
+            "os.close(fd)\n"
+            "cmd = [\n"
+            "    'curl', '-sS', '-o', '/dev/null', '-w', '%{http_code}',\n"
+            "    '-X', 'POST', '-F', f'file=@{path};filename=test.pdf',\n"
+            "    '-H', 'Host: spainza.com', 'http://127.0.0.1/api/documents/upload',\n"
+            "]\n"
+            "code = subprocess.check_output(cmd, text=True).strip()\n"
+            "os.unlink(path)\n"
+            "if code == '413':\n"
+            "    raise SystemExit('Edge nginx still rejects 2MB uploads (HTTP 413)')\n"
+            "print(f'Upload probe: HTTP {code} (expected 401 without auth)')\n"
+            "PY"
         ),
     ]
 
