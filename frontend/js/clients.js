@@ -198,13 +198,80 @@ function updateMobileSortPills(column, direction) {
     });
 }
 
-/** Публичный ID в списках: две латинские буквы и четыре цифры при наличии, иначе #число */
-function formatClientListId(user) {
+/** Публичный ID в списках: display_id или внутренний числовой id (без префикса). */
+function getClientListIdValue(user) {
     const d = user && user.display_id ? String(user.display_id).trim() : '';
     if (d) {
-        return `#${d}`;
+        return d;
     }
-    return `#${user.id}`;
+    return String(user.id);
+}
+
+function escapeClientListIdAttr(value) {
+    return String(value ?? '').replace(/"/g, '&quot;');
+}
+
+function buildClientListIdButton(user, extraClass = '') {
+    const idText = getClientListIdValue(user);
+    const aria = t('common.copyId', { id: idText });
+    const safeId = escapeClientListIdAttr(idText);
+    const safeAria = escapeClientListIdAttr(aria);
+    const className = [
+        'client-list-id-copy font-manrope font-bold text-slate-400 hover:text-primary cursor-pointer bg-transparent border-0 p-0 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded',
+        extraClass,
+    ].filter(Boolean).join(' ');
+    return `<button type="button"
+        class="${className}"
+        data-copy-id="${safeId}"
+        aria-label="${safeAria}"
+        title="${safeAria}"
+        onclick="copyClientListId(this)">${idText}</button>`;
+}
+
+let clientListIdCopyTimer = 0;
+
+async function copyToClipboard(text) {
+    const value = String(text ?? '');
+    if (!value) {
+        return false;
+    }
+    try {
+        await navigator.clipboard.writeText(value);
+        return true;
+    } catch {
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = value;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            return Boolean(ok);
+        } catch {
+            return false;
+        }
+    }
+}
+
+async function copyClientListId(btn) {
+    if (!btn || !(btn instanceof HTMLElement)) return;
+    if (btn.classList.contains('client-list-id-copy--done')) return;
+    const idText = btn.getAttribute('data-copy-id') || '';
+    if (!idText) return;
+    const copied = await copyToClipboard(idText);
+    if (!copied) return;
+    const prev = btn.textContent;
+    btn.classList.add('client-list-id-copy--done', 'text-emerald-600');
+    btn.textContent = t('common.copied');
+    window.clearTimeout(clientListIdCopyTimer);
+    clientListIdCopyTimer = window.setTimeout(() => {
+        btn.textContent = prev;
+        btn.classList.remove('client-list-id-copy--done', 'text-emerald-600');
+        clientListIdCopyTimer = 0;
+    }, 1200);
 }
 
 /**
@@ -235,7 +302,7 @@ function renderUsersTable(users) {
         
         return `
             <tr class="hover:bg-slate-50/80 transition-colors group">
-                <td class="px-8 py-6 font-manrope font-bold text-slate-400">${formatClientListId(user)}</td>
+                <td class="px-8 py-6">${buildClientListIdButton(user)}</td>
                 <td class="px-8 py-6">
                     <div class="flex flex-col gap-1">
                         <button type="button"
@@ -338,7 +405,7 @@ function renderUsersCards(users) {
                         </p>
                         <p class="text-[11px] text-slate-500 truncate flex items-center justify-between gap-2 mt-0.5">
                             <span class="truncate">${user.email}</span>
-                            <span class="shrink-0 font-manrope font-bold text-[10px] text-slate-400">${formatClientListId(user)}</span>
+                            <span class="shrink-0">${buildClientListIdButton(user, 'text-[10px]')}</span>
                         </p>
                     </div>
                 </div>
@@ -811,3 +878,4 @@ window.manageCaseForUser = manageCaseForUser;
 window.viewUserDetails = viewUserDetails;
 window.openAddClientModal = openAddClientModal;
 window.closeAddClientModal = closeAddClientModal;
+window.copyClientListId = copyClientListId;

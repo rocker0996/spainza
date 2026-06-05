@@ -70,6 +70,62 @@ def ensure_manager_invite_token(connection: sqlite3.Connection, user_id: int) ->
     return None
 
 
+def _normalize_manager_id(value: object) -> int | None:
+    if value is None:
+        return None
+    try:
+        mid = int(value)
+    except (TypeError, ValueError):
+        return None
+    return mid if mid > 0 else None
+
+
+def sync_manager_clients_from_case_manager_id(
+    connection: sqlite3.Connection, client_id: int, manager_id: int | None
+) -> None:
+    """Синхронизировать manager_clients с case_data.manager_id (один менеджер на клиента)."""
+    mid = _normalize_manager_id(manager_id)
+    try:
+        if mid is not None:
+            connection.execute(
+                "DELETE FROM manager_clients WHERE client_id = ? AND manager_id != ?",
+                (client_id, mid),
+            )
+            connection.execute(
+                "INSERT OR IGNORE INTO manager_clients (manager_id, client_id) VALUES (?, ?)",
+                (mid, client_id),
+            )
+        else:
+            connection.execute(
+                "DELETE FROM manager_clients WHERE client_id = ?",
+                (client_id,),
+            )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+
+
+def should_sync_manager_clients(
+    connection: sqlite3.Connection,
+    client_id: int,
+    old_manager_id: object,
+    new_manager_id: object,
+) -> bool:
+    """True, если нужно обновить manager_clients: смена менеджера или рассинхрон."""
+    old_mid = _normalize_manager_id(old_manager_id)
+    new_mid = _normalize_manager_id(new_manager_id)
+    if old_mid != new_mid:
+        return True
+    if new_mid is None:
+        return False
+    row = connection.execute(
+        "SELECT 1 FROM manager_clients WHERE manager_id = ? AND client_id = ?",
+        (new_mid, client_id),
+    ).fetchone()
+    return not row
+
+
 def try_assign_client_to_manager(
     connection: sqlite3.Connection, manager_id: int, client_id: int
 ) -> tuple[bool, str]:

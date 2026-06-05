@@ -256,6 +256,9 @@
   const modalError = document.getElementById("modal-error");
   const confirmModal = document.getElementById("chat-confirm-modal");
   const alertModal = document.getElementById("chat-alert-modal");
+  const documentsModal = document.getElementById("chat-documents-modal");
+  const documentsList = document.getElementById("chat-documents-list");
+  const documentsCloseBtn = document.getElementById("chat-documents-close");
   let confirmDialogResolve = null;
   let alertDialogResolve = null;
 
@@ -563,6 +566,123 @@
         requestAnimationFrame(() => byId.messageSearchInput.focus());
       }
     }
+  }
+
+  function collectChatDocuments(messages) {
+    return (messages || [])
+      .filter((message) => message && message.file_url)
+      .sort((a, b) => {
+        const timeA = new Date(a.created_at || 0).getTime();
+        const timeB = new Date(b.created_at || 0).getTime();
+        return timeB - timeA;
+      });
+  }
+
+  function formatDocumentListDate(timestamp) {
+    const dateLabel = formatDateSeparator(timestamp);
+    const timeLabel = formatMessageTime(timestamp);
+    if (!dateLabel) {
+      return timeLabel;
+    }
+    if (!timeLabel || timeLabel === "--:--") {
+      return dateLabel;
+    }
+    return `${dateLabel}, ${timeLabel}`;
+  }
+
+  function getDocumentSenderName(message) {
+    if (!message) {
+      return "";
+    }
+    if (message.sender_id === currentUserId) {
+      return t("chat.you");
+    }
+    if (message.sender_name) {
+      return message.sender_name;
+    }
+    const conversation = findConversation(activeConversationId);
+    return conversation ? chatDisplayName(conversation) : "";
+  }
+
+  function updateSharedDocsLabel(count) {
+    if (!byId.sharedDocsCount) {
+      return;
+    }
+    byId.sharedDocsCount.textContent =
+      count > 0 ? t("chat.documentsCount", { count }) : t("chat.documents");
+  }
+
+  function buildChatDocumentItemHtml(message) {
+    const fileName = message.file_name || t("chat.file");
+    const fileExt = getFileExtension(fileName);
+    const fileIcon = getFileIcon(fileExt);
+    const senderName = getDocumentSenderName(message);
+    const dateLabel = formatDocumentListDate(message.created_at);
+    const downloadUrl = escapeHtml(buildProtectedApiUrl(message.file_url));
+
+    return `
+      <a href="${downloadUrl}" download="${escapeHtml(fileName)}"
+         class="flex items-center gap-3 p-3 md:p-4 bg-stone-50 rounded-xl hover:bg-stone-100 transition-colors border border-stone-200 group">
+        <span class="material-symbols-outlined text-[32px] text-primary-container shrink-0">${fileIcon}</span>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-semibold text-on-surface truncate group-hover:text-primary transition-colors">${escapeHtml(fileName)}</div>
+          <div class="text-xs text-outline mt-0.5">${escapeHtml(t("chat.documentsSentBy", { name: senderName, date: dateLabel }))}</div>
+        </div>
+        <span class="material-symbols-outlined text-outline shrink-0 group-hover:text-primary transition-colors">download</span>
+      </a>
+    `;
+  }
+
+  function renderChatDocumentsList() {
+    if (!documentsList) {
+      return;
+    }
+
+    const conversation = findConversation(activeConversationId);
+    const documents = conversation ? collectChatDocuments(conversation.messages) : [];
+
+    if (!documents.length) {
+      documentsList.innerHTML = `
+        <div class="flex flex-col items-center justify-center text-center py-10 px-4">
+          <span class="material-symbols-outlined text-[48px] text-stone-300 mb-3">folder_open</span>
+          <p class="text-sm text-outline font-medium">${escapeHtml(t("chat.documentsEmpty"))}</p>
+        </div>
+      `;
+      return;
+    }
+
+    documentsList.innerHTML = documents.map(buildChatDocumentItemHtml).join("");
+  }
+
+  function openChatDocumentsModal() {
+    if (!activeConversationId) {
+      showChatAlert({
+        title: t("chat.documents"),
+        message: t("chat.documentsSelectChat"),
+        icon: "info",
+      });
+      return;
+    }
+
+    const titleEl = document.getElementById("chat-documents-title");
+    const subtitleEl = document.getElementById("chat-documents-subtitle");
+    const conversation = findConversation(activeConversationId);
+
+    if (titleEl) {
+      titleEl.textContent = t("chat.documentsModalTitle");
+    }
+    if (subtitleEl) {
+      subtitleEl.textContent = conversation
+        ? t("chat.documentsModalSubtitle")
+        : t("chat.documentsEmpty");
+    }
+
+    renderChatDocumentsList();
+    openChatOverlayModal(documentsModal);
+  }
+
+  function closeChatDocumentsModal() {
+    closeChatOverlayModal(documentsModal);
   }
 
   function getFileIcon(extension) {
@@ -1532,7 +1652,7 @@
         `<div class="p-6 text-sm text-outline">${t("chat.selectChat")}</div>`;
       byId.activeName.textContent = '';
       byId.activeRole.textContent = '';
-      byId.sharedDocsCount.textContent = t('chat.documents');
+      updateSharedDocsLabel(0);
       // Скрыть аватар
       const avatarImg = document.querySelector('#active-chat-avatar');
       if (avatarImg) {
@@ -1543,7 +1663,6 @@
 
     byId.activeName.textContent = chatDisplayName(activeConversation);
     byId.activeRole.textContent = roleLabel(activeConversation.other_user_role);
-    byId.sharedDocsCount.textContent = t('chat.documents');
     
     // Обновить аватар в заголовке чата
     const avatarImg = document.querySelector('#active-chat-avatar');
@@ -1558,6 +1677,7 @@
     }
 
     const messages = activeConversation.messages || [];
+    updateSharedDocsLabel(collectChatDocuments(messages).length);
     let lastDateKey = "";
 
     const messagesMarkup = messages
@@ -2316,8 +2436,21 @@
   bindDragAndDrop();
 
   if (byId.sharedDocsButton) {
-    byId.sharedDocsButton.addEventListener("click", () => {
-      window.location.href = "./documents.html";
+    byId.sharedDocsButton.addEventListener("click", openChatDocumentsModal);
+  }
+
+  if (documentsCloseBtn) {
+    documentsCloseBtn.addEventListener("click", closeChatDocumentsModal);
+  }
+
+  if (documentsModal) {
+    documentsModal.addEventListener("click", (event) => {
+      if (
+        event.target === documentsModal ||
+        event.target.classList.contains("chat-modal__backdrop")
+      ) {
+        closeChatDocumentsModal();
+      }
     });
   }
 
@@ -2425,6 +2558,10 @@
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
+    if (documentsModal && documentsModal.classList.contains("is-open")) {
+      closeChatDocumentsModal();
+      return;
+    }
     if (confirmModal && confirmModal.classList.contains("is-open")) {
       finishChatConfirm(false);
       return;

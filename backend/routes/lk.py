@@ -60,6 +60,8 @@ from models.message import Message
 from services.file_service import FileService
 from services.manager_client_assign import (
     ensure_manager_invite_token,
+    should_sync_manager_clients,
+    sync_manager_clients_from_case_manager_id,
     try_assign_client_to_manager,
 )
 from utils.security import hash_password, is_valid_email, is_valid_password, verify_password
@@ -1306,6 +1308,10 @@ def update_case_data(user_id: int):
     
     if not success:
         return jsonify({"success": False, "error": "failed to save case data"}), 500
+
+    old_manager_id = old_case_data.get("manager_id") if old_case_data else None
+    if should_sync_manager_clients(g.db, user_id, old_manager_id, manager_id):
+        sync_manager_clients_from_case_manager_id(g.db, user_id, manager_id)
     
     # Add general creation history entry only if new case
     if not old_case_data:
