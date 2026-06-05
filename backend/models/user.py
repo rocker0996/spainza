@@ -458,7 +458,9 @@ def resolve_payload_client_user_id(
     Parse client identifier from JSON: numeric internal id or public display_id (AA1234).
     Returns (user_id, error_code) where error_code matches assign_client_by_id messages.
     """
-    raw = payload.get("client_id")
+    raw = payload.get("member_id")
+    if raw is None:
+        raw = payload.get("client_id")
     if raw is None:
         return None, "missing_client_id"
     text = str(raw).strip()
@@ -484,8 +486,9 @@ def resolve_payload_client_user_id(
 
 def normalize_role_key(role_key: str) -> str:
     """Return a known role key or fallback to default user role."""
-    if role_key in ROLE_DEFINITIONS:
-        return role_key
+    normalized = (role_key or "").strip().lower()
+    if normalized in ROLE_DEFINITIONS:
+        return normalized
     return DEFAULT_ROLE_KEY
 
 
@@ -510,6 +513,16 @@ def is_portal_staff_role(role_key: str) -> bool:
     except (KeyError, TypeError, ValueError):
         return False
     return level <= 4.0
+
+
+CLIENT_ASSIGNABLE_STAFF_ROLE_KEYS = frozenset(
+    {"management", "admin", "support", "moderator", "manager"}
+)
+
+
+def is_client_assignable_staff_role(role_key: str) -> bool:
+    """Кого можно закрепить за клиентом в «Работает над кейсом»."""
+    return is_portal_staff_role(role_key)
 
 
 def get_assignable_roles(actor_role_key: str) -> list[dict]:
@@ -862,6 +875,13 @@ def staff_may_access_target_user_workspace(
     if "view_lower_users" in permissions:
         return float(target_role_data["level"]) >= float(role_data["level"])
     if "view_assignable_users" in permissions:
+        from models.manager_moderator import (
+            moderator_may_access_user,
+            viewer_uses_moderator_scoped_user_list,
+        )
+
+        if viewer_uses_moderator_scoped_user_list(role_key, permissions):
+            return moderator_may_access_user(connection, viewer_user_id, target_user_id)
         return float(target_role_data["level"]) >= float(role_data["level"])
     if "view_assigned_clients" in permissions:
         return is_client_assigned_to_manager(connection, viewer_user_id, target_user_id)

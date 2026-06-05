@@ -261,7 +261,7 @@
   }
 
   function applyStaticCopy() {
-    document.title = t("pageTitle");
+    document.title = window.LkI18n ? window.LkI18n.t("support.pageTitle") : t("pageTitle");
     setText("support-hero-title", t("heroTitle"));
     setText("support-hero-subtitle", t("heroSubtitle"));
     var input = document.getElementById("support-kb-search");

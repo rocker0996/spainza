@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-title" content="Spainza" />
 <link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<title data-i18n="clients.pageTitle">Список пользователей | Spainza</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 
@@ -130,6 +131,11 @@
                 color: #fff;
                 border-color: #0052ff;
             }
+        }
+        .client-list-id-copy--pressed {
+            transform: scale(0.94);
+            color: #0052ff;
+            background: rgba(0, 82, 255, 0.1);
         }
     </style>
 <script src="../js/lk-access.js?v=1"></script>
@@ -297,7 +303,7 @@
 <span class="material-symbols-outlined text-[20px]">badge</span>
                 <span data-i18n="clients.addById">Добавить по ID</span>
             </h4>
-<p class="text-xs text-slate-500 mb-4" data-i18n="clients.addByIdHint">Вставьте код клиента: две латинские буквы и четыре цифры (как на дашборде и в профиле). По желанию для старых записей поддерживается числовой ID.</p>
+<p class="text-xs text-slate-500 mb-4" data-i18n="clients.addByIdHint">Вставьте код клиента: две латинские буквы и четыре цифры (как на дашборде и в профиле).</p>
 <div class="flex flex-col sm:flex-row gap-3">
 <input type="text" inputmode="text" autocomplete="off" id="add-client-by-id-input" data-i18n-placeholder="clients.idPlaceholder" placeholder="Например, AB0123" class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 font-semibold focus:ring-2 focus:ring-primary/25 focus:border-primary uppercase"/>
 <button type="button" id="add-client-by-id-submit" class="shrink-0 rounded-xl bg-primary px-5 py-3 text-white font-bold font-manrope text-sm hover:opacity-95 transition-opacity" data-i18n="clients.assignBtn">Закрепить</button>
@@ -326,5 +332,5 @@
 <script src="../js/lk-i18n.js?v=6" defer></script>
 <script src="../js/mobile-nav.js" defer></script>
 <script src="../js/lk.js?v=21" defer></script>
-<script src="../js/clients.js?v=6" defer></script>
+<script src="../js/clients.js?v=7" defer></script>
 </body></html>

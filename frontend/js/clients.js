@@ -217,7 +217,7 @@ function buildClientListIdButton(user, extraClass = '') {
     const safeId = escapeClientListIdAttr(idText);
     const safeAria = escapeClientListIdAttr(aria);
     const className = [
-        'client-list-id-copy font-manrope font-bold text-slate-400 hover:text-primary cursor-pointer bg-transparent border-0 p-0 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded',
+        'client-list-id-copy font-manrope font-bold text-slate-400 hover:text-primary cursor-pointer bg-transparent border-0 px-1 py-0.5 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded',
         extraClass,
     ].filter(Boolean).join(' ');
     return `<button type="button"
@@ -258,20 +258,16 @@ async function copyToClipboard(text) {
 
 async function copyClientListId(btn) {
     if (!btn || !(btn instanceof HTMLElement)) return;
-    if (btn.classList.contains('client-list-id-copy--done')) return;
     const idText = btn.getAttribute('data-copy-id') || '';
     if (!idText) return;
     const copied = await copyToClipboard(idText);
     if (!copied) return;
-    const prev = btn.textContent;
-    btn.classList.add('client-list-id-copy--done', 'text-emerald-600');
-    btn.textContent = t('common.copied');
+    btn.classList.add('client-list-id-copy--pressed');
     window.clearTimeout(clientListIdCopyTimer);
     clientListIdCopyTimer = window.setTimeout(() => {
-        btn.textContent = prev;
-        btn.classList.remove('client-list-id-copy--done', 'text-emerald-600');
+        btn.classList.remove('client-list-id-copy--pressed');
         clientListIdCopyTimer = 0;
-    }, 1200);
+    }, 1000);
 }
 
 /**

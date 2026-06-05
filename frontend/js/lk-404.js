@@ -19,10 +19,9 @@
         : "На главную";
     if (textEl) textEl.textContent = text;
     if (btnEl) btnEl.textContent = btnLabel;
-    document.title =
-      t("adminAudit.accessDenied") !== "adminAudit.accessDenied"
-        ? t("adminAudit.accessDenied")
-        : "404 | Spainza";
+    if (window.LkI18n) {
+      window.LkI18n.applyDocument();
+    }
   }
 
   function run() {

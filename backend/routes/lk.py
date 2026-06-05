@@ -30,6 +30,7 @@ from models.user import (
     resolve_payload_client_user_id,
     normalize_public_display_id_value,
     get_internal_user_id_by_display_id,
+    is_client_assignable_staff_role,
 )
 from models.case_data import (
     case_data_flag_is_true,
@@ -57,6 +58,22 @@ from models.document import (
     get_pending_document_counts_for_users,
 )
 from models.message import Message
+from models.manager_moderator import (
+    get_users_for_moderator,
+    is_manager_role_key,
+    is_moderator_role_key,
+    moderator_may_access_user,
+    viewer_uses_moderator_scoped_user_list,
+)
+from services.team_assignment import (
+    add_team_member,
+    expected_member_roles_for_assignment_kind,
+    get_primary_manager_id_for_client,
+    get_team_members_for_user,
+    member_role_allowed_for_assignment_kind,
+    remove_team_member,
+    team_assignment_kind_for_target,
+)
 from services.file_service import FileService
 from services.manager_client_assign import (
     ensure_manager_invite_token,
@@ -96,11 +113,11 @@ def _portal_support_user_row(connection):
 
 
 def _assigned_manager_payload(connection, client_user_id: int) -> dict | None:
-    """Персональный менеджер из case_data.manager_id (как в карточке кейса)."""
-    case = get_case_data_by_user_id(connection, client_user_id)
-    if not case:
-        return None
-    mid = case.get("manager_id")
+    """Первый закреплённый менеджер клиента (виден как персональный)."""
+    mid = get_primary_manager_id_for_client(connection, client_user_id)
+    if mid is None:
+        case = get_case_data_by_user_id(connection, client_user_id)
+        mid = case.get("manager_id") if case else None
     if mid is None:
         return None
     try:
@@ -287,6 +304,8 @@ def _users_list_for_viewer(connection, viewer_id: int, role_key: str, permission
         min_level_to_show = float(role_data["level"]) + 1
         return get_users_by_role_level(connection, str(min_level_to_show))
     if "view_assignable_users" in permissions:
+        if viewer_uses_moderator_scoped_user_list(role_key, permissions):
+            return get_users_for_moderator(connection, viewer_id)
         assignable_roles = get_assignable_roles(role_key)
         if assignable_roles:
             min_level = min(float(r["level"]) for r in assignable_roles)
@@ -539,8 +558,12 @@ def delete_current_user():
 
 
 def _can_assign_client_link(permissions: list[str]) -> bool:
+    """Кто может получить invite-ссылку и закрепить клиента (как на странице clients)."""
     return bool(
         "full_access" in permissions
+        or "view_all_users" in permissions
+        or "view_lower_users" in permissions
+        or "view_assignable_users" in permissions
         or "view_assigned_clients" in permissions
         or "assign_client_roles" in permissions
     )
@@ -558,9 +581,13 @@ def _viewer_may_access_client_case_data(
     connection, viewer_user_id: int, client_user_id: int
 ) -> bool:
     """Доступ к кейсу клиента: согласован с GET /users/<id> + линия staff (communicate/respond)."""
+    current_user = get_user_by_id(connection, viewer_user_id)
+    if current_user:
+        viewer_role_key = normalize_role_key(current_user["role_key"] or "")
+        if is_manager_role_key(viewer_role_key) and viewer_user_id == client_user_id:
+            return False
     if viewer_user_id == client_user_id:
         return True
-    current_user = get_user_by_id(connection, viewer_user_id)
     if not current_user:
         return False
     role_key = normalize_role_key(current_user["role_key"] or "")
@@ -580,6 +607,8 @@ def _viewer_may_access_client_case_data(
     if "view_lower_users" in permissions:
         return float(target_role_data["level"]) >= float(role_data["level"])
     if "view_assignable_users" in permissions:
+        if viewer_uses_moderator_scoped_user_list(role_key, permissions):
+            return moderator_may_access_user(connection, viewer_user_id, client_user_id)
         assignable_roles = get_assignable_roles(role_key)
         assignable_keys = [r["key"] for r in assignable_roles]
         return target_role_key in assignable_keys
@@ -627,7 +656,10 @@ def _viewer_can_see_user_profile_in_directory(
     elif "view_lower_users" in permissions:
         can_view = float(target_role_data["level"]) >= float(role_data["level"])
     elif "view_assignable_users" in permissions:
-        can_view = float(target_role_data["level"]) >= float(role_data["level"])
+        if viewer_uses_moderator_scoped_user_list(role_key, permissions):
+            can_view = moderator_may_access_user(connection, viewer_user_id, target_user_id)
+        else:
+            can_view = float(target_role_data["level"]) >= float(role_data["level"])
     elif "view_assigned_clients" in permissions:
         row = connection.execute(
             "SELECT 1 FROM manager_clients WHERE manager_id = ? AND client_id = ?",
@@ -638,6 +670,27 @@ def _viewer_can_see_user_profile_in_directory(
     if not can_view:
         return False, "access denied to this user"
     return True, ""
+
+
+def _lookup_allowed_for_case_assignment(
+    connection, viewer_user_id: int, for_case_user_id: int, lookup_user_id: int
+) -> bool:
+    """Кого можно подставить в «Работает над кейсом» при редактировании кейса."""
+    for_case_user = get_user_by_id(connection, for_case_user_id)
+    lookup_user = get_user_by_id(connection, lookup_user_id)
+    if not for_case_user or not lookup_user:
+        return False
+    for_case_role = normalize_role_key(for_case_user["role_key"] or "")
+    lookup_role = normalize_role_key(lookup_user["role_key"] or "")
+
+    kind = team_assignment_kind_for_target(for_case_role)
+    if kind == "manager_moderators":
+        return is_moderator_role_key(lookup_role)
+    if kind == "moderator_managers":
+        return is_manager_role_key(lookup_role)
+    if not kind:
+        return False
+    return member_role_allowed_for_assignment_kind(kind, lookup_role)
 
 
 def _json_user_detail_for_staff_view(target_user) -> dict:
@@ -819,14 +872,15 @@ def get_users_list():
         min_level_to_show = float(role_data["level"]) + 1
         users_list = get_users_by_role_level(g.db, str(min_level_to_show))
     elif "view_assignable_users" in permissions:
-        # Moderator: sees users they can assign roles to (level >= 4)
-        assignable_roles = get_assignable_roles(role_key)
-        if assignable_roles:
-            # Get minimum level from assignable roles
-            min_level = min(float(r["level"]) for r in assignable_roles)
-            users_list = get_users_by_role_level(g.db, str(min_level))
+        if viewer_uses_moderator_scoped_user_list(role_key, permissions):
+            users_list = get_users_for_moderator(g.db, g.current_user_id)
         else:
-            users_list = []
+            assignable_roles = get_assignable_roles(role_key)
+            if assignable_roles:
+                min_level = min(float(r["level"]) for r in assignable_roles)
+                users_list = get_users_by_role_level(g.db, str(min_level))
+            else:
+                users_list = []
     elif "view_assigned_clients" in permissions:
         # Manager: sees only assigned clients
         users_list = get_clients_for_manager(g.db, g.current_user_id)
@@ -895,10 +949,10 @@ def lookup_user_by_display_for_case():
     if target_id is None:
         return jsonify({"success": False, "error": "user not found"}), 404
 
-    ok, err = _viewer_can_see_user_profile_in_directory(g.db, g.current_user_id, target_id)
-    if not ok:
-        status = 404 if err == "user not found" else 403
-        return jsonify({"success": False, "error": err}), status
+    if not _lookup_allowed_for_case_assignment(
+        g.db, g.current_user_id, for_case_user_id, target_id
+    ):
+        return jsonify({"success": False, "error": "access denied"}), 403
 
     target_user = get_user_by_id(g.db, target_id)
     return (
@@ -953,33 +1007,38 @@ def get_case_data(user_id: int):
         g.db, user_id, fallback_viewer_id=g.current_user_id
     )
 
+    target_user = get_user_by_id(g.db, user_id)
+    target_role_key = (
+        normalize_role_key(target_user["role_key"] or "") if target_user else ""
+    )
+    team_kind = team_assignment_kind_for_target(target_role_key)
+    team_members = get_team_members_for_user(g.db, user_id)
+
     # Get case data
     case_data = get_case_data_by_user_id(g.db, user_id)
     
     if not case_data:
-        target_for_default = get_user_by_id(g.db, user_id)
-        default_visa = (
-            normalize_role_key(target_for_default["role_key"] or "")
-            if target_for_default
-            else "user"
-        )
+        default_visa = target_role_key or "user"
+        empty_payload = {
+            "user_id": user_id,
+            "visa_type": default_visa,
+            "target_date": None,
+            "country": "",
+            "archive_file_name": None,
+            "archive_file_id": None,
+            "archive_download_url": None,
+            "timeline": [],
+            "document_requests": [],
+            "referral_id": None,
+            "manager_id": get_primary_manager_id_for_client(g.db, user_id),
+            "timeline_manual": False,
+            "document_requests_manual": False,
+            "team_assignment_kind": team_kind,
+            "team_members": team_members,
+        }
         return jsonify({
             "success": True,
-            "case_data": {
-                "user_id": user_id,
-                "visa_type": default_visa,
-                "target_date": None,
-                "country": "",
-                "archive_file_name": None,
-                "archive_file_id": None,
-                "archive_download_url": None,
-                "timeline": [],
-                "document_requests": [],
-                "referral_id": None,
-                "manager_id": None,
-                "timeline_manual": False,
-                "document_requests_manual": False,
-            }
+            "case_data": empty_payload,
         }), 200
     
     response_case_data = dict(case_data)
@@ -990,11 +1049,145 @@ def get_case_data(user_id: int):
     response_case_data["archive_download_url"] = _case_archive_download_url(
         user_id, archive_file_path
     )
+    response_case_data["team_assignment_kind"] = team_kind
+    response_case_data["team_members"] = team_members
+    if team_kind == "client_managers":
+        response_case_data["manager_id"] = get_primary_manager_id_for_client(
+            g.db, user_id
+        )
 
     return jsonify({
         "success": True,
         "case_data": response_case_data
     }), 200
+
+
+@lk_bp.post("/lk/case-team/<int:user_id>/add")
+def add_case_team_member(user_id: int):
+    """Добавить участника в «Работает над кейсом» (менеджер/модератор по типу цели)."""
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+
+    payload = request.get_json(silent=True) or {}
+    member_id, resolve_err = resolve_payload_client_user_id(g.db, payload)
+    if resolve_err:
+        return jsonify({"success": False, "error": resolve_err}), 400
+
+    target = get_user_by_id(g.db, user_id)
+    if not target:
+        return jsonify({"success": False, "error": "user_not_found"}), 404
+    target_role = normalize_role_key(target["role_key"] or "")
+    assignment_kind = team_assignment_kind_for_target(target_role)
+    if not assignment_kind:
+        return jsonify({"success": False, "error": "unsupported_target"}), 400
+
+    member = get_user_by_id(g.db, member_id)
+    if not member:
+        return jsonify({"success": False, "error": "user_not_found"}), 404
+
+    member_role = normalize_role_key(member["role_key"] or "")
+    if not member_role_allowed_for_assignment_kind(assignment_kind, member_role):
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": "invalid_member_role",
+                    "assignment_kind": assignment_kind,
+                    "member_role": member_role,
+                    "member_display_id": (member["display_id"] or "").strip() or None,
+                    "expected_roles": expected_member_roles_for_assignment_kind(
+                        assignment_kind
+                    ),
+                }
+            ),
+            400,
+        )
+
+    try:
+        ok, code = add_team_member(g.db, user_id, member_id)
+    except Exception as exc:
+        print(f"[case-team/add] add_team_member failed: {exc}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": "save_failed"}), 500
+
+    if not ok:
+        status = 404 if code == "user_not_found" else 400
+        payload = {"success": False, "error": code}
+        if code == "invalid_member_role" and member:
+            payload["assignment_kind"] = assignment_kind
+            payload["member_role"] = member_role
+            payload["member_display_id"] = (member["display_id"] or "").strip() or None
+            payload["expected_roles"] = expected_member_roles_for_assignment_kind(
+                assignment_kind
+            )
+        return jsonify(payload), status
+
+    target = get_user_by_id(g.db, user_id)
+    member = get_user_by_id(g.db, member_id)
+    if target and member:
+        kind = team_assignment_kind_for_target(target["role_key"] or "")
+        label = {
+            "client_managers": "Назначен сотрудник",
+            "manager_moderators": "Назначен модератор",
+            "moderator_managers": "Назначен менеджер",
+        }.get(kind or "", "Назначен сотрудник")
+        add_history_entry(
+            g.db,
+            user_id,
+            g.current_user_id,
+            label,
+            f"{member['name'] or member['email']} (ID: {member_id})",
+        )
+
+    try:
+        team_members = get_team_members_for_user(g.db, user_id)
+    except Exception as exc:
+        print(f"[case-team/add] get_team_members_for_user failed: {exc}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": "save_failed"}), 500
+
+    return jsonify(
+        {
+            "success": True,
+            "team_members": team_members,
+        }
+    ), 200
+
+
+@lk_bp.delete("/lk/case-team/<int:user_id>/<int:member_id>")
+def remove_case_team_member(user_id: int, member_id: int):
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+
+    member = get_user_by_id(g.db, member_id)
+    ok, code = remove_team_member(g.db, user_id, member_id)
+    if not ok:
+        return jsonify({"success": False, "error": code}), 400
+
+    if member:
+        target = get_user_by_id(g.db, user_id)
+        kind = team_assignment_kind_for_target((target or {})["role_key"] or "") if target else ""
+        label = {
+            "client_managers": "Менеджер удален",
+            "manager_moderators": "Модератор удалён",
+            "moderator_managers": "Менеджер удален",
+        }.get(kind or "", "Сотрудник снят")
+        add_history_entry(
+            g.db,
+            user_id,
+            g.current_user_id,
+            label,
+            f"{member['name'] or member['email']} (ID: {member_id})",
+        )
+
+    return jsonify(
+        {
+            "success": True,
+            "team_members": get_team_members_for_user(g.db, user_id),
+        }
+    ), 200
 
 
 @lk_bp.post("/case-data/<int:user_id>/document-requests/send")
@@ -1152,53 +1345,14 @@ def update_case_data(user_id: int):
     ):
         document_requests_manual = True
 
-    # Validate manager IDs if provided
-    if referral_id is not None:
-        referral_user = get_user_by_id(g.db, referral_id)
-        if not referral_user:
-            return jsonify({"success": False, "error": "referral user not found"}), 404
-        # Add history entry if referral changed
-        if not old_case_data or old_case_data.get("referral_id") != referral_id:
-            add_history_entry(
-                g.db,
-                user_id,
-                g.current_user_id,
-                "Назначен реферал",
-                f"{referral_user['name'] or referral_user['email']} (ID: {referral_id})"
-            )
-    elif old_case_data and old_case_data.get("referral_id") is not None:
-        # Referral was removed
-        add_history_entry(
-            g.db,
-            user_id,
-            g.current_user_id,
-            "Реферал удален",
-            "Реферал был удален из кейса"
-        )
-    
-    if manager_id is not None:
-        manager_user = get_user_by_id(g.db, manager_id)
-        if not manager_user:
-            return jsonify({"success": False, "error": "manager user not found"}), 404
-        # Add history entry if manager changed
-        if not old_case_data or old_case_data.get("manager_id") != manager_id:
-            add_history_entry(
-                g.db,
-                user_id,
-                g.current_user_id,
-                "Назначен менеджер",
-                f"{manager_user['name'] or manager_user['email']} (ID: {manager_id})"
-            )
-    elif old_case_data and old_case_data.get("manager_id") is not None:
-        # Manager was removed
-        add_history_entry(
-            g.db,
-            user_id,
-            g.current_user_id,
-            "Менеджер удален",
-            "Персональный менеджер был удален из кейса"
-        )
-    
+    team_kind = team_assignment_kind_for_target(old_role)
+    if team_kind == "client_managers":
+        manager_id = get_primary_manager_id_for_client(g.db, user_id)
+        referral_id = None
+    else:
+        manager_id = None
+        referral_id = None
+
     # Track target_date changes
     if old_case_data:
         old_target_date = old_case_data.get("target_date")

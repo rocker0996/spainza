@@ -52,6 +52,9 @@ let caseData = {
     /** true = не подставлять шаблон чек-листа документов */
     documentRequestsManual: false,
 };
+/** client_managers | manager_moderators | moderator_managers */
+let teamAssignmentKind = 'client_managers';
+let teamMembers = [];
 let isEditMode = false;
 let draggedElement = null;
 /** Не вызывать автосохранение при программной установке #visa-type (иначе уходит пустой кейс до шаблона). */
@@ -1201,6 +1204,11 @@ function setupViewClientDocumentsLink() {
         return;
     }
 
+    if (isTargetStaffPortalUser()) {
+        link.style.display = 'none';
+        return;
+    }
+
     const urlClient = (new URLSearchParams(window.location.search).get('client') || '')
         .trim()
         .toUpperCase();
@@ -1416,24 +1424,15 @@ function toggleEditMode(enabled) {
         addDocBtn.classList.toggle('pointer-events-none', !enabled);
     }
 
-    ['referral', 'manager'].forEach((prefix) => {
-        const idInput = document.getElementById(`${prefix}-id-input`);
-        if (idInput) {
-            idInput.disabled = !enabled;
-        }
-        const inputContainer = document.getElementById(`${prefix}-input-container`);
-        if (inputContainer) {
-            inputContainer.querySelectorAll('button').forEach((btn) => {
-                btn.disabled = !enabled;
-            });
-        }
-        const display = document.getElementById(`${prefix}-display`);
-        if (display && !display.classList.contains('hidden')) {
-            display.querySelectorAll('button').forEach((btn) => {
-                btn.disabled = !enabled;
-            });
-        }
-    });
+    const managerInput = document.getElementById('manager-id-input');
+    if (managerInput) managerInput.disabled = !enabled;
+    const managerInputContainer = document.getElementById('manager-input-container');
+    if (managerInputContainer) {
+        managerInputContainer.querySelectorAll('button').forEach((btn) => {
+            btn.disabled = !enabled;
+        });
+    }
+    renderTeamMembersList();
 
     if (enabled) {
         const toggleTrack = document
@@ -1459,12 +1458,9 @@ function setupViewModeInterceptors() {
         '#timeline-container select',
         '#timeline-container .drag-handle',
         '#document-requests-list input[type="checkbox"]',
-        '#referral-id-input',
         '#manager-id-input',
-        '#referral-input-container button',
         '#manager-input-container button',
-        '#referral-display button',
-        '#manager-display button'
+        '#case-team-assigned-list button'
     ].join(', ');
 
     const onAttempt = (event) => {
@@ -1496,6 +1492,136 @@ function showSaveNotification() {
     }, 1000);
 }
 
+function getTargetPortalRoleKey() {
+    const key = currentUser && currentUser.role && currentUser.role.key
+        ? String(currentUser.role.key).toLowerCase().trim()
+        : '';
+    return key;
+}
+
+function isTargetManagerUser() {
+    return getTargetPortalRoleKey() === 'manager';
+}
+
+function isTargetModeratorUser() {
+    return getTargetPortalRoleKey() === 'moderator';
+}
+
+function isTargetStaffPortalUser() {
+    const key = getTargetPortalRoleKey();
+    return key === 'manager' || key === 'moderator';
+}
+
+function applyTeamAssignmentI18n(kind) {
+    const keysByKind = {
+        client_managers: {
+            lead: 'case.managersLead',
+            primary: 'case.personalManager',
+        },
+        manager_moderators: {
+            lead: 'case.moderatorsLead',
+            primary: 'case.yourModerators',
+        },
+        moderator_managers: {
+            lead: 'case.moderatorManagersLead',
+            primary: 'case.yourManagers',
+        },
+    };
+    const keys = keysByKind[kind] || keysByKind.client_managers;
+
+    const leadEl = document.getElementById('case-team-lead');
+    const primaryLabel = document.getElementById('case-team-primary-label');
+
+    if (leadEl) leadEl.setAttribute('data-i18n', keys.lead);
+    if (primaryLabel) primaryLabel.setAttribute('data-i18n', keys.primary);
+
+    const panel = document.getElementById('case-team-assignment-panel');
+    if (window.LkI18n && typeof window.LkI18n.applyDocument === 'function') {
+        window.LkI18n.applyDocument(panel || document);
+    } else {
+        if (leadEl) leadEl.textContent = t(keys.lead);
+        if (primaryLabel) primaryLabel.textContent = t(keys.primary);
+    }
+}
+
+function configureCasePageForTargetUser() {
+    const timelineSection = document.getElementById('case-timeline-section');
+    const docList = document.getElementById('document-requests-list');
+    const docSection = docList ? docList.closest('.flex.flex-col') : null;
+    const staffTarget = isTargetStaffPortalUser();
+
+    if (staffTarget) {
+        if (timelineSection) timelineSection.classList.add('hidden');
+        if (docSection) docSection.classList.add('hidden');
+    } else {
+        if (timelineSection) timelineSection.classList.remove('hidden');
+        if (docSection) docSection.classList.remove('hidden');
+    }
+
+    applyTeamAssignmentI18n(teamAssignmentKind);
+}
+
+function renderTeamMembersList() {
+    const list = document.getElementById('case-team-assigned-list');
+    if (!list) return;
+
+    if (!teamMembers || teamMembers.length === 0) {
+        list.innerHTML = '';
+        return;
+    }
+
+    list.innerHTML = teamMembers.map((user) => {
+        const initials = getUserInitials(user.name || user.email || '');
+        const avatarHtml = user.avatar
+            ? `<img src="${escapeHtmlCase(user.avatar)}" alt="" class="w-full h-full object-cover" />`
+            : initials;
+        const pub = user.display_id ? String(user.display_id).trim().toUpperCase() : '';
+        const pubHtml = pub
+            ? `<div class="text-xs font-mono font-semibold text-slate-600 tracking-wide mt-0.5">${escapeHtmlCase(t('case.managerPublicId', { id: pub }))}</div>`
+            : '';
+        const removeBtn = isEditMode
+            ? `<button type="button" class="text-slate-400 hover:text-red-500 transition-colors" onclick="removeCaseTeamMember(${user.id})" title="${escapeHtmlCase(t('case.teamRemove'))}">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+               </button>`
+            : '';
+        return `
+            <div class="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div class="h-9 w-9 rounded-full overflow-hidden bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm font-manrope shrink-0">${avatarHtml}</div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-semibold text-slate-800 truncate">${escapeHtmlCase(user.name || t('clients.noName'))}</div>
+                    <div class="text-xs text-slate-500 truncate">${escapeHtmlCase(user.email || '')}</div>
+                    ${pubHtml}
+                </div>
+                ${removeBtn}
+            </div>
+        `;
+    }).join('');
+}
+
+async function removeCaseTeamMember(memberId) {
+    if (!isEditMode) {
+        showEnableEditModeToast();
+        return;
+    }
+    if (!currentUserId || !memberId) return;
+    try {
+        const response = await fetch(`${API_BASE}/lk/case-team/${currentUserId}/${memberId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+            showCaseToast(t('case.teamAddFailed'), 'error');
+            return;
+        }
+        teamMembers = data.team_members || [];
+        renderTeamMembersList();
+    } catch (error) {
+        console.error(error);
+        showCaseToast(t('case.teamAddFailed'), 'error');
+    }
+}
+
 /**
  * Save case data to server
  */
@@ -1514,8 +1640,6 @@ async function saveCaseData() {
             country: caseData.country,
             timeline: caseData.timeline,
             document_requests: caseData.documentRequests,
-            referral_id: caseData.referralId || null,
-            manager_id: caseData.managerId || null,
             timeline_manual: !!caseData.timelineManual,
             document_requests_manual: !!caseData.documentRequestsManual,
         };
@@ -1569,66 +1693,16 @@ function addHistoryEntry(action, details = '') {
     console.log('📝 History will be tracked by backend:', action, details);
 }
 
-/**
- * Load and display assigned managers
- */
-async function loadAssignedManagers(loadedCaseData) {
-    console.log('📋 loadAssignedManagers called with:', loadedCaseData);
-    
+function loadTeamAssignments(loadedCaseData) {
     if (!loadedCaseData) {
-        console.log('⚠️ No case data provided');
+        teamMembers = [];
+        renderTeamMembersList();
         return;
     }
-    
-    // Load referral if exists
-    if (loadedCaseData.referral_id) {
-        console.log('👤 Loading referral with ID:', loadedCaseData.referral_id);
-        caseData.referralId = loadedCaseData.referral_id;
-        try {
-            const response = await fetch(`${API_BASE}/users/${loadedCaseData.referral_id}`, {
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                console.log('✅ Referral loaded:', data.user);
-                displayAssignedManager(data.user, 'referral');
-            } else {
-                console.error('❌ Failed to load referral:', response.status);
-            }
-        } catch (error) {
-            console.error('❌ Error loading referral:', error);
-        }
-    } else {
-        console.log('ℹ️ No referral_id in case data');
-    }
-    
-    // Load manager if exists
-    if (loadedCaseData.manager_id) {
-        console.log('👤 Loading manager with ID:', loadedCaseData.manager_id);
-        caseData.managerId = loadedCaseData.manager_id;
-        try {
-            const response = await fetch(`${API_BASE}/users/${loadedCaseData.manager_id}`, {
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                console.log('✅ Manager loaded:', data.user);
-                displayAssignedManager(data.user, 'manager');
-            } else {
-                console.error('❌ Failed to load manager:', response.status);
-            }
-        } catch (error) {
-            console.error('❌ Error loading manager:', error);
-        }
-    } else {
-        console.log('ℹ️ No manager_id in case data');
-    }
+    teamAssignmentKind = loadedCaseData.team_assignment_kind || 'client_managers';
+    teamMembers = Array.isArray(loadedCaseData.team_members) ? loadedCaseData.team_members : [];
+    configureCasePageForTargetUser();
+    renderTeamMembersList();
 }
 
 /**
@@ -1659,9 +1733,31 @@ async function initializeCasePage() {
         return;
     }
 
+    const viewerRoleKey = loggedInUser.role && loggedInUser.role.key
+        ? String(loggedInUser.role.key).toLowerCase().trim()
+        : '';
+    if (
+        (viewerRoleKey === 'manager' || viewerRoleKey === 'moderator') &&
+        parseInt(String(loggedInUser.id), 10) === parseInt(String(currentUserId), 10)
+    ) {
+        showCaseToast(t('case.toast.managerOwnCaseDenied'), 'error');
+        setTimeout(() => {
+            window.location.href = '/frontend/lk/clients.html';
+        }, 600);
+        return;
+    }
+
     // Load user data (client whose case is being managed)
     currentUser = await loadUserData(currentUserId);
     if (currentUser) {
+        if (isTargetManagerUser()) {
+            teamAssignmentKind = 'manager_moderators';
+        } else if (isTargetModeratorUser()) {
+            teamAssignmentKind = 'moderator_managers';
+        } else {
+            teamAssignmentKind = 'client_managers';
+        }
+        configureCasePageForTargetUser();
         updatePageHeader(currentUser);
         setupViewClientDocumentsLink();
 
@@ -1684,7 +1780,7 @@ async function initializeCasePage() {
         const loadedCaseData = await loadCaseData(currentUserId);
 
         await bootstrapCaseEditors(loadedCaseData);
-        await loadAssignedManagers(loadedCaseData);
+        await loadTeamAssignments(loadedCaseData);
 
         const editToggle = document.getElementById('edit-mode-toggle');
         const editEnabled = editToggle ? editToggle.checked : false;
@@ -2076,7 +2172,7 @@ function isCompletePublicDisplayIdCase(value) {
 }
 
 function bindCaseManagerDisplayIdInputs() {
-    ["manager-id-input", "referral-id-input"].forEach((id) => {
+    ["manager-id-input"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) {
             return;
@@ -2172,49 +2268,30 @@ async function fetchStaffUserByDisplayForCase(displayToken, errorField) {
     }
 }
 
-async function applyAssignedManagerUser(user, role) {
-    const errorField = role === "referral" ? "referral" : "manager";
-    const userRoleKey = (user.role && user.role.key ? String(user.role.key) : "").toLowerCase().trim();
-    const allowedRoles = ["management", "admin", "support", "moderator", "manager"];
-    if (!allowedRoles.includes(userRoleKey)) {
-        showManagerError(
-            errorField,
-            `Пользователь должен быть менеджером или выше (текущая роль: ${userRoleKey || "не указана"})`
-        );
-        return;
+function formatCaseTeamAssignError(data) {
+    const err = data && data.error ? String(data.error) : '';
+    if (err !== 'invalid_member_role') {
+        return '';
     }
-    displayAssignedManager(user, role);
-    if (role === "referral") {
-        caseData.referralId = user.id;
-    } else {
-        caseData.managerId = user.id;
+    const kind = data.assignment_kind || teamAssignmentKind || '';
+    const memberRole = data.member_role ? String(data.member_role) : '';
+    if (kind === 'moderator_managers') {
+        return t('case.teamInvalidMemberModeratorCase');
     }
-    await saveCaseData();
-}
-
-async function assignReferral() {
-    if (!isEditMode) {
-        showEnableEditModeToast();
-        return;
+    if (kind === 'manager_moderators') {
+        return t('case.teamInvalidMemberManagerCase');
     }
-    const input = document.getElementById("referral-id-input");
-    const token = normalizeCaseManagerDisplayIdInput(input.value);
-
-    if (!isCompletePublicDisplayIdCase(token)) {
-        showManagerError("referral", "Введите публичный номер: 2 латинские буквы и 4 цифры");
-        return;
+    if (kind === 'client_managers') {
+        const pub = data.member_display_id ? String(data.member_display_id).trim() : '';
+        if (memberRole && memberRole !== 'user') {
+            return t('case.teamInvalidMemberRole', { role: memberRole });
+        }
+        if (pub) {
+            return t('case.teamInvalidMemberClientCaseId', { id: pub });
+        }
+        return t('case.teamInvalidMemberClientCase');
     }
-
-    const user = await fetchStaffUserByDisplayForCase(token, "referral");
-    if (!user) {
-        return;
-    }
-    try {
-        await applyAssignedManagerUser(user, "referral");
-    } catch (error) {
-        console.error("Error assigning referral manager:", error);
-        showManagerError("referral", "Ошибка назначения менеджера");
-    }
+    return t('case.teamAddFailed');
 }
 
 async function assignManager() {
@@ -2230,120 +2307,54 @@ async function assignManager() {
         return;
     }
 
-    const user = await fetchStaffUserByDisplayForCase(token, "manager");
-    if (!user) {
+    if (!currentUserId) {
+        showManagerError("manager", "Нет доступа");
         return;
     }
+
     try {
-        await applyAssignedManagerUser(user, "manager");
-    } catch (error) {
-        console.error("Error assigning manager:", error);
-        showManagerError("manager", "Ошибка назначения менеджера");
-    }
-}
-
-function displayAssignedManager(user, role) {
-    console.log('👤 displayAssignedManager called:', { user, role });
-    const prefix = role === 'referral' ? 'referral' : 'manager';
-    
-    // Hide input, show display
-    const inputContainer = document.getElementById(`${prefix}-input-container`);
-    const displayContainer = document.getElementById(`${prefix}-display`);
-    const avatarEl = document.getElementById(`${prefix}-avatar`);
-    const nameEl = document.getElementById(`${prefix}-name`);
-    const emailEl = document.getElementById(`${prefix}-email`);
-    
-    console.log('🔍 DOM elements found:', {
-        inputContainer: !!inputContainer,
-        displayContainer: !!displayContainer,
-        avatarEl: !!avatarEl,
-        nameEl: !!nameEl,
-        emailEl: !!emailEl
-    });
-    
-    if (!inputContainer || !displayContainer || !avatarEl || !nameEl || !emailEl) {
-        console.error('❌ Missing DOM elements for', prefix);
-        return;
-    }
-    
-    inputContainer.classList.add('hidden');
-    displayContainer.classList.remove('hidden');
-    displayContainer.classList.add('flex');
-    
-    // Update display elements - show photo if available, otherwise initials
-    if (user.avatar) {
-        console.log('🖼️ Setting avatar image for user:', user.name || user.email);
-        avatarEl.innerHTML = `<img src="${user.avatar}" alt="${user.name}" class="w-full h-full object-cover" />`;
-    } else {
-        const initials = getUserInitials(user.name || user.email);
-        console.log('🔤 Setting initials:', initials, 'for user:', user.name || user.email);
-        avatarEl.textContent = initials;
-    }
-    
-    nameEl.textContent = user.name || t('clients.noName');
-    emailEl.textContent = user.email || '';
-
-    const pubEl = document.getElementById(`${prefix}-public-id`);
-    if (pubEl) {
-        const pub = user.display_id ? String(user.display_id).trim().toUpperCase() : '';
-        if (pub) {
-            pubEl.dataset.publicId = pub;
-            pubEl.textContent = t('case.managerPublicId', { id: pub });
-            pubEl.classList.remove('hidden');
-        } else {
-            pubEl.textContent = '';
-            pubEl.classList.add('hidden');
+        const response = await fetch(`${API_BASE}/lk/case-team/${currentUserId}/add`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ member_id: token, client_id: token }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+            const err = data.error || '';
+            if (err === 'invalid_member_role') {
+                const msg = formatCaseTeamAssignError(data) || t('case.teamAddFailed');
+                console.warn('case-team add rejected', data);
+                showManagerError("manager", msg);
+            } else if (err === 'client_not_found' || response.status === 404) {
+                showManagerError("manager", "Пользователь с таким номером не найден");
+            } else if (err === 'missing_client_id') {
+                showManagerError("manager", "Укажите публичный номер сотрудника");
+            } else if (err === 'invalid_ids') {
+                showManagerError("manager", "Введите публичный номер: 2 латинские буквы и 4 цифры");
+            } else if (response.status === 403) {
+                showManagerError("manager", "Недостаточно прав");
+            } else if (err === 'unsupported_target') {
+                showManagerError("manager", t('case.teamUnsupportedTarget'));
+            } else if (err === 'save_failed') {
+                showManagerError("manager", t('case.teamAddFailed'));
+            } else {
+                showManagerError("manager", t('case.teamAddFailed'));
+            }
+            return;
         }
+        teamMembers = data.team_members || [];
+        renderTeamMembersList();
+        input.value = '';
+        hideManagerError('manager');
+    } catch (error) {
+        console.error("Error assigning team member:", error);
+        showManagerError("manager", t('case.teamAddFailed'));
     }
-
-    console.log('✅ Manager display updated');
-    
-    // Clear input and error
-    document.getElementById(`${prefix}-id-input`).value = '';
-    hideManagerError(prefix);
 }
 
-function clearReferral() {
-    clearManagerRole('referral');
-}
-
-function clearManager() {
-    clearManagerRole('manager');
-}
-
-function clearManagerRole(role) {
-    if (!isEditMode) {
-        showEnableEditModeToast();
-        return;
-    }
-    const prefix = role === 'referral' ? 'referral' : 'manager';
-    
-    // Show input, hide display
-    const displayEl = document.getElementById(`${prefix}-display`);
-    const inputEl = document.getElementById(`${prefix}-input-container`);
-    
-    if (displayEl) {
-        displayEl.classList.add('hidden');
-        displayEl.classList.remove('flex');
-    }
-    if (inputEl) {
-        inputEl.classList.remove('hidden');
-    }
-
-    const pubEl = document.getElementById(`${prefix}-public-id`);
-    if (pubEl) {
-        pubEl.textContent = '';
-        pubEl.classList.add('hidden');
-    }
-
-    // Clear from case data and set to null (backend will add history entry)
-    if (role === 'referral') {
-        caseData.referralId = null;
-    } else {
-        caseData.managerId = null;
-    }
-    showSaveNotification();
-}
+function clearManager() {}
+function clearReferral() {}
 
 function showManagerError(role, message) {
     const errorEl = document.getElementById(`${role}-error`);
@@ -2368,6 +2379,7 @@ window.assignReferral = assignReferral;
 window.assignManager = assignManager;
 window.clearReferral = clearReferral;
 window.clearManager = clearManager;
+window.removeCaseTeamMember = removeCaseTeamMember;
 window.openAddDocModal = openAddDocModal;
 window.closeAddDocModal = closeAddDocModal;
 window.saveCustomDocument = saveCustomDocument;

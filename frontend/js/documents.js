@@ -870,6 +870,26 @@
     }
   }
 
+  function updateDocumentsTabTitle() {
+    const pageTitle = document.getElementById("page-title");
+    const isClientView =
+      Boolean(targetUserId) ||
+      isManagementDocumentsView ||
+      Boolean(getClientDisplayIdFromUrl());
+    if (isClientView && currentUserName) {
+      const title = t("documents.pageTitleClient", { name: currentUserName });
+      document.title = title;
+      if (pageTitle) {
+        pageTitle.textContent = title;
+      }
+      return;
+    }
+    const titleEl = document.querySelector("title[data-i18n]");
+    if (titleEl) {
+      document.title = t(titleEl.getAttribute("data-i18n"));
+    }
+  }
+
   function refreshDocumentsHeaderI18n() {
     const manageBtn = document.getElementById("manage-case-btn");
     if (manageBtn && manageBtn.style.display !== "none") {
@@ -947,10 +967,7 @@
       pageSubtitle.style.display = "none";
     }
 
-    const pageTitle = document.getElementById("page-title");
-    if (pageTitle && currentUserName) {
-      pageTitle.textContent = t("documents.pageTitleClient", { name: currentUserName });
-    }
+    updateDocumentsTabTitle();
 
     await ensureTargetClientDisplayId();
     setupManagementClientDocumentsButtons();
@@ -1651,6 +1668,7 @@
 
   window.addEventListener("lk-locale-change", () => {
     if (window.LkI18n) window.LkI18n.applyDocument();
+    updateDocumentsTabTitle();
     refreshDocumentsHeaderI18n();
     renderDocuments();
     const historyModal = document.getElementById("history-modal");

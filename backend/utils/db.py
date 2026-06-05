@@ -26,5 +26,11 @@ def get_db_connection() -> sqlite3.Connection:
     from models.document import ensure_documents_columns
     ensure_documents_columns(connection)
 
+    from models.user import create_manager_clients_table
+    from models.manager_moderator import create_manager_moderators_table
+
+    create_manager_clients_table(connection)
+    create_manager_moderators_table(connection)
+
     return connection
 

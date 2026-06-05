@@ -149,53 +149,17 @@ def try_assign_client_to_manager(
         connection, client_id, fallback_viewer_id=manager_id
     )
 
-    case = get_case_data_by_user_id(connection, client_id)
-    mid = case.get("manager_id") if case else None
-    if mid is not None and int(mid) != int(manager_id):
-        return False, "personal_manager_taken"
+    existing = connection.execute(
+        "SELECT 1 FROM manager_clients WHERE manager_id = ? AND client_id = ?",
+        (manager_id, client_id),
+    ).fetchone()
+    if existing:
+        return True, "ok"
 
-    rows = connection.execute(
-        "SELECT manager_id FROM manager_clients WHERE client_id = ?",
-        (client_id,),
-    ).fetchall()
-    for r in rows:
-        if int(r["manager_id"]) != int(manager_id):
-            return False, "personal_manager_taken"
-
-    assign_client_to_manager(connection, manager_id, client_id)
-
-    visa_type = normalize_role_key(client["role_key"] or "user")
-    if case:
-        ok = upsert_case_data(
-            connection,
-            client_id,
-            str(case.get("visa_type") or visa_type),
-            case.get("target_date"),
-            case.get("country") or "",
-            case.get("archive_file_path"),
-            case.get("archive_file_name"),
-            list(case.get("timeline") or []),
-            list(case.get("document_requests") or []),
-            case.get("referral_id"),
-            manager_id,
-            bool(case.get("timeline_manual")),
-            bool(case.get("document_requests_manual")),
-        )
-    else:
-        ok = upsert_case_data(
-            connection,
-            client_id,
-            visa_type,
-            None,
-            "",
-            None,
-            None,
-            [],
-            [],
-            None,
-            manager_id,
-        )
-
-    if not ok:
+    if not assign_client_to_manager(connection, manager_id, client_id):
         return False, "save_failed"
+
+    from services.team_assignment import sync_case_primary_manager
+
+    sync_case_primary_manager(connection, client_id)
     return True, "ok"

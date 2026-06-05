@@ -21,6 +21,7 @@ from models.user import (
 from models.case_data import create_case_data_table
 from models.case_history import create_case_history_table
 from models.case_template import create_manager_case_templates_table
+from models.manager_moderator import create_manager_moderators_table
 from models.message import Message
 from routes.auth import auth_bp
 from routes.documents import documents_bp
@@ -323,6 +324,7 @@ def create_app() -> Flask:
     ensure_documents_columns(init_connection)
     create_security_logs_table(init_connection)
     create_manager_clients_table(init_connection)
+    create_manager_moderators_table(init_connection)
     create_case_data_table(init_connection)
     create_case_history_table(init_connection)
     create_manager_case_templates_table(init_connection)
