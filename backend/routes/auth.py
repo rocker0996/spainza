@@ -146,6 +146,15 @@ def _clear_auth_cookie(response):
 @auth_bp.post("/register")
 def register():
     email, password, manager_invite_token = _extract_credentials()
+    payload = request.get_json(silent=True) or {}
+    terms_accepted = payload.get("terms_accepted")
+    if not terms_accepted:
+        return _error_response(
+            "TERMS_NOT_ACCEPTED",
+            "Подтвердите, что вы прочитали и согласны с условиями использования",
+            "Please confirm that you have read and agree to the terms",
+            400,
+        )
     if not email:
         return _error_response(
             "MISSING_EMAIL",

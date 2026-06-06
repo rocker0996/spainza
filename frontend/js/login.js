@@ -23,6 +23,8 @@
   const passwordLabel = document.getElementById("password-label");
   const confirmPasswordGroup = document.getElementById("confirm-password-group");
   const confirmPasswordInput = document.getElementById("password-confirm");
+  const termsConsentGroup = document.getElementById("terms-consent-group");
+  const termsConsentInput = document.getElementById("terms-consent");
   const socialLoginWrap = document.getElementById("social-login-wrap");
   const googleLoginBtn = document.getElementById("google-login-btn");
   const telegramLoginWidget = document.getElementById("telegram-login-widget");
@@ -134,6 +136,15 @@
     }
     if (passwordInput) {
       passwordInput.required = !isForgot;
+    }
+    if (termsConsentGroup) {
+      termsConsentGroup.classList.toggle("hidden", !isRegister);
+    }
+    if (termsConsentInput) {
+      termsConsentInput.required = isRegister;
+      if (!isRegister) {
+        termsConsentInput.checked = false;
+      }
     }
 
     if (isLogin) {
@@ -472,6 +483,9 @@
       if (mode === "register" && password !== confirmPassword) {
         throw new Error(t("login.passwordMismatch"));
       }
+      if (mode === "register" && termsConsentInput && !termsConsentInput.checked) {
+        throw new Error(t("login.termsNotAccepted"));
+      }
 
       let response = null;
       let data = null;
@@ -483,7 +497,7 @@
           const authBody =
             mode === "register"
               ? (function () {
-                  const o = { email, password };
+                  const o = { email, password, terms_accepted: true };
                   const token = (
                     sessionStorage.getItem("manager_invite_token") ||
                     new URLSearchParams(window.location.search).get("invite") ||
@@ -555,6 +569,9 @@
         renderTabs();
         passwordInput.value = "";
         confirmPasswordInput.value = "";
+        if (termsConsentInput) {
+          termsConsentInput.checked = false;
+        }
         return;
       }
 

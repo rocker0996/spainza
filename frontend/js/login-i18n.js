@@ -33,6 +33,8 @@
       "login.orContinue": "Или продолжите с",
       "login.togglePasswordShow": "Показать пароль",
       "login.togglePasswordHide": "Скрыть пароль",
+      "login.termsNotAccepted":
+        "Подтвердите, что вы прочитали и согласны с условиями использования",
       "login.passwordMismatch": "Пароли не совпадают",
       "login.apiUnreachable":
         "Не удалось подключиться к API. Проверьте backend (например, http://localhost:5000)",
@@ -94,6 +96,8 @@
       "login.orContinue": "Or continue with",
       "login.togglePasswordShow": "Show password",
       "login.togglePasswordHide": "Hide password",
+      "login.termsNotAccepted":
+        "Please confirm that you have read and agree to the terms",
       "login.passwordMismatch": "Passwords do not match",
       "login.apiUnreachable":
         "Cannot reach the API. Check that the backend is running (e.g. http://localhost:5000)",
@@ -258,6 +262,8 @@
     if (forgotLink) {
       forgotLink.setAttribute("href", homeHref);
     }
+
+    applyTermsCheckbox();
   }
 
   function homeUrl() {
@@ -266,6 +272,76 @@
       return en ? "./en/index.html" : "./ru/index.html";
     }
     return en ? "/frontend/en/index.html" : "/frontend/ru/index.html";
+  }
+
+  function legalUrl(filename) {
+    var en = getLocale() === "en";
+    if (global.location.protocol === "file:") {
+      return en ? "./en/" + filename : "./ru/" + filename;
+    }
+    return en ? "/frontend/en/" + filename : "/frontend/ru/" + filename;
+  }
+
+  function applyTermsCheckbox() {
+    var label = global.document.getElementById("terms-consent-label");
+    if (!label) return;
+
+    var linkClass = "text-primary-container hover:underline";
+    var linkStop = ' onclick="event.stopPropagation();"';
+    var privacyHref = legalUrl("privacy-policy.html");
+    var termsHref = legalUrl("terms-of-service.html");
+    var cookieHref = legalUrl("cookie-policy.html");
+
+    if (getLocale() === "en") {
+      label.innerHTML =
+        '<a class="' +
+        linkClass +
+        '" href="' +
+        privacyHref +
+        '" target="_blank" rel="noopener noreferrer"' +
+        linkStop +
+        ">Privacy Policy</a>, " +
+        '<a class="' +
+        linkClass +
+        '" href="' +
+        termsHref +
+        '" target="_blank" rel="noopener noreferrer"' +
+        linkStop +
+        ">Terms of Service</a>, and " +
+        '<a class="' +
+        linkClass +
+        '" href="' +
+        cookieHref +
+        '" target="_blank" rel="noopener noreferrer"' +
+        linkStop +
+        ">Cookie Policy</a> " +
+        "have been read and I agree to the terms";
+      return;
+    }
+
+    label.innerHTML =
+      '<a class="' +
+      linkClass +
+      '" href="' +
+      privacyHref +
+      '" target="_blank" rel="noopener noreferrer"' +
+      linkStop +
+      ">Политика конфиденциальности</a>, " +
+      '<a class="' +
+      linkClass +
+      '" href="' +
+      termsHref +
+      '" target="_blank" rel="noopener noreferrer"' +
+      linkStop +
+      ">Условия использования</a> и " +
+      '<a class="' +
+      linkClass +
+      '" href="' +
+      cookieHref +
+      '" target="_blank" rel="noopener noreferrer"' +
+      linkStop +
+      ">Политика использования файлов cookie</a> " +
+      "прочитаны и согласны с условиями";
   }
 
   var localeActiveClass =
