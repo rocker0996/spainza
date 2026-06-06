@@ -148,10 +148,14 @@
     }
 
     if (isLogin) {
-      loginTab.className =
-        "flex-1 py-2.5 text-sm font-semibold rounded-md bg-[rgba(255,255,255,0.1)] text-white shadow-sm transition-all";
-      registerTab.className =
-        "flex-1 py-2.5 text-sm font-medium rounded-md text-secondary-fixed-dim hover:text-white transition-all";
+      if (loginTab) {
+        loginTab.className =
+          "flex-1 py-2.5 text-sm font-semibold rounded-md bg-[rgba(255,255,255,0.1)] text-white shadow-sm transition-all";
+      }
+      if (registerTab) {
+        registerTab.className =
+          "flex-1 py-2.5 text-sm font-medium rounded-md text-secondary-fixed-dim hover:text-white transition-all";
+      }
       submitBtn.textContent = t("login.submitLogin");
       if (confirmPasswordGroup) {
         confirmPasswordGroup.classList.add("hidden");
@@ -169,10 +173,14 @@
       passwordInput.type = "password";
       passwordInput.placeholder = "••••••••";
     } else if (isRegister) {
-      registerTab.className =
-        "flex-1 py-2.5 text-sm font-semibold rounded-md bg-[rgba(255,255,255,0.1)] text-white shadow-sm transition-all";
-      loginTab.className =
-        "flex-1 py-2.5 text-sm font-medium rounded-md text-secondary-fixed-dim hover:text-white transition-all";
+      if (registerTab) {
+        registerTab.className =
+          "flex-1 py-2.5 text-sm font-semibold rounded-md bg-[rgba(255,255,255,0.1)] text-white shadow-sm transition-all";
+      }
+      if (loginTab) {
+        loginTab.className =
+          "flex-1 py-2.5 text-sm font-medium rounded-md text-secondary-fixed-dim hover:text-white transition-all";
+      }
       submitBtn.textContent = t("login.submitRegister");
       if (confirmPasswordGroup) {
         confirmPasswordGroup.classList.remove("hidden");
@@ -339,17 +347,21 @@
     }
   }
 
-  loginTab.addEventListener("click", function () {
-    mode = "login";
-    hideAuthNotice();
-    renderTabs();
-  });
+  if (loginTab) {
+    loginTab.addEventListener("click", function () {
+      mode = "login";
+      hideAuthNotice();
+      renderTabs();
+    });
+  }
 
-  registerTab.addEventListener("click", function () {
-    mode = "register";
-    hideAuthNotice();
-    renderTabs();
-  });
+  if (registerTab) {
+    registerTab.addEventListener("click", function () {
+      mode = "register";
+      hideAuthNotice();
+      renderTabs();
+    });
+  }
 
   if (forgotPasswordLink) {
     forgotPasswordLink.addEventListener("click", function (event) {
@@ -633,7 +645,7 @@
     errorBox.textContent = "";
     successBox.textContent = "";
     try {
-      await postTelegramLogin(user);
+      const data = await postTelegramLogin(user);
       try {
         sessionStorage.removeItem("manager_invite_token");
       } catch (_e) {
