@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY backend /app/backend
 COPY wsgi.py /app/wsgi.py
+COPY run_telegram_worker.py /app/run_telegram_worker.py
 
 RUN mkdir -p /app/database /app/storage/messages /app/storage/documents
 

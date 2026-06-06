@@ -235,7 +235,8 @@ def get_user_by_email(connection: sqlite3.Connection, email: str):
             password_reset_token_hash,
             password_reset_expires_at,
             auth_token_revoked_at,
-            display_id
+            display_id,
+            deletion_requested_at
         FROM users
         WHERE email = ?
         """,
@@ -261,15 +262,37 @@ def get_user_by_id(connection: sqlite3.Connection, user_id: int):
             notify_email,
             notify_sms,
             notify_whatsapp,
+            notify_telegram,
             application_type,
             current_stage,
-            display_id
+            display_id,
+            profile_setup_completed,
+            pending_email,
+            pending_email_expires_at,
+            deletion_requested_at
         FROM users
         WHERE id = ?
         """,
         (user_id,),
     )
     return cursor.fetchone()
+
+
+def user_needs_profile_setup(user: Any) -> bool:
+    """True until the user completes initial profile setup (first LK visit flow)."""
+    if not user:
+        return False
+    try:
+        return not int(user["profile_setup_completed"] or 0)
+    except (KeyError, IndexError, TypeError, ValueError):
+        return False
+
+
+def post_login_redirect_path(user: Any) -> str:
+    """LK path after a successful login."""
+    if user_needs_profile_setup(user):
+        return "/frontend/lk/profile.html"
+    return "/frontend/lk/dashboard.html"
 
 
 def get_user_auth_by_id(connection: sqlite3.Connection, user_id: int):
@@ -286,7 +309,8 @@ def get_user_auth_by_id(connection: sqlite3.Connection, user_id: int):
             password_reset_token_hash,
             password_reset_expires_at,
             auth_token_revoked_at,
-            display_id
+            display_id,
+            deletion_requested_at
         FROM users
         WHERE id = ?
         """,
@@ -344,6 +368,10 @@ def ensure_users_columns(connection: sqlite3.Connection) -> None:
         connection.execute(
             "ALTER TABLE users ADD COLUMN notify_whatsapp INTEGER NOT NULL DEFAULT 1"
         )
+    if "notify_telegram" not in existing_columns:
+        connection.execute(
+            "ALTER TABLE users ADD COLUMN notify_telegram INTEGER NOT NULL DEFAULT 0"
+        )
     if "application_type" not in existing_columns:
         connection.execute("ALTER TABLE users ADD COLUMN application_type TEXT DEFAULT 'vnj_investment'")
     if "current_stage" not in existing_columns:
@@ -368,6 +396,21 @@ def ensure_users_columns(connection: sqlite3.Connection) -> None:
         connection.execute("ALTER TABLE users ADD COLUMN auth_token_revoked_at TEXT")
     if "display_id" not in existing_columns:
         connection.execute("ALTER TABLE users ADD COLUMN display_id TEXT")
+    if "profile_setup_completed" not in existing_columns:
+        connection.execute(
+            "ALTER TABLE users ADD COLUMN profile_setup_completed INTEGER NOT NULL DEFAULT 0"
+        )
+        connection.execute("UPDATE users SET profile_setup_completed = 1")
+    if "pending_email" not in existing_columns:
+        connection.execute("ALTER TABLE users ADD COLUMN pending_email TEXT")
+    if "pending_email_token_hash" not in existing_columns:
+        connection.execute("ALTER TABLE users ADD COLUMN pending_email_token_hash TEXT")
+    if "pending_email_expires_at" not in existing_columns:
+        connection.execute("ALTER TABLE users ADD COLUMN pending_email_expires_at TEXT")
+    if "pending_email_requested_at" not in existing_columns:
+        connection.execute("ALTER TABLE users ADD COLUMN pending_email_requested_at TEXT")
+    if "deletion_requested_at" not in existing_columns:
+        connection.execute("ALTER TABLE users ADD COLUMN deletion_requested_at TEXT")
 
     connection.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS ux_users_display_id ON users(display_id)"
@@ -639,7 +682,9 @@ def update_user_profile(connection: sqlite3.Connection, user_id: int, payload: d
             locale = ?,
             notify_email = ?,
             notify_sms = ?,
-            notify_whatsapp = ?
+            notify_whatsapp = ?,
+            notify_telegram = ?,
+            profile_setup_completed = 1
         WHERE id = ?
         """,
         (
@@ -652,6 +697,7 @@ def update_user_profile(connection: sqlite3.Connection, user_id: int, payload: d
             1 if payload.get("notify_email") else 0,
             1 if payload.get("notify_sms") else 0,
             1 if payload.get("notify_whatsapp") else 0,
+            1 if payload.get("notify_telegram") else 0,
             user_id,
         ),
     )
@@ -727,6 +773,85 @@ def mark_user_email_verified(
     return cursor.rowcount > 0
 
 
+def set_pending_email_change(
+    connection: sqlite3.Connection,
+    user_id: int,
+    pending_email: str,
+    token_hash: str,
+    expires_at: str,
+    requested_at: str,
+) -> bool:
+    """Store a pending email change awaiting confirmation on the new address."""
+    cursor = connection.execute(
+        """
+        UPDATE users
+        SET
+            pending_email = ?,
+            pending_email_token_hash = ?,
+            pending_email_expires_at = ?,
+            pending_email_requested_at = ?
+        WHERE id = ?
+        """,
+        (pending_email, token_hash, expires_at, requested_at, user_id),
+    )
+    connection.commit()
+    return cursor.rowcount > 0
+
+
+def get_user_by_pending_email_token_hash(
+    connection: sqlite3.Connection, token_hash: str
+):
+    """Find a user by hashed pending-email confirmation token."""
+    cursor = connection.execute(
+        """
+        SELECT id, email, pending_email, pending_email_expires_at
+        FROM users
+        WHERE pending_email_token_hash = ?
+        """,
+        (token_hash,),
+    )
+    return cursor.fetchone()
+
+
+def apply_pending_email_change(
+    connection: sqlite3.Connection, user_id: int, new_email: str
+) -> bool:
+    """Promote pending email to the primary account email."""
+    cursor = connection.execute(
+        """
+        UPDATE users
+        SET
+            email = ?,
+            pending_email = NULL,
+            pending_email_token_hash = NULL,
+            pending_email_expires_at = NULL,
+            pending_email_requested_at = NULL
+        WHERE id = ?
+        """,
+        (new_email, user_id),
+    )
+    connection.commit()
+    return cursor.rowcount > 0
+
+
+def clear_pending_email_change(connection: sqlite3.Connection, user_id: int) -> bool:
+    """Drop a pending email change without updating the active email."""
+    cursor = connection.execute(
+        """
+        UPDATE users
+        SET
+            pending_email = NULL,
+            pending_email_token_hash = NULL,
+            pending_email_expires_at = NULL,
+            pending_email_requested_at = NULL
+        WHERE id = ?
+        """,
+        (user_id,),
+    )
+    connection.commit()
+    return cursor.rowcount > 0
+
+
 def set_password_reset_token(
     connection: sqlite3.Connection,
     user_id: int,
@@ -796,6 +921,46 @@ def revoke_user_auth_tokens(
     cursor = connection.execute(
         "UPDATE users SET auth_token_revoked_at = ? WHERE id = ?",
         (revoked_at, user_id),
+    )
+    connection.commit()
+    return cursor.rowcount > 0
+
+
+def is_account_deletion_pending(user: Any) -> bool:
+    """True when the user requested account deletion and cannot sign in."""
+    if not user:
+        return False
+    try:
+        return bool(user["deletion_requested_at"])
+    except (KeyError, IndexError, TypeError):
+        return False
+
+
+def request_account_deletion(
+    connection: sqlite3.Connection, user_id: int, requested_at: str, revoked_at: str
+) -> bool:
+    """Mark account as pending deletion and revoke active auth tokens."""
+    cursor = connection.execute(
+        """
+        UPDATE users
+        SET deletion_requested_at = ?, auth_token_revoked_at = ?
+        WHERE id = ? AND deletion_requested_at IS NULL
+        """,
+        (requested_at, revoked_at, user_id),
+    )
+    connection.commit()
+    return cursor.rowcount > 0
+
+
+def restore_account_from_deletion_request(connection: sqlite3.Connection, user_id: int) -> bool:
+    """Cancel a pending account deletion request."""
+    cursor = connection.execute(
+        """
+        UPDATE users
+        SET deletion_requested_at = NULL
+        WHERE id = ? AND deletion_requested_at IS NOT NULL
+        """,
+        (user_id,),
     )
     connection.commit()
     return cursor.rowcount > 0

@@ -8,6 +8,12 @@ from pathlib import Path
 import paramiko
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.deploy_env import load_deploy_env
+
+load_deploy_env()
+
 HOST = os.environ.get("SPAINZA_SSH_HOST", "185.73.126.68")
 USER = os.environ.get("SPAINZA_SSH_USER", "root")
 PASSWORD = os.environ.get("SPAINZA_SSH_PASSWORD", "")

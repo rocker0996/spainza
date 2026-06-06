@@ -248,6 +248,9 @@
     if (s.startsWith("[[SPAINZA_MANAGER_COMPLAINT]]")) {
       return t("dashboard.complaintPreview");
     }
+    if (s.startsWith("[[SPAINZA_ACCOUNT_DELETION]]")) {
+      return t("chat.deletionPreview");
+    }
     return s;
   }
 

@@ -32,5 +32,9 @@ def get_db_connection() -> sqlite3.Connection:
     create_manager_clients_table(connection)
     create_manager_moderators_table(connection)
 
+    from models.notifications import create_notification_tables
+
+    create_notification_tables(connection)
+
     return connection
 

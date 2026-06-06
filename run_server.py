@@ -6,7 +6,9 @@
 включая авторизацию и личный кабинет
 """
 
+import atexit
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -27,6 +29,50 @@ sys.path.insert(0, str(BACKEND_DIR))
 # Импортируем приложение Flask (app уже создан в backend/app.py)
 from app import _run_dev_server
 from config import Config, is_production_env
+
+_TELEGRAM_WORKER_PROC: subprocess.Popen | None = None
+
+
+def _telegram_worker_disabled() -> bool:
+    return os.getenv("TELEGRAM_WORKER_DISABLED", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def _stop_telegram_worker() -> None:
+    global _TELEGRAM_WORKER_PROC
+    proc = _TELEGRAM_WORKER_PROC
+    _TELEGRAM_WORKER_PROC = None
+    if not proc or proc.poll() is not None:
+        return
+    proc.terminate()
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+
+
+def _start_telegram_worker() -> None:
+    global _TELEGRAM_WORKER_PROC
+    if _TELEGRAM_WORKER_PROC or not Config.TELEGRAM_BOT_TOKEN or _telegram_worker_disabled():
+        return
+
+    script = ROOT_DIR / "run_telegram_worker.py"
+    if not script.is_file():
+        return
+
+    _TELEGRAM_WORKER_PROC = subprocess.Popen(
+        [sys.executable, str(script)],
+        cwd=str(ROOT_DIR),
+    )
+    atexit.register(_stop_telegram_worker)
+    print(f"🤖 Telegram worker запущен (PID {_TELEGRAM_WORKER_PROC.pid})")
+    print("   Отключить автозапуск: TELEGRAM_WORKER_DISABLED=1")
+    print()
+
 
 def main():
     """Запуск встроенного dev-сервера Flask (не для production)."""
@@ -76,6 +122,8 @@ def main():
         print("   Создайте базу данных перед запуском сервера")
         print()
     
+    _start_telegram_worker()
+
     # Запускаем сервер
     try:
         _run_dev_server()
@@ -90,6 +138,8 @@ def main():
         print(f"❌ Ошибка при запуске сервера: {e}")
         print("=" * 60)
         sys.exit(1)
+    finally:
+        _stop_telegram_worker()
 
 if __name__ == "__main__":
     main()

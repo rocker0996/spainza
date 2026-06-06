@@ -114,6 +114,24 @@ data.setdefault("BOOTSTRAP_DEMO_EMAIL", "")
 data.setdefault("BOOTSTRAP_DEMO_PASSWORD", "")
 data.setdefault("BOOTSTRAP_DEMO_NAME", "")
 
+data.setdefault("PUBLIC_BASE_URL", "https://spainza.com")
+data.setdefault("TELEGRAM_BOT_USERNAME", "spainza_bot")
+if not (data.get("TELEGRAM_BOT_TOKEN") or "").strip():
+    token_from_env = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    if token_from_env:
+        data["TELEGRAM_BOT_TOKEN"] = token_from_env
+    else:
+        local_env = Path(".env")
+        if local_env.is_file():
+            for raw_line in local_env.read_text(encoding="utf-8").splitlines():
+                line = raw_line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                if key.strip() == "TELEGRAM_BOT_TOKEN" and value.strip():
+                    data["TELEGRAM_BOT_TOKEN"] = value.strip().strip('"').strip("'")
+                    break
+
 ordered = [
     "POSTGRES_DB",
     "POSTGRES_USER",
@@ -130,6 +148,9 @@ ordered = [
     "BOOTSTRAP_DEMO_EMAIL",
     "BOOTSTRAP_DEMO_PASSWORD",
     "BOOTSTRAP_DEMO_NAME",
+    "PUBLIC_BASE_URL",
+    "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_BOT_USERNAME",
 ]
 lines = [f"{key}={data[key]}" for key in ordered if key in data]
 for key in sorted(set(data) - set(ordered)):

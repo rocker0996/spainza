@@ -39,6 +39,7 @@ services:
       - "5000"
     networks:
       - edge
+      - public
     healthcheck:
       test:
         [
@@ -69,12 +70,37 @@ services:
       retries: 10
       start_period: 10s
 
+  spainza-telegram-worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - .env.production
+    environment:
+      APP_ENV: production
+      FLASK_ENV: production
+      SECRET_KEY: ${JWT_SECRET}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://spainza.com}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-spainza_bot}
+    command: ["python", "/app/run_telegram_worker.py"]
+    volumes:
+      - spainza-app-data:/app/database
+      - spainza-storage:/app/storage
+    depends_on:
+      spainza-backend:
+        condition: service_healthy
+
 networks:
   spainza-internal:
     internal: true
   edge:
     external: true
     name: ${EDGE_NETWORK:-boletus_default}
+  public:
+    driver: bridge
 
 volumes:
   spainza-postgres-data:

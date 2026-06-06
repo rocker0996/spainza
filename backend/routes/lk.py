@@ -5,7 +5,7 @@ import os
 import hashlib
 from sqlite3 import IntegrityError
 
-from flask import Blueprint, g, jsonify, request, send_file
+from flask import Blueprint, current_app, g, jsonify, make_response, request, send_file
 from config import Config
 from models.security_log import add_security_log, get_security_logs_for_user
 from models.user import (
@@ -19,8 +19,11 @@ from models.user import (
     get_role_definition,
     get_role_permissions,
     get_user_by_id,
+    is_account_deletion_pending,
     is_portal_staff_role,
     normalize_role_key,
+    request_account_deletion,
+    restore_account_from_deletion_request,
     update_user_password,
     update_user_profile,
     update_user_role,
@@ -58,6 +61,12 @@ from models.document import (
     get_pending_document_counts_for_users,
 )
 from models.message import Message
+from services.notification_service import (
+    EVENT_CASE_TIMELINE_STATUS,
+    EVENT_DOCUMENT_REQUEST_SENT,
+    detect_timeline_status_changes,
+    notify,
+)
 from models.manager_moderator import (
     get_users_for_moderator,
     is_manager_role_key,
@@ -74,6 +83,8 @@ from services.team_assignment import (
     remove_team_member,
     team_assignment_kind_for_target,
 )
+from services.auth_service import is_telegram_synthetic_email, request_email_change, to_storage_datetime, utc_now
+from services.account_deletion import send_account_deletion_request_to_support
 from services.file_service import FileService
 from services.manager_client_assign import (
     ensure_manager_invite_token,
@@ -91,6 +102,27 @@ def _request_ip() -> str:
     if forwarded_for:
         return forwarded_for.split(",")[0].strip()
     return (request.remote_addr or "").strip()
+
+
+def _clear_auth_cookie(response):
+    secure_cookie = request.is_secure or (
+        (request.headers.get("X-Forwarded-Proto") or "").split(",")[0].strip().lower() == "https"
+    )
+    response.set_cookie(
+        "access_token",
+        "",
+        httponly=True,
+        secure=secure_cookie,
+        samesite="Lax",
+        path="/",
+        expires=0,
+        max_age=0,
+    )
+
+
+def _may_resolve_account_deletion(actor_role_key: str) -> bool:
+    key = normalize_role_key(actor_role_key or "")
+    return key in ("management", "admin", "support")
 
 
 def _case_archive_file_id(user_id: int, archive_file_path: str | None) -> str | None:
@@ -398,6 +430,7 @@ def get_current_user():
                     "email": bool(user["notify_email"]),
                     "sms": bool(user["notify_sms"]),
                     "whatsapp": bool(user["notify_whatsapp"]),
+                    "telegram": bool(user["notify_telegram"]),
                 },
                 "role": {
                     "key": role_data["key"],
@@ -420,6 +453,66 @@ def get_current_user():
                 "display_id": (user["display_id"] or "").strip() or None,
                 "support_display_id": support_display_id,
                 "support_user_id": support_user_id,
+                "pending_email": (user["pending_email"] or "").strip() or None,
+                "pending_email_expires_at": user["pending_email_expires_at"] or None,
+            }
+        ),
+        200,
+    )
+
+
+@lk_bp.post("/user/email-change")
+def request_current_user_email_change():
+    user = get_user_by_id(g.db, g.current_user_id)
+    if not user:
+        return jsonify({"success": False, "error": "user not found"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    new_email = str(payload.get("new_email") or payload.get("email") or "").strip().lower()
+    if not new_email:
+        return jsonify({"success": False, "error": "new_email is required"}), 400
+    if not is_valid_email(new_email):
+        return jsonify({"success": False, "error": "invalid email"}), 400
+
+    current_email = str(user["email"] or "").strip().lower()
+    if is_telegram_synthetic_email(current_email):
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": "telegram account email cannot be changed",
+                    "error_code": "TELEGRAM_ACCOUNT",
+                }
+            ),
+            400,
+        )
+
+    ok, code, extra = request_email_change(g.db, int(user["id"]), new_email)
+    if not ok:
+        if code == "email_taken":
+            return jsonify({"success": False, "error": "email already exists"}), 409
+        if code == "invalid_email":
+            return jsonify({"success": False, "error": "invalid email"}), 400
+        return jsonify({"success": False, "error": "email change failed"}), 400
+
+    if code == "unchanged":
+        return jsonify({"success": True, "unchanged": True}), 200
+
+    add_security_log(
+        g.db,
+        g.current_user_id,
+        "email_change_requested",
+        "Запрошена смена email",
+        details=f"Ожидает подтверждения на {extra.get('pending_email') or new_email}.",
+        ip_address=_request_ip(),
+    )
+    return (
+        jsonify(
+            {
+                "success": True,
+                "pending_email": extra.get("pending_email"),
+                "pending_email_expires_at": extra.get("expires_at"),
+                "email_delivery": extra.get("email_delivery"),
             }
         ),
         200,
@@ -435,23 +528,18 @@ def update_current_user_profile():
     payload = request.get_json(silent=True) or {}
 
     name = str(payload.get("name") or "").strip()
-    email = str(payload.get("email") or "").strip().lower()
     avatar = str(payload.get("avatar") or "").strip()
     phone = str(payload.get("phone") or "").strip()
     main_goal = str(payload.get("main_goal") or "").strip()
     locale = str(payload.get("locale") or "ru").strip().lower()
     notifications = payload.get("notifications") if isinstance(payload.get("notifications"), dict) else {}
 
-    if not email:
-        return jsonify({"success": False, "error": "email is required"}), 400
-    if not is_valid_email(email):
-        return jsonify({"success": False, "error": "invalid email"}), 400
     if locale not in {"ru", "en"}:
         locale = "ru"
 
     normalized_payload = {
         "name": name,
-        "email": email,
+        "email": str(user["email"] or "").strip().lower(),
         "avatar": avatar,
         "phone": phone,
         "main_goal": main_goal,
@@ -459,6 +547,7 @@ def update_current_user_profile():
         "notify_email": bool(notifications.get("email", bool(user["notify_email"]))),
         "notify_sms": bool(notifications.get("sms", bool(user["notify_sms"]))),
         "notify_whatsapp": bool(notifications.get("whatsapp", bool(user["notify_whatsapp"]))),
+        "notify_telegram": bool(notifications.get("telegram", bool(user["notify_telegram"]))),
     }
 
     try:
@@ -541,20 +630,118 @@ def get_current_user_security_logs():
     return jsonify({"success": True, "logs": logs}), 200
 
 
-@lk_bp.delete("/user")
-def delete_current_user():
+@lk_bp.post("/user/deletion-request")
+def request_current_user_deletion():
+    user = get_user_auth_by_id(g.db, g.current_user_id)
+    if not user:
+        return jsonify({"success": False, "error": "user not found"}), 404
+    if is_account_deletion_pending(user):
+        return jsonify({"success": False, "error": "deletion already requested"}), 409
+
+    payload = request.get_json(silent=True) or {}
+    password = str(payload.get("password") or "")
+    password_confirm = str(payload.get("password_confirm") or "")
+
+    if not password or not password_confirm:
+        return jsonify({"success": False, "error": "password and confirmation are required"}), 400
+    if password != password_confirm:
+        return jsonify({"success": False, "error": "passwords do not match"}), 400
+    if not verify_password(password, user["password_hash"]):
+        add_security_log(
+            g.db,
+            g.current_user_id,
+            "account_deletion_failed",
+            "Неудачная попытка удаления аккаунта",
+            details="Указан неверный пароль.",
+            ip_address=_request_ip(),
+        )
+        return jsonify({"success": False, "error": "invalid password"}), 400
+
+    now_text = to_storage_datetime(utc_now())
+    marked = request_account_deletion(g.db, g.current_user_id, now_text, now_text)
+    if not marked:
+        return jsonify({"success": False, "error": "deletion already requested"}), 409
+
+    try:
+        send_account_deletion_request_to_support(g.db, g.current_user_id)
+    except Exception as exc:
+        current_app.logger.exception("account deletion support message failed: %s", exc)
+
     add_security_log(
         g.db,
         g.current_user_id,
-        "account_deleted",
-        "Аккаунт удален",
-        details="Пользователь удалил аккаунт через настройки.",
+        "account_deletion_requested",
+        "Запрошено удаление аккаунта",
+        details="Пользователь подтвердил удаление паролем; аккаунт заблокирован до решения поддержки.",
         ip_address=_request_ip(),
     )
-    deleted = delete_user_by_id(g.db, g.current_user_id)
+
+    response = make_response(jsonify({"success": True}), 200)
+    _clear_auth_cookie(response)
+    return response
+
+
+@lk_bp.post("/users/<int:user_id>/account-deletion/confirm")
+def confirm_user_account_deletion(user_id: int):
+    actor = get_user_by_id(g.db, g.current_user_id)
+    if not actor:
+        return jsonify({"success": False, "error": "user not found"}), 404
+    if not _may_resolve_account_deletion(actor["role_key"]):
+        return jsonify({"success": False, "error": "forbidden"}), 403
+
+    target = get_user_by_id(g.db, user_id)
+    if not target:
+        return jsonify({"success": False, "error": "user not found"}), 404
+    if not is_account_deletion_pending(target):
+        return jsonify({"success": False, "error": "deletion not pending"}), 400
+
+    add_security_log(
+        g.db,
+        user_id,
+        "account_deleted",
+        "Аккаунт удалён",
+        details=f"Удаление подтверждено сотрудником id={g.current_user_id}.",
+        ip_address=_request_ip(),
+    )
+    deleted = delete_user_by_id(g.db, user_id)
     if not deleted:
         return jsonify({"success": False, "error": "user not found"}), 404
     return jsonify({"success": True}), 200
+
+
+@lk_bp.post("/users/<int:user_id>/account-deletion/restore")
+def restore_user_account_from_deletion(user_id: int):
+    actor = get_user_by_id(g.db, g.current_user_id)
+    if not actor:
+        return jsonify({"success": False, "error": "user not found"}), 404
+    if not _may_resolve_account_deletion(actor["role_key"]):
+        return jsonify({"success": False, "error": "forbidden"}), 403
+
+    target = get_user_by_id(g.db, user_id)
+    if not target:
+        return jsonify({"success": False, "error": "user not found"}), 404
+    if not is_account_deletion_pending(target):
+        return jsonify({"success": False, "error": "deletion not pending"}), 400
+
+    restored = restore_account_from_deletion_request(g.db, user_id)
+    if not restored:
+        return jsonify({"success": False, "error": "deletion not pending"}), 400
+
+    add_security_log(
+        g.db,
+        user_id,
+        "account_deletion_restored",
+        "Удаление аккаунта отменено",
+        details=f"Восстановление выполнено сотрудником id={g.current_user_id}.",
+        ip_address=_request_ip(),
+    )
+    return jsonify({"success": True}), 200
+
+
+@lk_bp.delete("/user")
+def delete_current_user():
+    """Legacy endpoint — use POST /user/deletion-request instead."""
+    return jsonify({"success": False, "error": "use POST /user/deletion-request"}), 410
 
 
 def _can_assign_client_link(permissions: list[str]) -> bool:
@@ -1229,6 +1416,33 @@ def send_case_document_requests(user_id: int):
             "Отправлены запросы документов",
             f"Количество: {updated}",
         )
+        editor = get_user_by_id(g.db, g.current_user_id)
+        editor_name = (editor["name"] or editor["email"] or "").strip() if editor else ""
+        id_set = set(parsed_ids)
+        sent_names: list[str] = []
+        urgent = False
+        for req in requests:
+            if not isinstance(req, dict):
+                continue
+            try:
+                rid = int(req.get("id"))
+            except (TypeError, ValueError):
+                continue
+            if rid not in id_set or not case_data_flag_is_true(req.get("sent")):
+                continue
+            sent_names.append(str(req.get("name") or "Документ").strip() or "Документ")
+            if req.get("priority") == "urgent":
+                urgent = True
+        notify(
+            g.db,
+            user_id,
+            EVENT_DOCUMENT_REQUEST_SENT,
+            {
+                "editor_name": editor_name,
+                "request_names": sent_names,
+                "urgent": urgent,
+            },
+        )
 
     return jsonify(
         {
@@ -1407,6 +1621,8 @@ def update_case_data(user_id: int):
                 "График заявки изменён",
                 _case_history_timeline_details(old_timeline, timeline),
             )
+            for change in detect_timeline_status_changes(old_timeline, timeline):
+                notify(g.db, user_id, EVENT_CASE_TIMELINE_STATUS, change)
         if snap(old_docs) != snap(document_requests):
             add_history_entry(
                 g.db,

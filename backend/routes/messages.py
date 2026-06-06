@@ -13,10 +13,40 @@ from models.user import (
 )
 from config import Config
 from services.file_service import FileService
+from services.notification_service import EVENT_MESSAGE_RECEIVED, notify
 from functools import wraps
 import os
 
 messages_bp = Blueprint('messages', __name__)
+
+
+def _notify_message_received(
+    db,
+    *,
+    sender_id: int,
+    receiver_id: int,
+    message_text: str | None,
+    conversation_id: str,
+    image_path: str | None = None,
+    file_path: str | None = None,
+) -> None:
+    if sender_id == receiver_id:
+        return
+    sender = get_user_by_id(db, sender_id)
+    if not sender:
+        return
+    sender_name = (sender["name"] or sender["email"] or "").strip() or "Spainza"
+    notify(
+        db,
+        receiver_id,
+        EVENT_MESSAGE_RECEIVED,
+        {
+            "sender_name": sender_name,
+            "preview": (message_text or "").strip(),
+            "has_attachment": bool(image_path or file_path),
+            "conversation_id": conversation_id,
+        },
+    )
 
 
 def _request_locale():
@@ -272,6 +302,15 @@ def send_message(conversation_id):
                 file_name,
                 reply_to_message_id=reply_to_message_id,
             )
+            _notify_message_received(
+                g.db,
+                sender_id=user_id,
+                receiver_id=receiver_id,
+                message_text=message_text,
+                image_path=image_path,
+                file_path=file_path,
+                conversation_id=conversation_id,
+            )
         else:
             # Handle JSON data
             data = request.get_json() or {}
@@ -293,6 +332,13 @@ def send_message(conversation_id):
                 receiver_id, 
                 message_text,
                 reply_to_message_id=reply_to_message_id,
+            )
+            _notify_message_received(
+                g.db,
+                sender_id=user_id,
+                receiver_id=receiver_id,
+                message_text=message_text,
+                conversation_id=conversation_id,
             )
         
         return jsonify({

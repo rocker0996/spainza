@@ -17,9 +17,19 @@
       "login.email": "Электронная почта",
       "login.password": "Пароль",
       "login.forgotPassword": "Забыли пароль?",
+      "login.backToLogin": "Вернуться ко входу",
       "login.confirmPassword": "Повторите пароль",
+      "login.newPassword": "Новый пароль",
+      "login.newPasswordPlaceholder": "Минимум 8 символов, буквы и цифры",
       "login.submitLogin": "Войти",
       "login.submitRegister": "Зарегистрироваться",
+      "login.submitForgot": "Отправить ссылку",
+      "login.submitReset": "Сохранить пароль",
+      "login.forgotPasswordSent":
+        "Если аккаунт с таким email существует, мы отправили письмо со ссылкой для восстановления пароля.",
+      "login.resetPasswordSuccess": "Пароль обновлён. Теперь можно войти.",
+      "login.resetInvalidToken": "Ссылка восстановления недействительна. Запросите письмо повторно.",
+      "login.resetPasswordRequired": "Введите новый пароль.",
       "login.orContinue": "Или продолжите с",
       "login.togglePasswordShow": "Показать пароль",
       "login.togglePasswordHide": "Скрыть пароль",
@@ -31,6 +41,29 @@
       "login.registerSuccessWithId":
         "Регистрация успешна. Ваш номер клиента: {id}. Теперь войдите.",
       "login.registerSuccess": "Регистрация успешна. Теперь войдите.",
+      "login.registerCheckEmail":
+        "Вам отправлено письмо на указанный email. Подтвердите вашу почту для завершения регистрации.",
+      "login.registerCheckEmailWithId":
+        "Вам отправлено письмо на указанный email. Подтвердите вашу почту для завершения регистрации. Ваш номер клиента: {id}.",
+      "login.registerEmailFailed":
+        "Аккаунт создан, но письмо не удалось отправить. Попробуйте войти позже или запросите повторную отправку.",
+      "login.emailVerifiedSuccess":
+        "Email подтверждён. Теперь можно войти в личный кабинет.",
+      "login.verifyErrorExpired":
+        "Ссылка подтверждения истекла. Войдите с email и запросите новое письмо.",
+      "login.verifyErrorInvalid": "Ссылка подтверждения недействительна.",
+      "login.accountDeletedSuccess":
+        "Запрос на удаление принят. Вход в аккаунт недоступен. Для восстановления обратитесь в поддержку.",
+      "login.resendVerification": "Отправить письмо повторно",
+      "login.resendVerificationSent": "Письмо с подтверждением отправлено повторно.",
+      "login.resendVerificationFailed": "Не удалось отправить письмо повторно.",
+      "login.google": "Google",
+      "login.googleSoon": "Вход через Google скоро будет доступен",
+      "login.telegram": "Telegram",
+      "login.telegramHint": "Вход и привязка уведомлений в один шаг",
+      "login.telegramUnavailable": "Вход через Telegram временно недоступен",
+      "login.telegramLoading": "Загрузка Telegram…",
+      "login.telegramPending": "Подтвердите вход в приложении Telegram…",
       "common.interfaceLanguage": "Язык интерфейса",
       "common.langRu": "Русский",
       "common.langEn": "English",
@@ -45,9 +78,19 @@
       "login.email": "Email address",
       "login.password": "Password",
       "login.forgotPassword": "Forgot password?",
+      "login.backToLogin": "Back to sign in",
       "login.confirmPassword": "Confirm password",
+      "login.newPassword": "New password",
+      "login.newPasswordPlaceholder": "At least 8 characters with upper and lower case",
       "login.submitLogin": "Log in",
       "login.submitRegister": "Create account",
+      "login.submitForgot": "Send reset link",
+      "login.submitReset": "Save new password",
+      "login.forgotPasswordSent":
+        "If an account with this email exists, we sent a password reset link.",
+      "login.resetPasswordSuccess": "Password updated. You can sign in now.",
+      "login.resetInvalidToken": "This reset link is invalid. Please request a new email.",
+      "login.resetPasswordRequired": "Enter a new password.",
       "login.orContinue": "Or continue with",
       "login.togglePasswordShow": "Show password",
       "login.togglePasswordHide": "Hide password",
@@ -59,6 +102,29 @@
       "login.registerSuccessWithId":
         "Registration successful. Your client ID: {id}. You can sign in now.",
       "login.registerSuccess": "Registration successful. You can sign in now.",
+      "login.registerCheckEmail":
+        "We sent a message to your email address. Confirm your email to complete registration.",
+      "login.registerCheckEmailWithId":
+        "We sent a message to your email address. Confirm your email to complete registration. Your client ID: {id}.",
+      "login.registerEmailFailed":
+        "Your account was created, but we could not send the email. Try again later or request a resend.",
+      "login.emailVerifiedSuccess":
+        "Email confirmed. You can now sign in to your account.",
+      "login.verifyErrorExpired":
+        "This confirmation link has expired. Sign in with your email and request a new one.",
+      "login.verifyErrorInvalid": "This confirmation link is invalid.",
+      "login.accountDeletedSuccess":
+        "Your deletion request was accepted. You cannot sign in. Contact support to restore your account.",
+      "login.resendVerification": "Resend confirmation email",
+      "login.resendVerificationSent": "Confirmation email sent again.",
+      "login.resendVerificationFailed": "Could not resend the confirmation email.",
+      "login.google": "Google",
+      "login.googleSoon": "Google sign-in is coming soon",
+      "login.telegram": "Telegram",
+      "login.telegramHint": "Sign in and enable notifications in one step",
+      "login.telegramUnavailable": "Telegram sign-in is temporarily unavailable",
+      "login.telegramLoading": "Loading Telegram…",
+      "login.telegramPending": "Confirm sign-in in the Telegram app…",
       "common.interfaceLanguage": "Interface language",
       "common.langRu": "Russian",
       "common.langEn": "English",

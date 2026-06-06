@@ -69,21 +69,76 @@
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(195, 197, 217, 0.3);
         }
+        #telegram-login-widget {
+            width: 100%;
+        }
+        #telegram-login-widget iframe {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        .telegram-app-login-btn {
+            width: 100%;
+        }
+        .auth-notice:not(.hidden) {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            padding: 0.875rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(195, 197, 217, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .auth-notice--info {
+            border-color: rgba(0, 82, 255, 0.35);
+            background: rgba(0, 82, 255, 0.12);
+        }
+        .auth-notice--success {
+            border-color: rgba(52, 168, 83, 0.35);
+            background: rgba(52, 168, 83, 0.12);
+        }
+        .auth-notice--error {
+            border-color: rgba(186, 26, 26, 0.35);
+            background: rgba(186, 26, 26, 0.12);
+        }
+        .auth-notice__icon {
+            color: #b7c4ff;
+            font-size: 1.25rem;
+            line-height: 1.25rem;
+            margin-top: 0.1rem;
+        }
+        .auth-notice--success .auth-notice__icon { color: #8de4a8; }
+        .auth-notice--error .auth-notice__icon { color: #ffb4a1; }
+        .auth-notice__text {
+            flex: 1;
+            font-size: 0.875rem;
+            line-height: 1.45;
+            color: #e7e7f5;
+        }
+        .auth-notice__dismiss {
+            color: #c3c5d9;
+            font-size: 1.25rem;
+            line-height: 1;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+        }
+        .auth-notice__dismiss:hover { color: #ffffff; }
     </style>
 </head>
 <body class="flex flex-col relative overflow-x-hidden">
 <!-- Top Navigation Anchor (Minimal for transactional page) -->
-<nav class="w-full top-0 left-0 flex justify-between items-center px-4 sm:px-8 py-6 max-w-7xl mx-auto absolute z-10 gap-4">
+<nav class="w-full top-0 left-0 flex justify-between items-center px-4 sm:px-8 py-6 absolute z-10 gap-4">
 <div class="flex items-center gap-2 min-w-0">
 <span class="material-symbols-outlined text-primary-container shrink-0" style="font-variation-settings: 'FILL' 1;">explore</span>
 <span class="text-xl sm:text-2xl font-bold tracking-tighter text-white font-headline truncate">Spainza</span>
 </div>
-<div class="flex items-center gap-3 sm:gap-5 shrink-0 relative z-20">
+<div class="flex items-center justify-end gap-3 sm:gap-5 shrink-0 relative z-20 ml-auto text-right">
 <div id="login-locale-switcher" class="flex p-1 bg-surface-container rounded-xl border border-outline-variant/20 min-w-[11rem] shadow-sm">
-<button class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-primary transition-colors" data-locale-btn="ru" type="button" data-i18n="common.langRu">Русский</button>
-<button class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-primary transition-colors" data-locale-btn="en" type="button" data-i18n="common.langEn">English</button>
+<button class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-primary transition-colors text-center" data-locale-btn="ru" type="button" data-i18n="common.langRu">Русский</button>
+<button class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-primary transition-colors text-center" data-locale-btn="en" type="button" data-i18n="common.langEn">English</button>
 </div>
-<a class="text-secondary-fixed-dim hover:text-white transition-colors flex items-center gap-2 text-sm font-medium whitespace-nowrap" href="/frontend/ru/index.html" id="login-back-home">
+<a class="text-secondary-fixed-dim hover:text-white transition-colors inline-flex items-center gap-2 text-sm font-medium whitespace-nowrap" href="/frontend/ru/index.html" id="login-back-home">
 <span class="material-symbols-outlined text-[18px]">arrow_back</span>
 <span data-i18n="login.backHome">На главную</span>
 </a>
@@ -99,14 +154,20 @@
 <h1 class="text-3xl font-extrabold tracking-tight font-headline gradient-text mb-2" data-i18n="login.welcome">Добро пожаловать</h1>
 <p class="text-sm text-secondary-fixed-dim font-body" data-i18n="login.lead">Войдите в систему или создайте аккаунт, чтобы продолжить.</p>
 </div>
+<div class="hidden auth-notice auth-notice--info mb-6" id="auth-notice" role="status" aria-live="polite">
+<span class="material-symbols-outlined auth-notice__icon" aria-hidden="true">mail</span>
+<p class="auth-notice__text" id="auth-notice-text"></p>
+<button class="auth-notice__dismiss" id="auth-notice-dismiss" type="button" aria-label="Закрыть">&times;</button>
+</div>
 <!-- Tab Switcher -->
-<div class="flex bg-[rgba(255,255,255,0.05)] rounded-lg p-1 mb-8">
+<div class="flex bg-[rgba(255,255,255,0.05)] rounded-lg p-1 mb-8" id="auth-mode-tabs">
 <button class="flex-1 py-2.5 text-sm font-semibold rounded-md bg-[rgba(255,255,255,0.1)] text-white shadow-sm transition-all" id="tab-login" type="button" data-i18n="login.tabLogin">Вход</button>
 <button class="flex-1 py-2.5 text-sm font-medium rounded-md text-secondary-fixed-dim hover:text-white transition-all" id="tab-register" type="button" data-i18n="login.tabRegister">Регистрация</button>
 </div>
+<button class="hidden mb-6 text-sm font-medium text-primary-container hover:text-white transition-colors" id="back-to-login-link" type="button" data-i18n="login.backToLogin">Вернуться ко входу</button>
 <!-- Login Form -->
 <form class="space-y-5" id="auth-form">
-<div class="space-y-1.5">
+<div class="space-y-1.5" id="email-group">
 <label class="block text-sm font-medium text-secondary-fixed-dim font-label" for="email" data-i18n="login.email">Электронная почта</label>
 <div class="relative">
 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -115,10 +176,10 @@
 <input class="glass-input block w-full pl-10 pr-3 py-3 rounded-lg text-sm sm:text-base placeholder-[rgba(195,197,217,0.5)]" id="email" name="email" placeholder="name@example.com" required="" type="email"/>
 </div>
 </div>
-<div class="space-y-1.5">
+<div class="space-y-1.5" id="password-group">
 <div class="flex justify-between items-center">
-<label class="block text-sm font-medium text-secondary-fixed-dim font-label" for="password" data-i18n="login.password">Пароль</label>
-<a class="text-xs font-medium text-primary-container hover:text-secondary-fixed-dim transition-colors" href="/frontend/ru/index.html" id="forgot-password-link" data-i18n="login.forgotPassword">Забыли пароль?</a>
+<label class="block text-sm font-medium text-secondary-fixed-dim font-label" for="password" id="password-label" data-i18n="login.password">Пароль</label>
+<a class="text-xs font-medium text-primary-container hover:text-secondary-fixed-dim transition-colors" href="#" id="forgot-password-link" data-i18n="login.forgotPassword">Забыли пароль?</a>
 </div>
 <div class="relative">
 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -146,6 +207,7 @@
 </div>
 <p class="text-sm text-error" id="auth-error"></p>
 <p class="text-sm text-primary-container" id="auth-success"></p>
+<button class="hidden mt-2 text-sm font-medium text-primary-container hover:text-white transition-colors" id="resend-verification-btn" type="button" data-i18n="login.resendVerification">Отправить письмо повторно</button>
 </form>
 <!-- Divider -->
 <div class="mt-8 relative">
@@ -156,20 +218,23 @@
 <span class="px-3 bg-[#13151f] text-outline-variant text-xs font-medium tracking-wide uppercase" data-i18n="login.orContinue">Или продолжите с</span>
 </div>
 </div>
-<!-- Social Logins -->
-<div class="mt-6 grid grid-cols-1 gap-3">
-<button class="social-btn flex justify-center items-center py-2.5 px-4 rounded-lg">
-<svg class="h-5 w-5 mr-2" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<!-- Social logins -->
+<div class="mt-6 grid grid-cols-1 gap-3" id="social-login-wrap">
+<button class="social-btn flex justify-center items-center py-2.5 px-4 rounded-lg" id="google-login-btn" type="button">
+<svg class="h-5 w-5 mr-2" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
 </svg>
-<span class="text-sm font-medium text-white">Google</span>
+<span class="text-sm font-medium text-white" data-i18n="login.google">Google</span>
 </button>
+<div class="w-full" id="telegram-login-widget"></div>
 </div>
+<p class="mt-2 hidden text-center text-xs text-secondary-fixed-dim" id="telegram-login-hint" data-i18n="login.telegramHint">Вход и привязка уведомлений в один шаг</p>
+<p class="mt-2 hidden text-center text-xs text-outline-variant" id="telegram-login-unavailable" data-i18n="login.telegramUnavailable">Вход через Telegram временно недоступен</p>
 </div>
 </main>
-<script src="./js/login-i18n.js?v=3" defer></script>
-<script src="./js/login.js?v=3" defer></script>
+<script src="./js/login-i18n.js?v=8" defer></script>
+<script src="./js/login.js?v=9" defer></script>
 </body></html>

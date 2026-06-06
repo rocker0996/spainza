@@ -31,6 +31,8 @@ from routes.user import user_bp
 from routes.messages import messages_bp
 from routes.admin_messages import admin_messages_bp
 from routes.application_progress import bp as application_progress_bp
+from routes.telegram_lk import telegram_lk_bp
+from models.notifications import create_notification_tables
 from services.auth_service import parse_storage_datetime
 from utils.db import get_db_connection
 from utils.rate_limiter import InMemoryRateLimiter
@@ -69,11 +71,12 @@ STATIC_LONG_CACHE_EXTENSIONS = (
 
 DEFAULT_CONTENT_SECURITY_POLICY = (
     "default-src 'self'; "
-    "script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; "
+    "script-src 'self' https://cdn.tailwindcss.com https://telegram.org 'unsafe-inline'; "
     "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; "
     "font-src 'self' https://fonts.gstatic.com data:; "
     "img-src 'self' data: blob: https://lh3.googleusercontent.com https:; "
     "connect-src 'self'; "
+    "frame-src https://oauth.telegram.org; "
     "object-src 'none'; "
     "frame-ancestors 'none'"
 )
@@ -81,6 +84,7 @@ DEFAULT_PERMISSIONS_POLICY = "geolocation=(), camera=(), microphone=()"
 RATE_LIMIT_AUTH_PATHS = frozenset(
     {
         "/api/login",
+        "/api/login/telegram",
         "/api/register",
         "/api/forgot-password",
         "/api/reset-password",
@@ -317,6 +321,7 @@ def create_app() -> Flask:
     app.register_blueprint(messages_bp)
     app.register_blueprint(admin_messages_bp)
     app.register_blueprint(application_progress_bp)
+    app.register_blueprint(telegram_lk_bp, url_prefix="/api/lk")
 
     init_connection = get_db_connection()
     create_users_table(init_connection)
@@ -328,6 +333,7 @@ def create_app() -> Flask:
     create_case_data_table(init_connection)
     create_case_history_table(init_connection)
     create_manager_case_templates_table(init_connection)
+    create_notification_tables(init_connection)
     Message.create_table()
     init_connection.close()
 
@@ -369,6 +375,9 @@ def create_app() -> Flask:
         issued_at = payload.get("issued_at")
         if revoked_at and (not issued_at or issued_at <= int(revoked_at.timestamp())):
             return jsonify({"success": False, "error": "token revoked"}), 401
+
+        if user["deletion_requested_at"]:
+            return jsonify({"success": False, "error": "account deletion pending"}), 403
 
         g.current_user_id = payload["user_id"]
         return None

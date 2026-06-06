@@ -233,11 +233,13 @@
   /** Чат поддержки (совпадает с profile.js). */
   const SUPPORT_USER_ID = 3;
   const COMPLAINT_MESSAGE_PREFIX = "[[SPAINZA_MANAGER_COMPLAINT]]";
+  const ACCOUNT_DELETION_MESSAGE_PREFIX = "[[SPAINZA_ACCOUNT_DELETION]]";
 
   let conversations = [];
   let activeConversationId = null;
   let searchTerm = "";
   let currentUserId = null;
+  let currentUserRole = "";
   /** Публичные номера из GET /api/user для автосоздания чатов (поддержка, менеджер). */
   let sessionSupportDisplayId = null;
   let sessionManagerDisplayId = null;
@@ -421,6 +423,93 @@
         <pre class="text-[13px] leading-relaxed whitespace-pre-wrap font-sans text-on-surface m-0">${escapeHtml(body)}</pre>
       </div>
     `;
+  }
+
+  function isAccountDeletionMessage(text) {
+    const s = String(text || "");
+    return s.startsWith(ACCOUNT_DELETION_MESSAGE_PREFIX);
+  }
+
+  function accountDeletionMessageBody(text) {
+    const s = String(text || "");
+    const nl = s.indexOf("\n");
+    if (s.startsWith(ACCOUNT_DELETION_MESSAGE_PREFIX) && nl !== -1) {
+      return s.slice(nl + 1).trim();
+    }
+    return s.trim();
+  }
+
+  function parseAccountDeletionUserId(text) {
+    const match = String(text || "").match(/\[\[USER_ID:(\d+)\]\]/);
+    return match ? parseInt(match[1], 10) : null;
+  }
+
+  function canManageAccountDeletion() {
+    const key = String(currentUserRole || "").toLowerCase();
+    return key === "management" || key === "admin" || key === "support";
+  }
+
+  function renderAccountDeletionCardHtml(messageText) {
+    const body = accountDeletionMessageBody(messageText);
+    const targetUserId = parseAccountDeletionUserId(messageText);
+    const actions =
+      canManageAccountDeletion() && targetUserId
+        ? `
+        <div class="mt-4 flex flex-col sm:flex-row gap-2">
+          <button type="button" class="account-deletion-action flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-red-700 px-3 py-2.5 text-xs font-bold text-white hover:bg-red-800 transition-colors" data-account-deletion-action="confirm" data-target-user-id="${targetUserId}">
+            <span class="material-symbols-outlined text-[16px]">delete_forever</span>
+            ${escapeHtml(t("chat.deletionConfirmBtn"))}
+          </button>
+          <button type="button" class="account-deletion-action flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-600 bg-white px-3 py-2.5 text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition-colors" data-account-deletion-action="restore" data-target-user-id="${targetUserId}">
+            <span class="material-symbols-outlined text-[16px]">undo</span>
+            ${escapeHtml(t("chat.deletionRestoreBtn"))}
+          </button>
+        </div>
+      `
+        : "";
+    return `
+      <div class="rounded-xl border-[3px] border-red-700 bg-red-50/95 p-4 text-on-surface shadow-sm ring-1 ring-red-200/60">
+        <div class="flex items-center gap-2 text-red-900 font-bold text-[11px] uppercase tracking-wide mb-3">
+          <span class="material-symbols-outlined text-[18px]">person_off</span>
+          ${t("chat.deletionCard")}
+        </div>
+        <pre class="text-[13px] leading-relaxed whitespace-pre-wrap font-sans text-on-surface m-0">${escapeHtml(body)}</pre>
+        ${actions}
+      </div>
+    `;
+  }
+
+  async function handleAccountDeletionAction(action, targetUserId) {
+    const isConfirm = action === "confirm";
+    const ok = await showChatConfirm({
+      title: t(isConfirm ? "chat.deletionConfirmTitle" : "chat.deletionRestoreTitle"),
+      message: t(isConfirm ? "chat.deletionConfirmMessage" : "chat.deletionRestoreMessage"),
+      confirmText: t(isConfirm ? "chat.deletionConfirmBtn" : "chat.deletionRestoreBtn"),
+      variant: isConfirm ? "danger" : "warning",
+    });
+    if (!ok) {
+      return;
+    }
+    const path = isConfirm
+      ? `/api/users/${targetUserId}/account-deletion/confirm`
+      : `/api/users/${targetUserId}/account-deletion/restore`;
+    try {
+      await apiRequest(path, { method: "POST" });
+      await showChatAlert({
+        title: t("chat.deletionActionDone"),
+        message: t(isConfirm ? "chat.deletionConfirmMessage" : "chat.deletionRestoreMessage"),
+        icon: "check_circle",
+      });
+      if (activeConversationId) {
+        await loadMessages(activeConversationId);
+      }
+    } catch (error) {
+      await showChatAlert({
+        title: t("chat.errorTitle"),
+        message: t("chat.deletionActionFailed"),
+        icon: "error",
+      });
+    }
   }
 
   // Message search functions
@@ -798,6 +887,7 @@
     try {
       const data = await apiRequest("/api/user");
       currentUserId = data.id;
+      currentUserRole = data.role && data.role.key ? String(data.role.key) : "";
       sessionSupportDisplayId = data.support_display_id
         ? String(data.support_display_id).trim().toUpperCase()
         : null;
@@ -1285,6 +1375,9 @@
     if (message.message_text && isComplaintMessage(message.message_text)) {
       return t("chat.complaintPreview");
     }
+    if (message.message_text && isAccountDeletionMessage(message.message_text)) {
+      return t("chat.deletionPreview");
+    }
     const text = getDisplayMessageText(message).trim();
     if (text.length > 160) {
       return `${text.slice(0, 160)}…`;
@@ -1501,6 +1594,8 @@
     if (displayText.trim()) {
       if (isComplaintMessage(displayText)) {
         content += renderComplaintCardHtml(displayText);
+      } else if (isAccountDeletionMessage(displayText)) {
+        content += renderAccountDeletionCardHtml(displayText);
       } else {
         const textContent = messageSearchTerm
           ? highlightText(displayText, messageSearchTerm)
@@ -1575,6 +1670,9 @@
     if (s === "Файл") return t("chat.file");
     if (s.startsWith(COMPLAINT_MESSAGE_PREFIX)) {
       return t("chat.complaintPreview");
+    }
+    if (s.startsWith(ACCOUNT_DELETION_MESSAGE_PREFIX)) {
+      return t("chat.deletionPreview");
     }
     if (window.LkI18n) {
       return window.LkI18n.translateSystemMessage(s);
@@ -1792,6 +1890,7 @@
     }
 
     bindMessageBubbleActions();
+    bindAccountDeletionActions();
     bindDeletedHints();
 
     byId.messagesContainer.scrollTop = byId.messagesContainer.scrollHeight;
@@ -1834,7 +1933,7 @@
     }
     byId.messagesContainer.querySelectorAll(".msg-bubble--interactive").forEach((bubble) => {
       bubble.addEventListener("click", (event) => {
-        if (event.target.closest("a")) {
+        if (event.target.closest("a") || event.target.closest("[data-account-deletion-action]")) {
           return;
         }
         const row = bubble.closest("[data-message-index]");
@@ -1848,6 +1947,24 @@
         event.preventDefault();
         event.stopPropagation();
         showMessageActionsMenu(message, event.clientX, event.clientY);
+      });
+    });
+  }
+
+  function bindAccountDeletionActions() {
+    if (!byId.messagesContainer) {
+      return;
+    }
+    byId.messagesContainer.querySelectorAll("[data-account-deletion-action]").forEach((btn) => {
+      btn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const action = btn.getAttribute("data-account-deletion-action");
+        const targetUserId = parseInt(btn.getAttribute("data-target-user-id") || "", 10);
+        if (!action || !targetUserId || Number.isNaN(targetUserId)) {
+          return;
+        }
+        void handleAccountDeletionAction(action, targetUserId);
       });
     });
   }

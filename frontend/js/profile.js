@@ -26,8 +26,54 @@
 
   const apiBases = resolveApiBases();
 
+  const PROFILE_I18N_FALLBACK = {
+    ru: {
+      "profile.emailPendingLead": "Ожидает подтверждения:",
+      "profile.emailPendingHint":
+        "Активен прежний email, пока вы не подтвердите ссылку в письме.",
+      "profile.emailChangeSent":
+        "Письмо с подтверждением отправлено на новый адрес. Проверьте почту.",
+      "profile.emailChangeSendFailed": "Не удалось отправить письмо с подтверждением",
+      "profile.emailChangedSuccess": "Новый email подтверждён и сохранён",
+      "profile.emailChangeExpired": "Ссылка подтверждения истекла. Запросите смену email снова",
+      "profile.emailChangeInvalid": "Ссылка подтверждения недействительна",
+      "profile.emailTaken": "Email уже используется другим пользователем",
+      "profile.emailTelegramBlocked": "Для аккаунтов Telegram смена email недоступна",
+    },
+    en: {
+      "profile.emailPendingLead": "Awaiting confirmation:",
+      "profile.emailPendingHint":
+        "Your previous email stays active until you confirm the link in the message.",
+      "profile.emailChangeSent":
+        "Confirmation email sent to the new address. Please check your inbox.",
+      "profile.emailChangeSendFailed": "Could not send the confirmation email",
+      "profile.emailChangedSuccess": "Your new email is confirmed and saved",
+      "profile.emailChangeExpired":
+        "This confirmation link has expired. Request the email change again",
+      "profile.emailChangeInvalid": "This confirmation link is invalid",
+      "profile.emailTaken": "Email is already used by another user",
+      "profile.emailTelegramBlocked": "Email cannot be changed for Telegram accounts",
+    },
+  };
+
   function t(key, params) {
-    return window.LkI18n ? window.LkI18n.t(key, params) : key;
+    if (window.LkI18n) {
+      const value = window.LkI18n.t(key, params);
+      if (value !== key) {
+        return value;
+      }
+    }
+    const loc = window.LkI18n?.getLocale() === "en" ? "en" : "ru";
+    const fallback = PROFILE_I18N_FALLBACK[loc][key];
+    if (!fallback) {
+      return key;
+    }
+    if (!params) {
+      return fallback;
+    }
+    return fallback.replace(/\{(\w+)\}/g, function (_match, name) {
+      return params[name] != null ? String(params[name]) : "";
+    });
   }
   /** Тот же ID, что в chat.js (чат поддержки). */
   const SUPPORT_USER_ID = 3;
@@ -47,17 +93,32 @@
     /** Публичный номер аккаунта поддержки (из GET /user). */
     supportDisplayId: null,
     assignedManager: null,
+    originalEmail: "",
+    pendingEmail: null,
     notifications: {
       email: true,
       sms: false,
       whatsapp: true,
+      telegram: false,
+    },
+    telegram: {
+      linked: false,
+      bot_username: null,
+      bot_enabled: false,
+      telegram_username: null,
+      pending_link: false,
+      pending_url: null,
     },
   };
+
+  let telegramLinkPollTimer = 0;
 
   const byId = {
     name: document.getElementById("profile-name"),
     nameDesktop: document.getElementById("profile-name-desktop"),
     email: document.getElementById("profile-email"),
+    emailPendingWrap: document.getElementById("profile-email-pending-wrap"),
+    emailPendingValue: document.getElementById("profile-email-pending-value"),
     phone: document.getElementById("profile-phone"),
     accessRole: document.getElementById("profile-access-role"),
     accessRoleMobile: document.getElementById("profile-access-role-mobile"),
@@ -79,6 +140,13 @@
     closeSecurityLogModal: document.getElementById("close-security-log-modal-btn"),
     securityLogList: document.getElementById("security-log-list"),
     deleteAccount: document.getElementById("delete-account-btn"),
+    deleteAccountModal: document.getElementById("delete-account-modal"),
+    deleteAccountModalClose: document.getElementById("delete-account-modal-close-btn"),
+    deleteAccountModalCancel: document.getElementById("delete-account-modal-cancel-btn"),
+    deleteAccountModalSubmit: document.getElementById("delete-account-modal-submit-btn"),
+    deleteAccountPassword: document.getElementById("delete-account-password"),
+    deleteAccountPasswordConfirm: document.getElementById("delete-account-password-confirm"),
+    deleteAccountModalStatus: document.getElementById("delete-account-modal-status"),
     managerPlaceholder: document.getElementById("profile-manager-placeholder"),
     managerDetails: document.getElementById("profile-manager-details"),
     managerAvatar: document.getElementById("profile-manager-avatar"),
@@ -93,6 +161,14 @@
     complaintModalSubmit: document.getElementById("complaint-modal-submit-btn"),
     complaintTextInput: document.getElementById("complaint-text-input"),
     complaintModalStatus: document.getElementById("complaint-modal-status"),
+    telegramSection: document.getElementById("telegram-connect-section"),
+    telegramStatusBadge: document.getElementById("telegram-status-badge"),
+    telegramIcon: document.getElementById("telegram-icon"),
+    telegramFeaturesList: document.getElementById("telegram-features-list"),
+    telegramStatusText: document.getElementById("telegram-status-text"),
+    telegramConnectBtn: document.getElementById("telegram-connect-btn"),
+    telegramConnectBtnLabel: document.getElementById("telegram-connect-btn-label"),
+    telegramUnlinkBtn: document.getElementById("telegram-unlink-btn"),
   };
 
   const toggleButtons = Array.from(document.querySelectorAll("[data-toggle]"));
@@ -439,6 +515,96 @@
     byId.complaintModal.classList.remove("flex");
   }
 
+  function showDeleteAccountModal() {
+    if (!byId.deleteAccountModal) {
+      return;
+    }
+    if (byId.deleteAccountPassword) {
+      byId.deleteAccountPassword.value = "";
+    }
+    if (byId.deleteAccountPasswordConfirm) {
+      byId.deleteAccountPasswordConfirm.value = "";
+    }
+    if (byId.deleteAccountModalStatus) {
+      byId.deleteAccountModalStatus.textContent = "";
+      byId.deleteAccountModalStatus.classList.remove("text-red-600", "text-green-600");
+      byId.deleteAccountModalStatus.classList.add("text-on-surface-variant");
+    }
+    byId.deleteAccountModal.classList.remove("hidden");
+    byId.deleteAccountModal.classList.add("flex");
+    byId.deleteAccountPassword?.focus();
+  }
+
+  function hideDeleteAccountModal() {
+    if (!byId.deleteAccountModal) {
+      return;
+    }
+    byId.deleteAccountModal.classList.add("hidden");
+    byId.deleteAccountModal.classList.remove("flex");
+  }
+
+  function setDeleteAccountModalStatus(key, isError) {
+    if (!byId.deleteAccountModalStatus) {
+      return;
+    }
+    byId.deleteAccountModalStatus.textContent = t(key);
+    byId.deleteAccountModalStatus.classList.remove(
+      "text-on-surface-variant",
+      "text-red-600",
+      "text-green-600"
+    );
+    byId.deleteAccountModalStatus.classList.add(isError ? "text-red-600" : "text-on-surface-variant");
+  }
+
+  async function submitAccountDeletionRequest() {
+    const password = String(byId.deleteAccountPassword?.value || "");
+    const passwordConfirm = String(byId.deleteAccountPasswordConfirm?.value || "");
+    if (!password || !passwordConfirm) {
+      setDeleteAccountModalStatus("profile.deleteModalPasswordRequired", true);
+      return;
+    }
+    if (password !== passwordConfirm) {
+      setDeleteAccountModalStatus("profile.deleteModalPasswordMismatch", true);
+      return;
+    }
+
+    const btn = byId.deleteAccountModalSubmit;
+    if (btn) {
+      btn.disabled = true;
+    }
+    setDeleteAccountModalStatus("profile.deleteModalSubmitting", false);
+
+    try {
+      const payload = await apiRequest("/user/deletion-request", "POST", {
+        password,
+        password_confirm: passwordConfirm,
+      });
+      if (!payload || !payload.success) {
+        throw new Error("delete request failed");
+      }
+      hideDeleteAccountModal();
+      localStorage.removeItem("token");
+      localStorage.removeItem("currentUserProfile");
+      localStorage.removeItem("currentUserProfileSavedAt");
+      window.location.href = "../login.html?account_deleted=1";
+    } catch (error) {
+      const message = String(error?.message || "");
+      if (message === "invalid password") {
+        setDeleteAccountModalStatus("profile.deleteModalWrongPassword", true);
+      } else if (message === "passwords do not match") {
+        setDeleteAccountModalStatus("profile.deleteModalPasswordMismatch", true);
+      } else if (message === "deletion already requested") {
+        setDeleteAccountModalStatus("profile.deleteModalAlreadyRequested", true);
+      } else {
+        setDeleteAccountModalStatus("profile.deleteFailed", true);
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+      }
+    }
+  }
+
   function buildComplaintMessageText(manager, complaintBody) {
     const when = new Date().toLocaleString("ru-RU", {
       day: "2-digit",
@@ -624,6 +790,62 @@ ${body}
     return payload && payload.locale === "en" ? "en" : "ru";
   }
 
+  function renderEmailPendingNotice(visible) {
+    const wrap = byId.emailPendingWrap;
+    const valueNode = byId.emailPendingValue;
+    if (!wrap) {
+      return;
+    }
+    const pending = String(state.pendingEmail || "").trim();
+    if (!visible || !pending) {
+      if (valueNode) {
+        valueNode.textContent = "";
+      }
+      wrap.classList.add("hidden");
+      return;
+    }
+    if (valueNode) {
+      valueNode.textContent = pending;
+    }
+    if (window.LkI18n) {
+      window.LkI18n.applyDocument(wrap);
+    }
+    wrap.classList.remove("hidden");
+  }
+
+  function applyProfileQueryMessages() {
+    let params;
+    try {
+      params = new URLSearchParams(window.location.search);
+    } catch (_error) {
+      return;
+    }
+    if (params.get("email_changed") === "1") {
+      state.pendingEmail = null;
+      renderEmailPendingNotice(false);
+      setProfileStatus("save", "profile.emailChangedSuccess", false);
+    } else if (params.get("email_change_error") === "expired") {
+      setProfileStatus("save", "profile.emailChangeExpired", true);
+    } else if (params.get("email_change_error") === "taken") {
+      setProfileStatus("save", "profile.emailTaken", true);
+    } else if (params.get("email_change_error") === "invalid") {
+      setProfileStatus("save", "profile.emailChangeInvalid", true);
+    }
+    if (
+      params.has("email_changed") ||
+      params.has("email_change_error")
+    ) {
+      try {
+        const clean = new URL(window.location.href);
+        clean.searchParams.delete("email_changed");
+        clean.searchParams.delete("email_change_error");
+        window.history.replaceState({}, "", clean.pathname + clean.search + clean.hash);
+      } catch (_error) {
+        /* ignore */
+      }
+    }
+  }
+
   function applyProfilePayload(payload) {
     if (!payload) {
       return;
@@ -644,7 +866,10 @@ ${body}
     if (byId.nameDesktop) {
       byId.nameDesktop.value = nextName;
     }
-    byId.email.value = payload.email || "";
+    state.originalEmail = String(payload.email || "").trim();
+    state.pendingEmail = payload.pending_email ? String(payload.pending_email).trim() : null;
+    byId.email.value = state.originalEmail;
+    renderEmailPendingNotice(false);
     byId.phone.value = payload.phone || "";
     state.main_goal = String(payload.main_goal || "").trim();
 
@@ -675,6 +900,7 @@ ${body}
       state.notifications.email = Boolean(payload.notifications.email);
       state.notifications.sms = Boolean(payload.notifications.sms);
       state.notifications.whatsapp = Boolean(payload.notifications.whatsapp);
+      state.notifications.telegram = Boolean(payload.notifications.telegram);
     }
 
     if (byId.avatarPreview) {
@@ -687,6 +913,259 @@ ${body}
     window.syncProfileNameRequiredMarkers?.(nextName);
   }
 
+  const TELEGRAM_FEATURES = [
+    {
+      icon: "login",
+      key: "profile.telegramFeatureLogin",
+      fallback: "Вход 1 кнопкой через Telegram",
+    },
+    { icon: "chat", key: "profile.telegramFeatureMessages", fallback: "Новые сообщения от менеджера" },
+    { icon: "description", key: "profile.telegramFeatureDocuments", fallback: "Запросы и статусы документов" },
+    { icon: "timeline", key: "profile.telegramFeatureCase", fallback: "Изменения статуса кейса" },
+  ];
+
+  function telegramFeatureLabel(item) {
+    const translated = t(item.key);
+    if (translated && translated !== item.key) {
+      return translated;
+    }
+    return item.fallback;
+  }
+
+  function renderTelegramFeatures() {
+    const list = byId.telegramFeaturesList;
+    if (!list) {
+      return;
+    }
+    list.innerHTML = TELEGRAM_FEATURES.map((item) => {
+      const label = telegramFeatureLabel(item);
+      return (
+        `<li class="telegram-card__feature">` +
+        `<span class="telegram-card__feature-icon" aria-hidden="true">${item.icon}</span>` +
+        `<span class="telegram-card__feature-text">${label}</span>` +
+        `</li>`
+      );
+    }).join("");
+  }
+
+  function setTelegramCardState(mode) {
+    if (byId.telegramSection) {
+      byId.telegramSection.dataset.telegramState = mode;
+    }
+  }
+
+  function stopTelegramLinkPolling() {
+    if (telegramLinkPollTimer) {
+      window.clearInterval(telegramLinkPollTimer);
+      telegramLinkPollTimer = 0;
+    }
+  }
+
+  function startTelegramLinkPolling() {
+    stopTelegramLinkPolling();
+    const startedAt = Date.now();
+    const maxWaitMs = 10 * 60 * 1000;
+    telegramLinkPollTimer = window.setInterval(async () => {
+      if (Date.now() - startedAt > maxWaitMs) {
+        stopTelegramLinkPolling();
+        state.telegram.pending_link = false;
+        state.telegram.pending_url = null;
+        renderTelegramSection();
+        return;
+      }
+      await loadTelegramStatus({ silent: true });
+      if (state.telegram.linked) {
+        stopTelegramLinkPolling();
+        state.telegram.pending_link = false;
+        state.telegram.pending_url = null;
+        renderTelegramSection();
+      }
+    }, 2000);
+  }
+
+  function openTelegramDeepLink(url) {
+    if (!url) {
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function setTelegramBadge(labelKey, tone) {
+    const badge = byId.telegramStatusBadge;
+    if (!badge) {
+      return;
+    }
+    if (!labelKey) {
+      badge.classList.add("hidden");
+      badge.textContent = "";
+      return;
+    }
+    badge.textContent = t(labelKey);
+    badge.classList.remove("hidden");
+    badge.className =
+      "telegram-card__badge shrink-0 " +
+      (tone === "connected"
+        ? "telegram-card__badge--connected"
+        : tone === "pending"
+          ? "telegram-card__badge--pending"
+          : "telegram-card__badge--idle");
+  }
+
+  function renderTelegramSection() {
+    const linked = Boolean(state.telegram.linked);
+    const botEnabled = Boolean(state.telegram.bot_enabled);
+    const statusEl = byId.telegramStatusText;
+    const connectBtn = byId.telegramConnectBtn;
+    const connectBtnLabel = byId.telegramConnectBtnLabel;
+    const unlinkBtn = byId.telegramUnlinkBtn;
+
+    if (!statusEl) {
+      return;
+    }
+
+    if (!botEnabled) {
+      setTelegramCardState("unavailable");
+      setTelegramBadge(null);
+      statusEl.classList.remove("hidden");
+      statusEl.textContent = t("profile.telegramUnavailable");
+      connectBtn?.classList.add("hidden");
+      unlinkBtn?.classList.add("hidden");
+      byId.telegramFeaturesList?.classList.add("hidden");
+      if (byId.telegramIcon) {
+        byId.telegramIcon.textContent = "cloud_off";
+      }
+      return;
+    }
+
+    byId.telegramFeaturesList?.classList.remove("hidden");
+    connectBtn?.classList.remove("hidden");
+
+    if (linked) {
+      setTelegramCardState("linked");
+      setTelegramBadge("profile.telegramConnectedBadge", "connected");
+      const username = state.telegram.telegram_username
+        ? `@${state.telegram.telegram_username}`
+        : t("profile.telegramLinkedGeneric");
+      statusEl.classList.remove("hidden");
+      statusEl.textContent = t("profile.telegramLinked", { username });
+      connectBtn?.classList.add("hidden");
+      unlinkBtn?.classList.remove("hidden");
+      if (byId.telegramIcon) {
+        byId.telegramIcon.textContent = "check_circle";
+      }
+      return;
+    }
+
+    unlinkBtn?.classList.add("hidden");
+    connectBtn?.classList.remove("hidden");
+    if (byId.telegramIcon) {
+      byId.telegramIcon.textContent = state.telegram.pending_link
+        ? "hourglass_top"
+        : "notifications_active";
+    }
+
+    if (state.telegram.pending_link) {
+      setTelegramCardState("pending");
+      setTelegramBadge("profile.telegramPendingBadge", "pending");
+      statusEl.classList.remove("hidden");
+      statusEl.textContent = t("profile.telegramPendingLead");
+      if (connectBtnLabel) {
+        connectBtnLabel.textContent = t("profile.telegramOpenAgain");
+      }
+      return;
+    }
+
+    if (connectBtnLabel) {
+      connectBtnLabel.textContent = t("profile.telegramConnect");
+    }
+    setTelegramCardState("idle");
+    setTelegramBadge("profile.telegramDisconnectedBadge", "idle");
+    statusEl.textContent = "";
+    statusEl.classList.add("hidden");
+  }
+
+  async function loadTelegramStatus(options) {
+    const silent = Boolean(options && options.silent);
+    try {
+      const payload = await apiRequest("/lk/telegram", "GET");
+      if (!payload || !payload.success) {
+        return;
+      }
+      state.telegram.linked = Boolean(payload.linked);
+      state.telegram.bot_username = payload.bot_username || null;
+      state.telegram.bot_enabled = Boolean(payload.bot_enabled);
+      state.telegram.telegram_username = payload.telegram_username || null;
+      if (payload.linked) {
+        state.notifications.telegram = true;
+        state.telegram.pending_link = false;
+        state.telegram.pending_url = null;
+        stopTelegramLinkPolling();
+      }
+      if (!silent) {
+        renderTelegramSection();
+      }
+    } catch (error) {
+      if (!silent) {
+        renderTelegramSection();
+      }
+    }
+  }
+
+  async function connectTelegram() {
+    if (!byId.telegramConnectBtn) {
+      return;
+    }
+
+    if (state.telegram.pending_link && state.telegram.pending_url) {
+      openTelegramDeepLink(state.telegram.pending_url);
+      renderTelegramSection();
+      return;
+    }
+
+    byId.telegramConnectBtn.disabled = true;
+    try {
+      const payload = await apiRequest("/lk/telegram/link-code", "POST");
+      if (!payload) {
+        return;
+      }
+      if (!payload.success || !payload.telegram_url) {
+        window.alert(payload.error || t("profile.telegramConnectFailed"));
+        return;
+      }
+      state.telegram.pending_link = true;
+      state.telegram.pending_url = payload.telegram_url;
+      state.telegram.bot_username = payload.bot_username || state.telegram.bot_username;
+      openTelegramDeepLink(payload.telegram_url);
+      renderTelegramSection();
+      startTelegramLinkPolling();
+    } catch (error) {
+      window.alert(t("profile.telegramConnectFailed"));
+    } finally {
+      byId.telegramConnectBtn.disabled = false;
+    }
+  }
+
+  async function unlinkTelegram() {
+    if (!window.confirm(t("profile.telegramDisconnectConfirm"))) {
+      return;
+    }
+    try {
+      const payload = await apiRequest("/lk/telegram", "DELETE");
+      if (!payload || !payload.success) {
+        throw new Error("unlink failed");
+      }
+      stopTelegramLinkPolling();
+      state.telegram.linked = false;
+      state.telegram.telegram_username = null;
+      state.telegram.pending_link = false;
+      state.telegram.pending_url = null;
+      state.notifications.telegram = false;
+      renderTelegramSection();
+    } catch (error) {
+      window.alert(t("profile.telegramDisconnectFailed"));
+    }
+  }
+
   async function loadProfile() {
     try {
       const payload = await apiRequest("/user", "GET");
@@ -695,6 +1174,7 @@ ${body}
       }
       applyProfilePayload(payload);
       window.persistUserProfileAndRefreshUi?.(payload);
+      await loadTelegramStatus();
     } catch (error) {
       const cachedRaw = localStorage.getItem("currentUserProfile");
       if (!cachedRaw) {
@@ -711,9 +1191,52 @@ ${body}
 
   async function saveProfile() {
     setProfileStatus("save", "profile.saving", false);
+    const nextEmail = String(byId.email.value || "").trim().toLowerCase();
+    const activeEmail = String(state.originalEmail || "").trim().toLowerCase();
+    const emailChanged = Boolean(nextEmail && nextEmail !== activeEmail);
+    let emailChangeSent = null;
+
+    if (emailChanged) {
+      try {
+        const emailResponse = await apiRequest("/user/email-change", "POST", {
+          new_email: nextEmail,
+        });
+        if (!emailResponse || !emailResponse.success) {
+          const err = String(emailResponse?.error || "").trim();
+          if (err === "telegram account email cannot be changed") {
+            throw new Error("telegram account");
+          }
+          if (err === "email already exists") {
+            throw new Error("email already exists");
+          }
+          throw new Error("email change failed");
+        }
+        state.pendingEmail = String(
+          emailResponse.pending_email || nextEmail
+        ).trim();
+        byId.email.value = state.originalEmail;
+        renderEmailPendingNotice(true);
+        emailChangeSent = Boolean(
+          emailResponse.email_delivery && emailResponse.email_delivery.sent
+        );
+      } catch (error) {
+        const message = String(error?.message || "");
+        setProfileStatus(
+          "save",
+          message === "email already exists"
+            ? "profile.emailTaken"
+            : message === "telegram account"
+              ? "profile.emailTelegramBlocked"
+              : "profile.saveFailed",
+          true
+        );
+        return;
+      }
+    }
+
     const profilePayload = {
       name: profileNameValueForSave(),
-      email: String(byId.email.value || "").trim(),
+      email: state.originalEmail,
       phone: String(byId.phone.value || "").trim(),
       main_goal: String(state.main_goal || "").trim(),
       avatar: state.avatar,
@@ -722,6 +1245,7 @@ ${body}
         email: Boolean(state.notifications.email),
         sms: Boolean(state.notifications.sms),
         whatsapp: Boolean(state.notifications.whatsapp),
+        telegram: Boolean(state.notifications.telegram),
       },
     };
 
@@ -754,14 +1278,18 @@ ${body}
           // ignore
         }
       }
-      setProfileStatus("save", "profile.saved", false);
+      if (emailChanged) {
+        setProfileStatus(
+          "save",
+          emailChangeSent ? "profile.emailChangeSent" : "profile.emailChangeSendFailed",
+          !emailChangeSent
+        );
+      } else {
+        setProfileStatus("save", "profile.saved", false);
+      }
       window.syncProfileNameRequiredMarkers?.(profileNameValueForSave());
     } catch (error) {
-      setProfileStatus(
-        "save",
-        error?.message === "email already exists" ? "profile.emailTaken" : "profile.saveFailed",
-        true
-      );
+      setProfileStatus("save", "profile.saveFailed", true);
     }
   }
 
@@ -925,6 +1453,9 @@ ${body}
     window.syncProfileNameRequiredMarkers?.(profileNameValueForSave());
   });
 
+  byId.telegramConnectBtn?.addEventListener("click", connectTelegram);
+  byId.telegramUnlinkBtn?.addEventListener("click", unlinkTelegram);
+
   byId.saveProfile.addEventListener("click", saveProfile);
   byId.updatePassword?.addEventListener("click", updatePassword);
   byId.newPassword?.addEventListener("keydown", (event) => {
@@ -955,6 +1486,7 @@ ${body}
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       hideComplaintModal();
+      hideDeleteAccountModal();
       hideSecurityLogModal();
     }
   });
@@ -973,36 +1505,46 @@ ${body}
       hideComplaintModal();
     }
   });
-  byId.deleteAccount?.addEventListener("click", async () => {
-    const confirmed = window.confirm(t("profile.deleteConfirm"));
-    if (!confirmed) {
-      return;
+  byId.deleteAccount?.addEventListener("click", showDeleteAccountModal);
+  byId.deleteAccountModalClose?.addEventListener("click", hideDeleteAccountModal);
+  byId.deleteAccountModalCancel?.addEventListener("click", hideDeleteAccountModal);
+  byId.deleteAccountModalSubmit?.addEventListener("click", submitAccountDeletionRequest);
+  byId.deleteAccountModal?.addEventListener("click", (event) => {
+    if (event.target === byId.deleteAccountModal) {
+      hideDeleteAccountModal();
     }
-    try {
-      const payload = await apiRequest("/user", "DELETE");
-      if (!payload || !payload.success) {
-        throw new Error("delete failed");
-      }
-      localStorage.removeItem("token");
-      localStorage.removeItem("currentUserProfile");
-      localStorage.removeItem("currentUserProfileSavedAt");
-      window.location.href = "../login.html";
-    } catch (error) {
-      window.alert(t("profile.deleteFailed"));
+  });
+  byId.deleteAccountPasswordConfirm?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      submitAccountDeletionRequest();
     }
   });
 
   renderToggles();
   renderLocaleButtons();
+  renderTelegramFeatures();
+  applyProfileQueryMessages();
   loadProfile();
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && state.telegram.pending_link) {
+      loadTelegramStatus();
+    }
+  });
 
   window.addEventListener("lk-locale-change", () => {
     if (window.LkI18n) {
       state.locale = window.LkI18n.getLocale();
       window.LkI18n.applyDocument();
       renderLocaleButtons();
+      renderTelegramFeatures();
+      renderTelegramSection();
     }
     refreshProfileStatusMessages();
+    if (byId.emailPendingWrap && !byId.emailPendingWrap.classList.contains("hidden")) {
+      renderEmailPendingNotice(true);
+    }
     renderAssignedManager(state.assignedManager);
     if (byId.securityLogModal && !byId.securityLogModal.classList.contains("hidden")) {
       openSecurityLogs();

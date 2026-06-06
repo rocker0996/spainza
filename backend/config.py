@@ -1,6 +1,25 @@
 """Application configuration."""
 
 import os
+from pathlib import Path
+
+
+def _load_dotenv_file() -> None:
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    if not env_path.is_file():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+_load_dotenv_file()
 
 
 def _parse_csv_env(name: str) -> tuple[str, ...]:
@@ -77,8 +96,11 @@ class Config:
     """Аккаунт поддержки в ЛК (числовой id в БД). Для чата по умолчанию используется его публичный display_id из профиля."""
     PORTAL_SUPPORT_USER_ID = int(os.getenv("PORTAL_SUPPORT_USER_ID", "3"))
     PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "")
+    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "").strip().lstrip("@")
 
     EMAIL_VERIFICATION_TTL_SECONDS = int(os.getenv("EMAIL_VERIFICATION_TTL_SECONDS", "172800"))
+    EMAIL_CHANGE_TTL_SECONDS = int(os.getenv("EMAIL_CHANGE_TTL_SECONDS", "172800"))
     PASSWORD_RESET_TTL_SECONDS = int(os.getenv("PASSWORD_RESET_TTL_SECONDS", "3600"))
 
     SMTP_HOST = os.getenv("SMTP_HOST", "")
@@ -87,6 +109,7 @@ class Config:
     SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
     SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", SMTP_USERNAME)
     SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "1").strip().lower() not in {"0", "false", "no"}
+    SMTP_USE_SSL = os.getenv("SMTP_USE_SSL", "0").strip().lower() in {"1", "true", "yes"}
     CORS_ALLOWED_ORIGINS = _parse_csv_env("CORS_ALLOWED_ORIGINS")
     RATE_LIMIT_ENABLED = os.getenv("RATE_LIMIT_ENABLED", "1").strip().lower() not in {"0", "false", "no"}
     AUTH_RATE_LIMIT_IP_MAX = _parse_int_env("AUTH_RATE_LIMIT_IP_MAX", 12)

@@ -1,9 +1,7 @@
 """Upload project artifacts to VPS and rebuild spainza-site + spainza-backend.
 
-Usage (PowerShell):
-  $env:SPAINZA_SSH_PASSWORD='...'; python tools/remote_deploy.py
-
-Or use SSH keys (ssh-agent / ~/.ssh/id_ed25519 / id_rsa).
+SSH credentials: .env.deploy (gitignored) or SSH keys.
+Usage: python tools/remote_deploy.py
 """
 from __future__ import annotations
 
@@ -17,6 +15,12 @@ from pathlib import Path
 import paramiko
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.deploy_env import load_deploy_env
+
+load_deploy_env()
+
 HOST = os.environ.get("SPAINZA_SSH_HOST", "185.73.126.68")
 USER = os.environ.get("SPAINZA_SSH_USER", "root")
 PASSWORD = os.environ.get("SPAINZA_SSH_PASSWORD", "")
@@ -25,10 +29,21 @@ REPO = os.environ.get("SPAINZA_REPO", "/opt/spainza")
 ARCHIVE_TOP_LEVEL = (
     "frontend",
     "backend",
+    "shared",
     "docker",
     "tools",
     "wsgi.py",
+    "run_telegram_worker.py",
+    "requirements.txt",
     "docker-compose.production.yml",
+    "index.html",
+    "404.html",
+    "contact.html",
+    "gold.html",
+    "nomad.html",
+    "process.html",
+    "privacy-policy.html",
+    "servces.html",
 )
 
 EDGE_COMPOSE_FILE = os.environ.get(
@@ -134,11 +149,12 @@ def main() -> int:
         f"cd {REPO} && tar -xzf _deploy_payload.tar.gz && rm -f _deploy_payload.tar.gz",
         (
             f"cd {REPO} && docker compose --env-file .env.production "
-            f"-f docker-compose.production.yml build spainza-backend spainza-site"
+            f"-f docker-compose.production.yml build spainza-backend spainza-site spainza-telegram-worker"
         ),
         (
             f"cd {REPO} && docker compose --env-file .env.production "
-            f"-f docker-compose.production.yml up -d --remove-orphans spainza-backend spainza-site"
+            f"-f docker-compose.production.yml up -d --remove-orphans "
+            f"spainza-backend spainza-site spainza-telegram-worker"
         ),
         (
             f"cd {REPO} && docker compose --env-file .env.production "

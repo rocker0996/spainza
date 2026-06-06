@@ -3,6 +3,11 @@
 from flask import Blueprint, jsonify, request, g
 from models.application_progress import ApplicationProgress
 from models.user import get_user_by_id, staff_may_access_target_user_workspace
+from services.notification_service import (
+    EVENT_CASE_STAGE_CHANGED,
+    notify,
+    stage_title,
+)
 
 bp = Blueprint('application_progress', __name__)
 
@@ -110,6 +115,7 @@ def update_user_progress(user_id):
             return jsonify({'error': 'User not found'}), 404
         
         application_type = user['application_type'] or 'vnj_investment'
+        old_stage_id = user['current_stage'] or 'consultation'
         
         # Validate that the stage exists for this application type
         stages = ApplicationProgress.get_stages_for_type(application_type)
@@ -128,6 +134,18 @@ def update_user_progress(user_id):
             (new_stage_id, user_id)
         )
         g.db.commit()
+
+        if old_stage_id != new_stage_id:
+            locale = "en" if str(user["locale"] or "ru").strip().lower() == "en" else "ru"
+            notify(
+                g.db,
+                user_id,
+                EVENT_CASE_STAGE_CHANGED,
+                {
+                    "stage_id": new_stage_id,
+                    "stage_title": stage_title(application_type, new_stage_id, locale),
+                },
+            )
         
         # Generate updated progress data
         progress_data = ApplicationProgress.create_progress(

@@ -26,6 +26,11 @@ from models.case_data import (
 )
 from services.case_template_apply import materialize_case_from_template_if_needed
 from services.file_service import FileService
+from services.notification_service import (
+    EVENT_DOCUMENT_APPROVED,
+    EVENT_DOCUMENT_REJECTED,
+    notify,
+)
 import os
 
 documents_bp = Blueprint("documents", __name__)
@@ -364,6 +369,12 @@ def approve_document_endpoint(document_id):
             action="Документ одобрен",
             details=f"Документ '{document['title']}' был одобрен"
         )
+        notify(
+            g.db,
+            int(document["user_id"]),
+            EVENT_DOCUMENT_APPROVED,
+            {"document_title": document["title"] or ""},
+        )
         
         return jsonify({
             "success": True,
@@ -418,6 +429,15 @@ def reject_document_endpoint(document_id):
             editor_id=g.current_user_id,
             action="Документ отклонен",
             details=f"Документ '{document['title']}' был отклонен. Причина: {comment}"
+        )
+        notify(
+            g.db,
+            int(document["user_id"]),
+            EVENT_DOCUMENT_REJECTED,
+            {
+                "document_title": document["title"] or "",
+                "rejection_comment": comment,
+            },
         )
         
         return jsonify({
