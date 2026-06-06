@@ -48,6 +48,8 @@ LEGACY_RU_PAGE_REDIRECTS = {
     "gold.html": "/frontend/ru/gold.html",
     "nomad.html": "/frontend/ru/nomad.html",
     "privacy-policy.html": "/frontend/ru/privacy-policy.html",
+    "terms-of-service.html": "/frontend/ru/terms-of-service.html",
+    "cookie-policy.html": "/frontend/ru/cookie-policy.html",
     "login.html": "/frontend/login.html",
 }
 
