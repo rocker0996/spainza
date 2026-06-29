@@ -6,7 +6,7 @@
   "scripts": {
     "build:css": "tailwindcss -i ./frontend/css/tailwind.input.css -o ./frontend/css/portal.css --minify",
     "watch:css": "tailwindcss -i ./frontend/css/tailwind.input.css -o ./frontend/css/portal.css --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "python -m unittest backend.test_smoke -v && python backend/test_visa_permissions.py"
   },
   "keywords": [],
   "author": "",

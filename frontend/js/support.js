@@ -304,7 +304,9 @@
     var guides = document.getElementById("support-link-guides");
     var legal = document.getElementById("support-link-legal");
     if (guides) {
-      guides.href = siteBasePath() + "process.html";
+      guides.href = "./guides.html";
+      guides.removeAttribute("target");
+      guides.removeAttribute("rel");
     }
     if (legal) {
       legal.href = siteBasePath() + "privacy-policy.html";

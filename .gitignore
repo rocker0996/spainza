@@ -44,6 +44,7 @@ htmlcov/
 
 # IDE settings
 .cursor/
+.vs/
 .vscode/
 .idea/
 
@@ -56,7 +57,7 @@ database/*.sqlite3
 *.sqlite3
 
 # User-uploaded/generated files
-storage/documents/
+storage/
 
 # Local dev launch scripts (keep on machine only)
 start-dev.bat

@@ -57,6 +57,18 @@ class AppSmokeTest(unittest.TestCase):
                 self.assertEqual(response.status_code, 401)
                 self.assertEqual(response.get_json()["error"], "missing token")
 
+    def test_private_project_files_are_not_served(self) -> None:
+        private_paths = (
+            "/.env",
+            "/backend/app.py",
+            "/database/app.db",
+            "/tools/remote_deploy.py",
+        )
+        for path in private_paths:
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 404)
+
     def test_message_file_preserves_cyrillic_display_name(self) -> None:
         from services.file_service import FileService
 

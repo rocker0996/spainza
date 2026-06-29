@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html class="light" lang="ru">
+<head>
+<style id="lk-gate-nav-css">[data-lk-gate]:not(.lk-gate-visible){display:none!important}</style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96"/>
+<link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg"/>
+<link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png"/>
+<meta name="apple-mobile-web-app-title" content="Spainza"/>
+<link rel="manifest" href="/frontend/img/favicons/site.webmanifest"/>
+<title>Руководства | Spainza</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/frontend/css/portal.css?v=1"/>
+<style>
+body { font-family: 'Inter', sans-serif; }
+h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.ambient-shadow { box-shadow: 0 20px 40px rgba(117, 118, 130, 0.06); }
+.guide-section { scroll-margin-top: 112px; }
+.guide-row + .guide-row { border-top: 1px solid rgba(117, 118, 130, 0.16); }
+.guide-anchor.is-active { color: #003ec7; background: rgba(221, 225, 255, 0.55); }
+@media print {
+  aside, .print-hidden, header.md\:hidden { display: none !important; }
+  main { margin-left: 0 !important; padding-top: 0 !important; max-width: none !important; }
+  .ambient-shadow { box-shadow: none !important; }
+}
+</style>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen flex overflow-x-hidden" data-layout-header="false" data-layout-footer="false" data-lk-nav-active="support">
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 pt-10 pb-8 bg-surface-container-lowest border-r border-outline-variant/15 z-40">
+<div class="px-8 mb-12">
+<a href="./dashboard.html" class="text-2xl font-black tracking-tighter text-primary-container font-headline mb-1 inline-block no-underline hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-container rounded-sm">Spainza</a>
+<div class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant font-label">Elite Intelligence</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6">
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./dashboard.html"><span class="material-symbols-outlined">dashboard</span><span data-i18n="nav.dashboard">Главная</span></a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./clients.html" data-lk-gate="clients"><span class="material-symbols-outlined">groups</span><span data-i18n="nav.clients">Клиенты</span></a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./documents.html" data-lk-gate="documents"><span class="material-symbols-outlined">description</span><span data-i18n="nav.documents">Документы</span></a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./configurator.html" data-lk-gate="configurator"><span class="material-symbols-outlined">rule_settings</span><span data-i18n="nav.configurator">Шаблоны кейсов</span></a>
+<a class="flex items-center gap-4 text-outline px-6 py-3 hover:bg-surface-container-low rounded-r-xl transition-all border-l-4 border-transparent hover:border-outline-variant/30" href="./messages.html" data-lk-gate="messages"><span class="material-symbols-outlined">chat_bubble</span><span data-i18n="nav.messages">Сообщения</span></a>
+</nav>
+<div class="px-6 mb-8"></div>
+<nav class="flex flex-col gap-2 font-headline text-sm font-semibold uppercase tracking-widest w-full pr-6 border-t border-outline-variant/15 pt-6">
+<div class="px-6 mb-3">
+<div class="text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant font-label mb-2 text-center" data-i18n="common.interfaceLanguage">Язык интерфейса</div>
+<div class="flex p-1 bg-surface-container rounded-xl border border-outline-variant/20">
+<button class="flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-primary" data-locale-btn="ru" type="button" data-i18n="common.langRu">Русский</button>
+<button class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-primary transition-colors" data-locale-btn="en" type="button" data-i18n="common.langEn">English</button>
+</div>
+</div>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all" href="./profile.html"><span class="material-symbols-outlined text-[20px]">tune</span><span data-i18n="nav.profile">Профиль</span></a>
+<a class="flex items-center gap-4 text-primary-container bg-primary-fixed/30 rounded-r-xl border-l-4 border-primary-container px-6 py-2 transition-transform active:scale-[0.98]" href="./support.html"><span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">help_center</span><span data-i18n="nav.support">Поддержка</span></a>
+<a class="flex items-center gap-4 text-outline px-6 py-2 hover:bg-surface-container-low rounded-r-xl transition-all mt-4" href="../login.html" id="logout-btn"><span class="material-symbols-outlined text-[20px]">logout</span><span data-i18n="nav.logout">Выход</span></a>
+</nav>
+</aside>
+
+<main class="flex-1 md:ml-64 pt-24 md:pt-8 px-4 sm:px-6 md:px-12 pb-12 max-w-[1500px] mx-auto w-full">
+<div class="print-hidden mb-6">
+<a href="./support.html" class="inline-flex items-center gap-2 text-sm font-semibold text-primary-container hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>К поддержке
+</a>
+</div>
+
+<section class="mb-8 rounded-2xl bg-surface-container-lowest p-6 md:p-10 ambient-shadow border border-outline-variant/10">
+<div class="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-end">
+<div>
+<div id="guide-audience-pill" class="inline-flex items-center gap-2 rounded-full bg-primary-fixed/40 px-3 py-1 text-xs font-bold uppercase tracking-widest text-primary-container mb-5">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>Руководства
+</div>
+<h1 id="guide-title" class="font-headline text-3xl md:text-5xl font-bold tracking-tight text-on-surface mb-4">Загрузка руководства...</h1>
+<p id="guide-lead" class="text-base md:text-lg text-on-surface-variant max-w-3xl leading-relaxed">Определяем доступные разделы личного кабинета.</p>
+</div>
+<div class="space-y-3 print-hidden">
+<label class="sr-only" for="guides-search">Поиск по руководствам</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input id="guides-search" class="w-full rounded-xl bg-white border border-outline-variant/25 py-3.5 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary-container focus:border-primary-container" type="search" placeholder="Найти страницу, действие или статус..."/>
+</div>
+<button type="button" id="guides-print" class="w-full rounded-xl bg-primary-container text-on-primary py-3 px-4 font-headline font-semibold text-sm hover:opacity-90 transition-opacity inline-flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">print</span>Распечатать
+</button>
+</div>
+</div>
+</section>
+
+<section id="guides-loading" class="rounded-xl bg-surface-container-lowest p-8 ambient-shadow border border-outline-variant/10">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high animate-pulse"></div>
+<div class="flex-1 space-y-3">
+<div class="h-4 max-w-sm rounded-md bg-surface-container-high animate-pulse"></div>
+<div class="h-3 max-w-xl rounded-md bg-surface-container-high/70 animate-pulse"></div>
+</div>
+</div>
+</section>
+
+<div id="guides-layout" class="hidden grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+<aside class="print-hidden hidden lg:block">
+<nav id="guides-toc" class="sticky top-8 rounded-xl bg-surface-container-lowest border border-outline-variant/15 p-3 ambient-shadow" aria-label="Разделы руководства"></nav>
+</aside>
+<div>
+<div id="guides-quick-start" class="mb-8"></div>
+<div id="guides-content" class="space-y-8"></div>
+<p id="guides-empty" class="hidden rounded-xl bg-surface-container-low p-6 text-center text-sm text-on-surface-variant">Ничего не найдено. Попробуйте другой запрос.</p>
+</div>
+</div>
+</main>
+
+<script src="../js/lk-i18n.js?v=8" defer></script>
+<script src="../js/mobile-nav.js" defer></script>
+<script src="../js/lk.js?v=21" defer></script>
+<script>
+(function () {
+  var STAFF_KEYS = ["management", "admin", "support", "moderator", "manager"];
+
+  var CLIENT_GUIDE = {
+    audience: "Для пользователя",
+    title: "Руководство по личному кабинету",
+    lead: "Подробные инструкции по каждой странице, которая нужна для работы с вашим делом: статус, документы, сообщения, профиль и поддержка.",
+    quickTitle: "С чего начать",
+    quick: [
+      "Откройте главную и посмотрите текущий статус дела.",
+      "Проверьте документы: запросы, правки и принятые файлы.",
+      "Ответьте на новые сообщения команды, если они есть.",
+      "Проверьте профиль, чтобы контактные данные были актуальны."
+    ],
+    sections: [
+      {
+        id: "dashboard",
+        icon: "dashboard",
+        title: "Главная",
+        href: "./dashboard.html",
+        summary: "Страница общего статуса: текущий этап дела, готовый пакет документов и быстрый переход к переписке.",
+        rows: [
+          ["Статус кейса", "Показывает этапы сопровождения. Активный пункт означает, где сейчас находится работа; завершённые пункты остаются в истории процесса."],
+          ["Готовый пакет документов", "Здесь отображаются ключевые документы или архив по завершённому кейсу. Если кнопка скачивания недоступна, пакет ещё не готов или не относится к вашему текущему этапу."],
+          ["Чат с менеджером", "Быстрый блок для последнего входящего сообщения и короткого ответа. Для подробной переписки лучше перейти в раздел “Сообщения”."],
+          ["Ваш ID", "Код в верхней части страницы нужен, если менеджер просит назвать идентификатор. Нажмите на него, чтобы скопировать."]
+        ],
+        tips: ["Если статус кажется неактуальным, не обновляйте документы наугад: задайте вопрос в сообщениях.", "Значки на боковом меню показывают, где есть новые действия."]
+      },
+      {
+        id: "documents",
+        icon: "description",
+        title: "Документы",
+        href: "./documents.html",
+        summary: "Рабочий список файлов по вашему делу: что запросили, что уже загружено, что принято и что требует исправления.",
+        rows: [
+          ["Запрошен", "Команда ждёт файл в этой категории. Откройте карточку и загрузите подходящий документ."],
+          ["На проверке", "Файл отправлен команде. Дождитесь результата проверки, не создавайте дубликаты без просьбы менеджера."],
+          ["Одобрен", "Документ принят. Обычно дополнительных действий по этой позиции не требуется."],
+          ["Отклонён или нужны правки", "Прочитайте комментарий, подготовьте новую версию и загрузите её в ту же категорию, если кнопка замены доступна."],
+          ["Фильтры", "Используйте фильтр по статусу или приоритету, если список большой. Срочные позиции стоит закрывать первыми."]
+        ],
+        tips: ["Фотографии и сканы должны быть читаемыми: без бликов, обрезанных углов и лишних архивов.", "Если не уверены, какой файл нужен, сначала напишите менеджеру."]
+      },
+      {
+        id: "messages",
+        icon: "chat_bubble",
+        title: "Сообщения",
+        href: "./messages.html",
+        summary: "Основной канал связи по делу. Здесь сохраняется история вопросов, ответов и уточнений.",
+        rows: [
+          ["Список диалогов", "Выберите нужный чат слева или сверху на мобильном. Новые сообщения отмечаются счётчиком."],
+          ["Отправка текста", "Пишите конкретно: какой документ, какой этап или какой вопрос требует ответа. Так команда быстрее поймёт контекст."],
+          ["Файлы в переписке", "Если нужно приложить файл к пояснению, проверьте, что он относится к вопросу. Основные документы по делу лучше загружать в “Документы”."],
+          ["История", "Не удаляйте важные пояснения: переписка помогает восстановить договорённости и решения по делу."]
+        ],
+        tips: ["Срочные изменения в семейном составе, паспорте, адресе или записи лучше сразу описывать в сообщениях.", "Для общих вопросов можно использовать поддержку, но вопросы по делу пишите сюда."]
+      },
+      {
+        id: "profile",
+        icon: "tune",
+        title: "Профиль",
+        href: "./profile.html",
+        summary: "Ваши данные, настройки аккаунта, безопасность и служебная информация профиля.",
+        rows: [
+          ["Имя и контакты", "Проверьте, чтобы имя, email и телефон были актуальны. Это влияет на скорость коммуникации."],
+          ["Аватар", "Не обязателен, но помогает команде отличать аккаунты в списках и переписке."],
+          ["Пароль и безопасность", "Меняйте пароль, если есть риск, что доступ получил кто-то ещё. После работы на чужом устройстве выходите из аккаунта."],
+          ["История безопасности", "Позволяет заметить важные действия по аккаунту: входы, изменения профиля и операции с паролем."]
+        ],
+        tips: ["Не передавайте пароль менеджеру или третьим лицам.", "Если email изменился, сообщите об этом в переписке."]
+      },
+      {
+        id: "support",
+        icon: "help_center",
+        title: "Поддержка и руководства",
+        href: "./support.html",
+        summary: "FAQ, контакты поддержки, заказ звонка и эта страница с инструкциями.",
+        rows: [
+          ["Поиск по базе знаний", "Введите слово или тему, чтобы найти ответ в частых вопросах."],
+          ["Живой чат", "Переход к сообщениям, если вопрос связан с вашим делом."],
+          ["Email поддержки", "Подходит для общих технических вопросов, которые не требуют контекста по кейсу."],
+          ["Заказать звонок", "Форма создаёт письмо в вашем почтовом клиенте. Запрос уйдёт только после отправки письма."]
+        ],
+        tips: ["Если вопрос содержит личные данные или документы, используйте сообщения внутри кабинета.", "Руководства можно распечатать кнопкой вверху страницы."]
+      }
+    ]
+  };
+
+  var STAFF_GUIDE = {
+    audience: "Для персонала",
+    title: "Рабочие руководства для команды",
+    lead: "Подробные инструкции по страницам личного кабинета для сопровождения клиентов, обработки документов, коммуникаций и настройки шаблонов.",
+    quickTitle: "Рабочий порядок",
+    quick: [
+      "Начинайте день со списка клиентов и сортировки по ожидающим действия.",
+      "Открывайте карточку клиента перед правками: статус, документы, заметки и команда должны совпадать.",
+      "Все решения по документам сопровождайте понятным комментарием.",
+      "Клиентские вопросы ведите в сообщениях, внутренние наблюдения фиксируйте в заметках."
+    ],
+    sections: [
+      {
+        id: "dashboard",
+        icon: "dashboard",
+        title: "Главная",
+        href: "./dashboard.html",
+        summary: "Личная рабочая сводка аккаунта: быстрые ссылки, последние коммуникации и проверка своего профиля.",
+        rows: [
+          ["Статус и роль", "Верхняя часть показывает текущую роль и служебный статус аккаунта. Если доступы не соответствуют задачам, проверьте роль у администратора."],
+          ["Последние сообщения", "Используйте блок как быстрый индикатор, но полноценную обработку ведите в “Сообщениях”."],
+          ["Документы", "Если раздел документов скрыт, это может быть нормальным для персонала без выбранного клиента: документы открываются из карточки конкретного клиента."],
+          ["ID аккаунта", "Нужен для внутренней сверки и диагностики. Копируется нажатием."]
+        ],
+        tips: ["Не используйте главную как замену карточки клиента: решения по кейсу принимайте из контекста клиента.", "Проверяйте бейджи навигации перед началом работы."]
+      },
+      {
+        id: "clients",
+        icon: "groups",
+        title: "Клиенты",
+        href: "./clients.html",
+        summary: "Основной список доступных пользователей с сортировкой, закреплением и переходом в карточку дела.",
+        rows: [
+          ["Сортировка", "По умолчанию важны ожидающие действия. Дополнительно сортируйте по кейсу, дате записи, регистрации или ID."],
+          ["Добавить по ID", "Используйте, когда клиент уже зарегистрирован и передал свой код. После закрепления он появится в доступном списке."],
+          ["Ссылка-приглашение", "Подходит, если клиент ещё не зарегистрирован. После регистрации по ссылке он закрепится автоматически."],
+          ["Карточка клиента", "Открывайте пользователя из списка, чтобы управлять статусом, документами, командой, заметками и историей."],
+          ["Завершённые кейсы", "Отдельный блок помогает не смешивать активную работу и архивные дела."]
+        ],
+        tips: ["Не создавайте дубли клиента, если можно закрепить существующий ID.", "Перед изменениями проверьте, что открыли нужного клиента по ID и имени."]
+      },
+      {
+        id: "case",
+        icon: "account_tree",
+        title: "Карточка клиента",
+        href: "./case.html",
+        summary: "Центр управления конкретным делом: статус, маршрут, даты, команда, документы и переходы к связанным разделам.",
+        rows: [
+          ["Статус кейса", "Обновляйте этапы аккуратно: клиент видит рабочую картину процесса. Текст должен быть понятным без внутренних сокращений."],
+          ["Дата записи и ключевые сроки", "Проверяйте формат и актуальность даты перед сохранением. Ошибка здесь влияет на ожидания клиента."],
+          ["Назначения", "Менеджер, модератор и другие участники должны соответствовать правилам роли и текущему маршруту."],
+          ["Документы клиента", "Переход открывает список документов в контексте выбранного клиента. Без контекста персонал не должен работать с чужими файлами."],
+          ["История", "Используйте её для сверки изменений: кто и когда обновлял статус, документы или команду."]
+        ],
+        tips: ["После крупного изменения напишите клиенту короткое пояснение в сообщениях.", "Не храните внутренние сомнения в клиентском статусе: для этого есть заметки."]
+      },
+      {
+        id: "notes",
+        icon: "sticky_note_2",
+        title: "Внутренние заметки",
+        href: "./notes.html",
+        summary: "Служебные комментарии по клиенту, которые помогают команде сохранить контекст работы.",
+        rows: [
+          ["Когда использовать", "Фиксируйте внутренние наблюдения, риски, договорённости внутри команды и то, что не должно попадать клиенту."],
+          ["Структура записи", "Начинайте с сути: действие, причина, следующий шаг. Избегайте длинных неразмеченных текстов."],
+          ["Передача смены", "Заметки должны позволять другому сотруднику продолжить работу без устных пояснений."],
+          ["Границы", "Не используйте заметки вместо сообщений клиенту, если клиенту нужно выполнить действие."]
+        ],
+        tips: ["Пишите так, будто запись будет читать коллега через месяц.", "Не дублируйте файлы и персональные данные без необходимости."]
+      },
+      {
+        id: "documents",
+        icon: "description",
+        title: "Документы клиента",
+        href: "./documents.html",
+        summary: "Проверка, запрос, одобрение, отклонение и история действий с документами выбранного клиента.",
+        rows: [
+          ["Запрос документа", "Создавайте запрос с понятным названием и приоритетом. Клиент должен понимать, какой файл нужен."],
+          ["Проверка файла", "Откройте файл, сравните с требованиями кейса и проверьте читаемость. После проверки выберите принять или отклонить."],
+          ["Отклонение", "Комментарий обязателен по смыслу: что именно исправить, какой формат нужен, нужен ли перевод или новая копия."],
+          ["Замена и удаление", "Не удаляйте без причины. Если файл заменён, история должна объяснять, почему появилась новая версия."],
+          ["История документов", "Используйте для аудита спорных ситуаций и восстановления последовательности действий."]
+        ],
+        tips: ["Комментарии к отклонению пишите так, чтобы клиент мог выполнить правку без дополнительного вопроса.", "Срочные запросы должны быть действительно срочными."]
+      },
+      {
+        id: "configurator",
+        icon: "rule_settings",
+        title: "Шаблоны кейсов",
+        href: "./configurator.html",
+        summary: "Настройка типовых маршрутов и документов, которые затем применяются к клиентским делам.",
+        rows: [
+          ["Выбор типа кейса", "Редактируйте шаблон только для нужного визового или процессного маршрута."],
+          ["Этапы", "Название этапа должно быть понятно клиенту. Внутренние подробности оставляйте в заметках или внутренних регламентах."],
+          ["Документные запросы", "Добавляйте категории, которые действительно нужны для маршрута. Лишние запросы увеличивают нагрузку на клиента и команду."],
+          ["Применение шаблона", "Перед применением к клиенту проверьте, что индивидуальные обстоятельства не требуют корректировки."],
+          ["История изменений", "После правки шаблона учитывайте, какие активные кейсы уже могли быть созданы по старой версии."]
+        ],
+        tips: ["Не меняйте шаблон ради одного нестандартного клиента: сначала оцените, нужна ли индивидуальная правка в карточке.", "Проверяйте текст глазами клиента."]
+      },
+      {
+        id: "messages",
+        icon: "chat_bubble",
+        title: "Сообщения",
+        href: "./messages.html",
+        summary: "Коммуникации с клиентами и командой: ответы, уточнения, файлы и история диалогов.",
+        rows: [
+          ["Выбор диалога", "Проверьте имя и ID клиента перед ответом. Ошибка адресата в переписке критична."],
+          ["Ответ клиенту", "Пишите конкретно: что получено, что нужно сделать, срок или следующий шаг. Не используйте внутренние сокращения."],
+          ["Файлы", "Файлы, которые являются частью дела, лучше проводить через раздел документов. В чат отправляйте пояснения и вспомогательные вложения."],
+          ["Очистка и удаление", "Используйте осторожно: история переписки важна для восстановления решений."],
+          ["Поддержка", "Если обращение техническое, помогите клиенту сформулировать проблему и при необходимости переведите в поддержку."]
+        ],
+        tips: ["После отклонения документа полезно отправить короткое сообщение, если комментарий может быть непонятен.", "Не обещайте точные государственные сроки, если они не подтверждены."]
+      },
+      {
+        id: "profile",
+        icon: "tune",
+        title: "Профиль",
+        href: "./profile.html",
+        summary: "Настройки вашего аккаунта, контактные данные и безопасность.",
+        rows: [
+          ["Данные профиля", "Имя и контактные данные видны в рабочих местах, поэтому поддерживайте их в актуальном состоянии."],
+          ["Безопасность", "Смените пароль при любом подозрении на компрометацию. На общих устройствах обязательно выходите из аккаунта."],
+          ["История безопасности", "Проверяйте события входа и изменений, если замечаете странное поведение аккаунта."],
+          ["Язык интерфейса", "Переключатель языка влияет на поддерживаемые страницы личного кабинета."]
+        ],
+        tips: ["Не работайте с клиентскими данными из чужого аккаунта.", "Не передавайте доступы коллегам."]
+      },
+      {
+        id: "support",
+        icon: "help_center",
+        title: "Поддержка и руководства",
+        href: "./support.html",
+        summary: "База знаний, быстрые контакты и текущий справочник по рабочим страницам.",
+        rows: [
+          ["FAQ", "Используйте для быстрых ответов на общие вопросы, но не как замену индивидуальной оценке кейса."],
+          ["Руководства", "Эта страница показывает инструкции в зависимости от роли аккаунта."],
+          ["Обратный звонок и email", "Каналы для общих обращений. Клиентские кейсовые вопросы лучше вести в сообщениях."],
+          ["Печать", "Кнопка печати формирует чистую версию без боковой навигации."]
+        ],
+        tips: ["Не отправляйте клиенту внутренние инструкции персонала.", "Для новых сотрудников используйте этот справочник как стартовую карту интерфейса."]
+      },
+      {
+        id: "audit",
+        icon: "shield",
+        title: "Аудит сообщений",
+        href: "./01admin.html",
+        managerOnly: true,
+        summary: "Просмотр коммуникаций в режиме контроля для ролей, которым доступна административная проверка.",
+        rows: [
+          ["Назначение", "Используется для контроля качества коммуникаций и разбора спорных ситуаций."],
+          ["Режим просмотра", "Действия не должны отправляться от имени пользователя. Проверяйте, что работаете именно в режиме аудита."],
+          ["Выбор пользователя", "Сначала выберите аккаунт, затем диалог. Фиксируйте выводы во внутреннем процессе, а не в клиентском чате."],
+          ["Ограничения", "Если страница недоступна, значит роль не должна видеть этот инструмент."]
+        ],
+        tips: ["Используйте аудит только по рабочей необходимости.", "Не копируйте переписки вне защищённого контура."]
+      }
+    ]
+  };
+
+  function roleKey(user) {
+    return String((user && user.role && (user.role.key || user.role.role_key)) || user.role_key || "").toLowerCase();
+  }
+
+  function isStaff(user) {
+    var level = parseFloat(String(user && user.role && user.role.level));
+    if (!Number.isNaN(level) && level <= 4) return true;
+    return STAFF_KEYS.indexOf(roleKey(user)) !== -1;
+  }
+
+  function canSeeManagerOnly(user) {
+    var key = roleKey(user);
+    var permissions = Array.isArray(user && user.permissions) ? user.permissions : [];
+    return key === "management" || key === "admin" || permissions.indexOf("full_access") !== -1;
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function renderGuide(user) {
+    if (!isStaff(user)) {
+      window.location.replace("./guides.html");
+      return;
+    }
+    var guide = STAFF_GUIDE;
+    var sections = guide.sections.filter(function (section) {
+      return !section.managerOnly || canSeeManagerOnly(user);
+    });
+
+    document.title = guide.audience + " | Spainza";
+    document.getElementById("guide-audience-pill").lastChild.textContent = guide.audience;
+    document.getElementById("guide-title").textContent = guide.title;
+    document.getElementById("guide-lead").textContent = guide.lead;
+
+    var quick = document.getElementById("guides-quick-start");
+    quick.innerHTML =
+      '<section class="rounded-xl bg-surface-container-lowest p-6 md:p-8 ambient-shadow border border-outline-variant/10">' +
+      '<div class="flex items-start gap-4 mb-5">' +
+      '<div class="w-11 h-11 rounded-xl bg-primary-fixed/40 text-primary-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined">flag</span></div>' +
+      '<div><h2 class="font-headline text-2xl font-bold text-on-surface">' + escapeHtml(guide.quickTitle) + '</h2>' +
+      '<p class="text-sm text-on-surface-variant mt-1">Короткий маршрут перед подробными разделами.</p></div>' +
+      '</div>' +
+      '<div class="grid gap-3 md:grid-cols-2">' +
+      guide.quick.map(function (item, index) {
+        return '<div class="flex gap-3 rounded-xl bg-surface p-4 border border-outline-variant/15">' +
+          '<span class="w-7 h-7 rounded-full bg-primary-container text-on-primary text-sm font-bold flex items-center justify-center shrink-0">' + (index + 1) + '</span>' +
+          '<p class="text-sm text-on-surface-variant leading-relaxed">' + escapeHtml(item) + '</p>' +
+          '</div>';
+      }).join("") +
+      '</div></section>';
+
+    var toc = document.getElementById("guides-toc");
+    toc.innerHTML = sections.map(function (section, index) {
+      return '<a class="guide-anchor flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low ' + (index === 0 ? 'is-active' : '') + '" href="#' + section.id + '">' +
+        '<span class="material-symbols-outlined text-[20px]">' + escapeHtml(section.icon) + '</span>' + escapeHtml(section.title) + '</a>';
+    }).join("");
+
+    var content = document.getElementById("guides-content");
+    content.innerHTML = sections.map(function (section) {
+      var rows = section.rows.map(function (row) {
+        return '<div class="guide-row grid gap-2 md:grid-cols-[210px_1fr] py-4">' +
+          '<h3 class="font-headline font-bold text-on-surface">' + escapeHtml(row[0]) + '</h3>' +
+          '<p class="text-sm md:text-base text-on-surface-variant leading-relaxed">' + escapeHtml(row[1]) + '</p>' +
+          '</div>';
+      }).join("");
+      var tips = (section.tips || []).map(function (tip) {
+        return '<li class="flex gap-2"><span class="material-symbols-outlined text-[18px] text-secondary shrink-0 mt-0.5">check_circle</span><span>' + escapeHtml(tip) + '</span></li>';
+      }).join("");
+      return '<section id="' + section.id + '" class="guide-section guide-card rounded-xl bg-surface-container-lowest p-6 md:p-8 ambient-shadow border border-outline-variant/10" data-guide-text="' + escapeHtml([section.title, section.summary].concat(section.rows.flat()).concat(section.tips || []).join(" ").toLowerCase()) + '">' +
+        '<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-5 mb-5">' +
+        '<div class="min-w-0"><div class="flex items-center gap-3 mb-3">' +
+        '<div class="w-11 h-11 rounded-xl bg-surface-container-low text-primary-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined">' + escapeHtml(section.icon) + '</span></div>' +
+        '<h2 class="font-headline text-2xl md:text-3xl font-bold text-on-surface">' + escapeHtml(section.title) + '</h2></div>' +
+        '<p class="text-on-surface-variant leading-relaxed max-w-3xl">' + escapeHtml(section.summary) + '</p></div>' +
+        '<a href="' + escapeHtml(section.href) + '" class="print-hidden inline-flex items-center justify-center gap-2 rounded-xl bg-surface-container-low px-4 py-3 text-sm font-semibold text-primary-container hover:bg-surface-container transition-colors shrink-0">' +
+        '<span class="material-symbols-outlined text-[19px]">open_in_new</span>Открыть</a></div>' +
+        '<div class="rounded-xl bg-surface border border-outline-variant/15 px-4 md:px-5">' + rows + '</div>' +
+        (tips ? '<div class="mt-5 rounded-xl bg-surface-container-low p-4"><h3 class="font-headline font-bold text-sm uppercase tracking-widest text-on-surface-variant mb-3">Важно</h3><ul class="space-y-2 text-sm text-on-surface-variant leading-relaxed">' + tips + '</ul></div>' : '') +
+        '</section>';
+    }).join("");
+
+    document.getElementById("guides-loading").classList.add("hidden");
+    document.getElementById("guides-layout").classList.remove("hidden");
+    bindGuideUi();
+  }
+
+  function bindGuideUi() {
+    var search = document.getElementById("guides-search");
+    var cards = Array.prototype.slice.call(document.querySelectorAll(".guide-card"));
+    var empty = document.getElementById("guides-empty");
+    var anchors = Array.prototype.slice.call(document.querySelectorAll(".guide-anchor"));
+
+    function filterGuides() {
+      var query = String(search && search.value || "").trim().toLowerCase();
+      var visible = 0;
+      cards.forEach(function (card) {
+        var text = String(card.getAttribute("data-guide-text") || card.textContent || "").toLowerCase();
+        var match = !query || text.indexOf(query) !== -1;
+        card.classList.toggle("hidden", !match);
+        if (match) visible += 1;
+      });
+      if (empty) empty.classList.toggle("hidden", visible > 0);
+    }
+
+    if (search) search.addEventListener("input", filterGuides);
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        anchors.forEach(function (link) {
+          link.classList.toggle("is-active", link.getAttribute("href") === "#" + entry.target.id);
+        });
+      });
+    }, { threshold: 0.32 });
+
+    cards.forEach(function (section) {
+      observer.observe(section);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("guides-print").addEventListener("click", function () {
+      window.print();
+    });
+
+    var rendered = false;
+    function tryRender(user) {
+      if (rendered || !user || (!user.role && !user.role_key)) return;
+      rendered = true;
+      renderGuide(user);
+    }
+
+    try {
+      tryRender(JSON.parse(localStorage.getItem("currentUserProfile") || "null"));
+    } catch (_e) {}
+
+    window.addEventListener("lk-user-ready", function (event) {
+      tryRender(event.detail);
+    });
+
+    window.setTimeout(function () {
+      if (!rendered) {
+        tryRender({ role: { key: "user", level: 5 } });
+      }
+    }, 2500);
+  });
+})();
+</script>
+</body>
+</html>

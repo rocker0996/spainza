@@ -2,7 +2,7 @@
 
 from flask import Blueprint, current_app, jsonify, request, g
 from models.application_progress import ApplicationProgress
-from models.user import get_user_by_id, staff_may_access_target_user_workspace
+from models.user import get_role_permissions, get_user_by_id, staff_may_access_target_user_workspace
 from services.notification_service import (
     EVENT_CASE_STAGE_CHANGED,
     notify,
@@ -10,6 +10,29 @@ from services.notification_service import (
 )
 
 bp = Blueprint('application_progress', __name__)
+
+
+def _can_manage_application_progress(current_user, target_user_id: int) -> bool:
+    permissions = set(get_role_permissions(current_user["role_key"] or ""))
+    can_edit_cases = bool(
+        {
+            "full_access",
+            "view_all_users",
+            "view_lower_users",
+            "view_assignable_users",
+            "view_assigned_clients",
+            "communicate_with_clients",
+            "respond_to_applications",
+        }
+        & permissions
+    )
+    if not can_edit_cases:
+        return False
+    if int(current_user["id"]) == int(target_user_id):
+        return True
+    return staff_may_access_target_user_workspace(
+        g.db, int(current_user["id"]), int(target_user_id)
+    )
 
 
 @bp.route('/api/application/progress', methods=['GET'])
@@ -53,14 +76,11 @@ def get_user_progress(user_id):
         if not current_user_id:
             return jsonify({'error': 'Unauthorized'}), 401
         
-        # Check if current user is admin/manager
         current_user = get_user_by_id(g.db, current_user_id)
         if not current_user:
             return jsonify({'error': 'User not found'}), 404
         
-        if user_id != current_user_id and not staff_may_access_target_user_workspace(
-            g.db, current_user_id, user_id
-        ):
+        if user_id != current_user_id and not _can_manage_application_progress(current_user, user_id):
             return jsonify({'error': 'Access denied'}), 403
 
         # Get target user
@@ -94,14 +114,11 @@ def update_user_progress(user_id):
         if not current_user_id:
             return jsonify({'error': 'Unauthorized'}), 401
         
-        # Check if current user is admin/manager
         current_user = get_user_by_id(g.db, current_user_id)
         if not current_user:
             return jsonify({'error': 'User not found'}), 404
         
-        if user_id != current_user_id and not staff_may_access_target_user_workspace(
-            g.db, current_user_id, user_id
-        ):
+        if not _can_manage_application_progress(current_user, user_id):
             return jsonify({'error': 'Access denied'}), 403
         
         data = request.get_json()

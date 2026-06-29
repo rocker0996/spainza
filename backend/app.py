@@ -74,6 +74,19 @@ DEFAULT_CONTENT_SECURITY_POLICY = (
     "frame-ancestors 'none'"
 )
 DEFAULT_PERMISSIONS_POLICY = "geolocation=(), camera=(), microphone=()"
+PUBLIC_ROOT_FILES = frozenset(
+    {
+        "404.html",
+        "contact.html",
+        "gold.html",
+        "index.html",
+        "nomad.html",
+        "privacy-policy.html",
+        "process.html",
+        "servces.html",
+    }
+)
+PUBLIC_TOP_LEVEL_DIRS = frozenset({"frontend", "shared"})
 RATE_LIMIT_AUTH_PATHS = frozenset(
     {
         "/api/login",
@@ -218,6 +231,21 @@ def _is_allowed_cors_origin(app: Flask, origin: str | None) -> bool:
         ):
             return True
     return False
+
+
+def _is_public_site_path(requested_path: str) -> bool:
+    normalized = requested_path.replace("\\", "/").lstrip("/")
+    if not normalized or normalized.startswith("."):
+        return False
+
+    parts = [part for part in normalized.split("/") if part]
+    if not parts or any(part.startswith(".") for part in parts):
+        return False
+
+    if len(parts) == 1:
+        return parts[0] in PUBLIC_ROOT_FILES
+
+    return parts[0] in PUBLIC_TOP_LEVEL_DIRS
 
 
 def _viewer_permissions_for_storage(db, viewer_user_id: int) -> set[str]:
@@ -531,8 +559,6 @@ def create_app() -> Flask:
 
         return send_from_directory(str(storage_path), normalized_path)
 
-        return jsonify({"success": False, "error": "not found"}), 404
-
     @app.route("/<path:requested_path>")
     def serve_site_files(requested_path: str):
         if requested_path.startswith("api/"):
@@ -540,6 +566,9 @@ def create_app() -> Flask:
 
         if requested_path in LEGACY_RU_PAGE_REDIRECTS:
             return redirect(LEGACY_RU_PAGE_REDIRECTS[requested_path])
+
+        if not _is_public_site_path(requested_path):
+            return jsonify({"success": False, "error": "not found"}), 404
 
         requested_file = (PROJECT_ROOT / requested_path).resolve()
 
