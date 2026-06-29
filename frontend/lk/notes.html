@@ -20,10 +20,11 @@
   .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
   .notes-field {
     width: 100%;
-    border-radius: 0.875rem;
+    min-width: 0;
+    border-radius: 0.75rem;
     border: 1px solid rgb(226 232 240);
     background: #fff;
-    padding: 0.875rem 1rem;
+    padding: 0.75rem 0.875rem;
     color: rgb(30 41 59);
     font-size: 0.875rem;
     line-height: 1.55;
@@ -31,8 +32,8 @@
   }
   .notes-field:focus {
     outline: none;
-    border-color: rgb(37 99 235);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    border-color: rgb(59 130 246);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .12);
   }
   .notes-field[disabled] {
     background: rgb(248 250 252);
@@ -84,62 +85,81 @@
 </nav>
 </aside>
 
-<main class="flex-1 md:ml-64 min-h-screen bg-slate-50/40 w-full">
-<div class="pt-24 md:pt-12 px-4 sm:px-6 lg:px-10 pb-10 max-w-7xl mx-auto">
-<div id="notes-toast" class="fixed top-4 right-4 z-[80] hidden max-w-sm"></div>
+<main class="flex-1 md:ml-64 min-h-screen bg-slate-50/30 w-full">
+<div class="pt-24 md:pt-12 px-4 sm:px-6 lg:px-10 pb-8 md:pb-12 max-w-7xl mx-auto w-full flex-1">
+<div id="notes-toast" class="hidden fixed left-1/2 -translate-x-1/2 bottom-6 z-[1100] max-w-md w-[calc(100%-2rem)] pointer-events-none" role="status" aria-live="polite"></div>
 
-<div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-<div class="min-w-0">
-<div class="mb-3 flex flex-wrap items-center gap-2">
-<span id="notes-case-number" class="bg-blue-100 text-blue-700 font-manrope text-[11px] font-bold px-2 py-1 rounded uppercase tracking-wider"></span>
-<span class="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-700 border border-amber-100">
-<span class="material-symbols-outlined text-[14px]">lock</span><span data-i18n="notes.internalOnly">Только для команды</span>
+<div class="mb-10 flex min-w-0 flex-col justify-between gap-4 md:flex-row md:items-start md:gap-6">
+<div class="min-w-0 w-full md:flex-1">
+<div class="mb-3 flex min-w-0 flex-wrap items-center gap-2">
+<span id="notes-case-number" class="bg-blue-100 text-blue-700 font-manrope text-[11px] font-bold px-2 py-1 rounded uppercase tracking-wider max-w-full truncate"></span>
+<span class="bg-slate-100 text-slate-600 font-manrope text-[11px] font-bold px-2 py-1 rounded inline-flex items-center gap-1 uppercase tracking-wider max-w-full min-w-0">
+<span class="material-symbols-outlined text-[14px] shrink-0">lock</span>
+<span class="truncate" data-i18n="notes.internalOnly">Только для команды</span>
 </span>
 </div>
-<h1 id="notes-title" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight" data-i18n="notes.title">Внутренние заметки</h1>
-<p id="notes-subtitle" class="mt-1 text-sm text-slate-500" data-i18n="notes.subtitle">Заметки, риски и рабочий чеклист по клиенту. Клиент не видит этот раздел.</p>
+<h1 id="notes-title" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-800 font-manrope tracking-tight break-words min-w-0" data-i18n="notes.title">Внутренние заметки</h1>
+<p id="notes-subtitle" class="text-sm font-body text-slate-500 mt-1" data-i18n="notes.subtitle">Заметки, риски и рабочий чеклист по клиенту. Клиент не видит этот раздел.</p>
 </div>
-<div class="flex flex-wrap gap-2">
-<a id="notes-back-link" href="./clients.html" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
-<span class="material-symbols-outlined text-[18px]">arrow_back</span><span data-i18n="common.back">Назад</span>
+<div class="flex w-full min-w-0 shrink-0 flex-nowrap items-center gap-1.5 sm:gap-3 md:w-auto md:max-w-none">
+<a id="notes-back-link" href="./clients.html" aria-label="Назад к списку клиентов" class="inline-flex h-10 min-w-[2.5rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2 py-2 font-manrope text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 sm:min-w-0 sm:justify-start sm:px-5 sm:py-2.5 sm:text-sm">
+<span class="material-symbols-outlined shrink-0 text-[18px]">arrow_back</span>
+<span class="hidden sm:inline" data-i18n="common.back">Назад</span>
 </a>
-<a id="notes-case-link" href="./case.html" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
-<span class="material-symbols-outlined text-[18px]">folder_managed</span><span data-i18n="clients.manageCase">Управление кейсом</span>
+<button id="history-btn" type="button" aria-label="История изменений кейса" class="inline-flex h-10 min-w-[2.5rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2 py-2 font-manrope text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 sm:min-w-0 sm:justify-start sm:px-5 sm:py-2.5 sm:text-sm">
+<span class="material-symbols-outlined shrink-0 text-[18px]">history</span>
+<span class="hidden sm:inline" data-i18n="common.history">История</span>
+</button>
+<a id="notes-case-link" href="./case.html" class="inline-flex h-10 min-w-[2.5rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2 py-2 font-manrope text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 sm:min-w-0 sm:justify-start sm:px-5 sm:py-2.5 sm:text-sm">
+<span class="material-symbols-outlined shrink-0 text-[18px]">folder_managed</span>
+<span class="hidden lg:inline" data-i18n="clients.manageCase">Управление кейсом</span>
 </a>
-<a id="notes-documents-link" href="./documents.html" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
-<span class="material-symbols-outlined text-[18px]">description</span><span data-i18n="clients.viewDocuments">Посмотреть документы</span>
+<a id="notes-documents-link" href="./documents.html" class="inline-flex h-10 min-w-[2.5rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2 py-2 font-manrope text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 sm:min-w-0 sm:justify-start sm:px-5 sm:py-2.5 sm:text-sm">
+<span class="material-symbols-outlined shrink-0 text-[18px]">description</span>
+<span class="hidden lg:inline" data-i18n="clients.viewDocuments">Посмотреть документы</span>
 </a>
-<button id="notes-save-btn" type="button" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2 text-sm font-bold text-white shadow-lg transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60">
-<span class="material-symbols-outlined text-[18px]">save</span><span data-i18n="notes.save">Сохранить</span>
+<button id="notes-save-btn" type="button" class="inline-flex h-10 min-w-[2.5rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-primary px-3 py-2 font-manrope text-xs font-bold text-white shadow-sm transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-0 sm:justify-start sm:px-5 sm:py-2.5 sm:text-sm">
+<span class="material-symbols-outlined shrink-0 text-[18px]">save</span>
+<span class="hidden sm:inline" data-i18n="notes.save">Сохранить</span>
 </button>
 </div>
 </div>
 
-<div id="notes-loading" class="rounded-2xl bg-white p-8 text-center text-slate-500 shadow-sm border border-slate-100">
+<div id="notes-loading" class="rounded-[24px] bg-white p-8 text-center text-slate-500 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100">
 <span class="material-symbols-outlined text-5xl text-slate-300 animate-pulse">edit_note</span>
 <p class="mt-3 font-semibold" data-i18n="notes.loading">Загрузка заметок...</p>
 </div>
 
-<div id="notes-content" class="hidden grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.85fr)]">
-<div class="space-y-6">
-<section class="rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 shadow-sm">
-<div class="mb-5 flex items-start justify-between gap-4">
-<div>
-<h2 class="text-lg font-extrabold text-slate-800" data-i18n="notes.managerNotes">Заметки менеджера</h2>
+<div id="notes-content" class="hidden grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
+<section class="bg-white rounded-[24px] p-5 sm:p-6 lg:p-8 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100 min-w-0">
+<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+<div class="min-w-0">
+<h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 font-manrope tracking-tight" data-i18n="notes.managerNotes">Заметки менеджера</h2>
 <p class="mt-1 text-sm text-slate-500" data-i18n="notes.managerNotesLead">Короткий контекст, договорённости и важные детали общения.</p>
 </div>
-<span id="notes-dirty-badge" class="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700" data-i18n="notes.unsaved">Есть изменения</span>
+<span id="notes-dirty-badge" class="hidden shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700" data-i18n="notes.unsaved">Есть изменения</span>
 </div>
-<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="general-notes" data-i18n="notes.generalLabel">Общие заметки</label>
-<textarea id="general-notes" class="notes-field min-h-[220px] resize-y" placeholder="Например: клиент просит звонить после 18:00, документы собирает супруг, важна подача до конца месяца." rows="8"></textarea>
+<div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="new-manager-note" data-i18n="notes.addNoteLabel">Новая заметка</label>
+<textarea id="new-manager-note" class="notes-field min-h-[112px] resize-y" data-i18n-placeholder="notes.addNotePlaceholder" placeholder="Добавьте рабочую заметку по клиенту..." rows="4"></textarea>
+<div class="mt-3 flex items-center justify-between gap-3">
+<p class="text-xs text-slate-400" data-i18n="notes.addNoteHint">Заметка сохранится после нажатия «Сохранить».</p>
+<button id="add-manager-note" type="button" class="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:opacity-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span data-i18n="notes.addNote">Добавить</span>
+</button>
+</div>
+</div>
+<div id="manager-notes-list" class="mt-5 space-y-3"></div>
 </section>
 
-<section class="rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 shadow-sm">
+<div class="space-y-6 min-w-0">
+<section class="bg-white rounded-[24px] p-5 sm:p-6 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100">
 <div class="mb-5">
-<h2 class="text-lg font-extrabold text-slate-800" data-i18n="notes.risksTitle">Риски и контроль</h2>
+<h2 class="text-lg font-extrabold text-slate-800 font-manrope" data-i18n="notes.risksTitle">Риски и контроль</h2>
 <p class="mt-1 text-sm text-slate-500" data-i18n="notes.risksLead">Всё, что может повлиять на сроки, документы или коммуникацию.</p>
 </div>
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+<div class="space-y-4">
 <div>
 <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="priority" data-i18n="notes.priorityLabel">Приоритет</label>
 <select id="priority" class="notes-field">
@@ -153,19 +173,21 @@
 <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="next-contact-at" data-i18n="notes.nextContactLabel">Следующий контакт</label>
 <input id="next-contact-at" class="notes-field" type="datetime-local"/>
 </div>
-</div>
-<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mt-5 mb-2" for="risk-notes" data-i18n="notes.riskLabel">Риски</label>
-<textarea id="risk-notes" class="notes-field min-h-[130px] resize-y" placeholder="Например: нужен свежий банковский документ, клиент часто отвечает с задержкой." rows="5"></textarea>
-<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mt-5 mb-2" for="payment-notes" data-i18n="notes.paymentLabel">Оплата и условия</label>
-<textarea id="payment-notes" class="notes-field min-h-[110px] resize-y" placeholder="Например: 50/50, второй платеж после записи в консульство." rows="4"></textarea>
-</section>
-</div>
-
-<div class="space-y-6">
-<section class="rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 shadow-sm">
-<div class="mb-4 flex items-center justify-between gap-3">
 <div>
-<h2 class="text-lg font-extrabold text-slate-800" data-i18n="notes.checklistTitle">Внутренний чеклист</h2>
+<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="risk-notes" data-i18n="notes.riskLabel">Риски</label>
+<textarea id="risk-notes" class="notes-field min-h-[118px] resize-y" data-i18n-placeholder="notes.riskPlaceholder" placeholder="Например: нужен свежий банковский документ." rows="5"></textarea>
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="payment-notes" data-i18n="notes.paymentLabel">Оплата и условия</label>
+<textarea id="payment-notes" class="notes-field min-h-[96px] resize-y" data-i18n-placeholder="notes.paymentPlaceholder" placeholder="Например: 50/50, второй платеж после записи." rows="4"></textarea>
+</div>
+</div>
+</section>
+
+<section class="bg-white rounded-[24px] p-5 sm:p-6 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100">
+<div class="mb-4 flex items-start justify-between gap-3">
+<div class="min-w-0">
+<h2 class="text-lg font-extrabold text-slate-800 font-manrope" data-i18n="notes.checklistTitle">Внутренний чеклист</h2>
 <p class="mt-1 text-sm text-slate-500" data-i18n="notes.checklistLead">Рабочие пункты, которые видит только команда.</p>
 </div>
 <span id="checklist-progress" class="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">0/0</span>
@@ -173,34 +195,9 @@
 <div id="checklist-list" class="space-y-2"></div>
 <div class="mt-4 flex gap-2">
 <input id="new-checklist-item" class="notes-field min-h-10 py-2.5" type="text" data-i18n-placeholder="notes.addChecklistPlaceholder" placeholder="Новый пункт"/>
-<button id="add-checklist-item" type="button" class="shrink-0 rounded-xl bg-slate-900 px-4 text-white transition hover:bg-slate-800" aria-label="Добавить">
+<button id="add-checklist-item" type="button" class="shrink-0 rounded-xl bg-primary px-4 text-white transition hover:opacity-95" aria-label="Добавить">
 <span class="material-symbols-outlined">add</span>
 </button>
-</div>
-</section>
-
-<section class="rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 shadow-sm">
-<h2 class="text-lg font-extrabold text-slate-800" data-i18n="notes.summaryTitle">Сводка</h2>
-<dl class="mt-4 space-y-3 text-sm">
-<div class="flex items-start justify-between gap-4">
-<dt class="text-slate-500" data-i18n="notes.updatedAt">Обновлено</dt>
-<dd id="notes-updated-at" class="text-right font-semibold text-slate-700">-</dd>
-</div>
-<div class="flex items-start justify-between gap-4">
-<dt class="text-slate-500" data-i18n="notes.updatedBy">Обновил</dt>
-<dd id="notes-updated-by" class="text-right font-semibold text-slate-700">-</dd>
-</div>
-<div class="flex items-start justify-between gap-4">
-<dt class="text-slate-500" data-i18n="notes.visaRoute">Кейс</dt>
-<dd id="notes-visa-route" class="text-right font-semibold text-slate-700">-</dd>
-</div>
-</dl>
-</section>
-
-<section class="rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 shadow-sm">
-<h2 class="text-lg font-extrabold text-slate-800" data-i18n="notes.historyTitle">История кейса</h2>
-<div id="notes-history-list" class="mt-4 space-y-3">
-<p class="text-sm text-slate-500" data-i18n="notes.historyLoading">Загрузка истории...</p>
 </div>
 </section>
 </div>
@@ -208,8 +205,22 @@
 </div>
 </main>
 
-<script src="../js/lk-i18n.js?v=10" defer></script>
+<div id="history-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+<div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden min-w-0">
+<div class="p-6 border-b border-slate-100 flex items-center justify-between gap-3 min-w-0">
+<h3 class="text-lg font-bold text-slate-800 font-manrope truncate" data-i18n="notes.historyTitle">История кейса</h3>
+<button id="close-history-modal" class="p-2 rounded-lg hover:bg-slate-100 transition-colors shrink-0">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-6 overflow-y-auto max-h-[65vh] space-y-4" id="history-log-list">
+<p class="text-sm text-slate-500" data-i18n="notes.historyLoading">Загрузка истории...</p>
+</div>
+</div>
+</div>
+
+<script src="../js/lk-i18n.js?v=11" defer></script>
 <script src="../js/mobile-nav.js" defer></script>
 <script src="../js/lk.js?v=21" defer></script>
-<script src="../js/notes.js?v=1" defer></script>
+<script src="../js/notes.js?v=2" defer></script>
 </body></html>

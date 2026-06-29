@@ -14,6 +14,7 @@ const notesState = {
     user: null,
     caseData: null,
     notes: null,
+    managerNotes: [],
     dirty: false,
     saving: false,
 };
@@ -37,11 +38,11 @@ function notesToast(message, variant = 'info') {
     const colors = variant === 'error'
         ? 'bg-red-50 text-red-900 border-red-200'
         : variant === 'success'
-            ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+            ? 'bg-green-50 text-green-900 border-green-200'
             : 'bg-slate-50 text-slate-800 border-slate-200';
     const icon = variant === 'error' ? 'error' : variant === 'success' ? 'check_circle' : 'info';
     root.innerHTML = `
-        <div class="flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-lg ${colors}">
+        <div class="pointer-events-auto flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-lg ${colors}">
             <span class="material-symbols-outlined shrink-0 text-[20px]">${icon}</span>
             <span class="leading-snug">${notesEscape(message)}</span>
         </div>
@@ -141,7 +142,9 @@ function getNotesEls() {
         documentsLink: document.getElementById('notes-documents-link'),
         save: document.getElementById('notes-save-btn'),
         dirty: document.getElementById('notes-dirty-badge'),
-        general: document.getElementById('general-notes'),
+        noteInput: document.getElementById('new-manager-note'),
+        addNote: document.getElementById('add-manager-note'),
+        notesList: document.getElementById('manager-notes-list'),
         risk: document.getElementById('risk-notes'),
         payment: document.getElementById('payment-notes'),
         priority: document.getElementById('priority'),
@@ -150,10 +153,10 @@ function getNotesEls() {
         checklistProgress: document.getElementById('checklist-progress'),
         newChecklist: document.getElementById('new-checklist-item'),
         addChecklist: document.getElementById('add-checklist-item'),
-        updatedAt: document.getElementById('notes-updated-at'),
-        updatedBy: document.getElementById('notes-updated-by'),
-        visaRoute: document.getElementById('notes-visa-route'),
-        history: document.getElementById('notes-history-list'),
+        historyBtn: document.getElementById('history-btn'),
+        historyModal: document.getElementById('history-modal'),
+        closeHistory: document.getElementById('close-history-modal'),
+        history: document.getElementById('history-log-list'),
     };
 }
 
@@ -161,6 +164,33 @@ function setDirty(value) {
     notesState.dirty = Boolean(value);
     const { dirty } = getNotesEls();
     if (dirty) dirty.classList.toggle('hidden', !notesState.dirty);
+}
+
+function parseManagerNotes(rawValue, fallbackUpdatedAt) {
+    const raw = String(rawValue || '').trim();
+    if (!raw) return [];
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+            return parsed
+                .filter((item) => item && typeof item === 'object')
+                .map((item, index) => ({
+                    id: String(item.id || `note_${index}_${Date.now()}`),
+                    text: String(item.text || '').trim(),
+                    created_at: item.created_at || fallbackUpdatedAt || new Date().toISOString(),
+                    updated_at: item.updated_at || item.created_at || fallbackUpdatedAt || null,
+                }))
+                .filter((item) => item.text);
+        }
+    } catch {
+        // Legacy plain text is converted to one interactive note.
+    }
+    return [{
+        id: `legacy_${Date.now()}`,
+        text: raw,
+        created_at: fallbackUpdatedAt || new Date().toISOString(),
+        updated_at: fallbackUpdatedAt || null,
+    }];
 }
 
 function collectNotesPayload() {
@@ -173,7 +203,7 @@ function collectNotesPayload() {
         }))
         .filter((item) => item.label);
     return {
-        general_notes: els.general?.value || '',
+        general_notes: JSON.stringify(notesState.managerNotes),
         risk_notes: els.risk?.value || '',
         payment_notes: els.payment?.value || '',
         priority: els.priority?.value || 'normal',
@@ -182,12 +212,40 @@ function collectNotesPayload() {
     };
 }
 
+function renderManagerNotes() {
+    const { notesList } = getNotesEls();
+    if (!notesList) return;
+    if (!notesState.managerNotes.length) {
+        notesList.innerHTML = `
+            <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-6 text-center">
+                <span class="material-symbols-outlined text-4xl text-slate-300">sticky_note_2</span>
+                <p class="mt-2 text-sm font-semibold text-slate-500">${notesEscape(nt('notes.emptyNotes'))}</p>
+            </div>
+        `;
+        return;
+    }
+    notesList.innerHTML = notesState.managerNotes.map((note, index) => `
+        <article data-manager-note data-note-index="${index}" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300">
+            <div class="mb-3 flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">${notesEscape(nt('notes.noteCardTitle', { n: index + 1 }))}</p>
+                    <p class="mt-0.5 text-xs font-semibold text-slate-400">${notesEscape(formatNotesDateTime(note.updated_at || note.created_at))}</p>
+                </div>
+                <button type="button" data-remove-note class="shrink-0 rounded-xl border border-slate-200 bg-white p-2 text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600" aria-label="${notesEscape(nt('common.delete'))}">
+                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                </button>
+            </div>
+            <textarea data-note-text class="notes-field min-h-[96px] resize-y">${notesEscape(note.text)}</textarea>
+        </article>
+    `).join('');
+}
+
 function renderChecklist() {
     const els = getNotesEls();
     const items = Array.isArray(notesState.notes?.checklist) ? notesState.notes.checklist : [];
     if (!els.checklist) return;
     els.checklist.innerHTML = items.map((item, index) => `
-        <div data-checklist-row data-checklist-id="${notesEscape(item.id || `item_${index}`)}" class="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3">
+        <div data-checklist-row data-checklist-id="${notesEscape(item.id || `item_${index}`)}" class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3">
             <input data-checklist-check type="checkbox" ${item.checked ? 'checked' : ''} class="mt-0.5 h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary"/>
             <div class="min-w-0 flex-1">
                 <p data-checklist-label class="text-sm font-semibold text-slate-800">${notesEscape(item.label)}</p>
@@ -208,14 +266,14 @@ function renderHistory(history) {
         root.innerHTML = `<p class="text-sm text-slate-500">${notesEscape(nt('case.historyEmpty'))}</p>`;
         return;
     }
-    root.innerHTML = history.slice(0, 8).map((item) => {
+    root.innerHTML = history.map((item) => {
         const editor = item.editor || {};
         const name = editor.name || editor.email || 'System';
         const action = window.LkI18n?.translateCaseHistoryAction
             ? window.LkI18n.translateCaseHistoryAction(item.action)
             : item.action;
         return `
-            <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+            <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
                 <div class="mb-1 flex items-start justify-between gap-3">
                     <p class="text-sm font-bold text-slate-800">${notesEscape(action)}</p>
                     <span class="shrink-0 text-[11px] font-semibold text-slate-400">${notesEscape(formatNotesDateTime(item.created_at))}</span>
@@ -230,7 +288,6 @@ function renderHistory(history) {
 function renderNotes() {
     const els = getNotesEls();
     const user = notesState.user || {};
-    const caseData = notesState.caseData || {};
     const notes = notesState.notes || {};
     const name = user.name || user.email || nt('clients.noName');
     const did = notesState.displayId || user.display_id || `#${notesState.userId}`;
@@ -246,17 +303,13 @@ function renderNotes() {
     if (els.caseLink) els.caseLink.href = `./case.html?${query}`;
     if (els.documentsLink) els.documentsLink.href = `./documents.html?${query}`;
 
-    if (els.general) els.general.value = notes.general_notes || '';
+    notesState.managerNotes = parseManagerNotes(notes.general_notes, notes.updated_at);
+    if (els.noteInput) els.noteInput.value = '';
     if (els.risk) els.risk.value = notes.risk_notes || '';
     if (els.payment) els.payment.value = notes.payment_notes || '';
     if (els.priority) els.priority.value = notes.priority || 'normal';
     if (els.nextContact) els.nextContact.value = instantToDatetimeLocal(notes.next_contact_at);
-    if (els.updatedAt) els.updatedAt.textContent = formatNotesDateTime(notes.updated_at);
-    if (els.updatedBy) els.updatedBy.textContent = notes.updated_by_name || notes.updated_by_email || '-';
-    if (els.visaRoute) {
-        const role = caseData.visa_type || user.role?.key || '';
-        els.visaRoute.textContent = window.LkI18n?.visaLabel ? window.LkI18n.visaLabel(role) : role || '-';
-    }
+    renderManagerNotes();
     renderChecklist();
     setDirty(false);
 }
@@ -315,11 +368,49 @@ async function saveNotes() {
 
 function bindNotesEvents() {
     const els = getNotesEls();
-    [els.general, els.risk, els.payment, els.priority, els.nextContact].forEach((node) => {
+    [els.risk, els.payment, els.priority, els.nextContact].forEach((node) => {
         node?.addEventListener('input', () => setDirty(true));
         node?.addEventListener('change', () => setDirty(true));
     });
     els.save?.addEventListener('click', () => saveNotes());
+    els.addNote?.addEventListener('click', () => {
+        const text = (els.noteInput?.value || '').trim();
+        if (!text) return;
+        notesState.managerNotes.unshift({
+            id: `note_${Date.now()}`,
+            text,
+            created_at: new Date().toISOString(),
+            updated_at: null,
+        });
+        if (els.noteInput) els.noteInput.value = '';
+        renderManagerNotes();
+        setDirty(true);
+    });
+    els.noteInput?.addEventListener('keydown', (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+            event.preventDefault();
+            els.addNote?.click();
+        }
+    });
+    els.notesList?.addEventListener('input', (event) => {
+        if (!event.target?.matches?.('[data-note-text]')) return;
+        const row = event.target.closest('[data-manager-note]');
+        const index = Number.parseInt(row?.getAttribute('data-note-index') || '-1', 10);
+        if (index < 0 || !notesState.managerNotes[index]) return;
+        notesState.managerNotes[index].text = event.target.value;
+        notesState.managerNotes[index].updated_at = new Date().toISOString();
+        setDirty(true);
+    });
+    els.notesList?.addEventListener('click', (event) => {
+        const btn = event.target?.closest?.('[data-remove-note]');
+        if (!btn) return;
+        const row = btn.closest('[data-manager-note]');
+        const index = Number.parseInt(row?.getAttribute('data-note-index') || '-1', 10);
+        if (index < 0 || !notesState.managerNotes[index]) return;
+        notesState.managerNotes.splice(index, 1);
+        renderManagerNotes();
+        setDirty(true);
+    });
     els.checklist?.addEventListener('change', (event) => {
         if (!event.target?.matches?.('[data-checklist-check]')) return;
         const index = Array.from(els.checklist.querySelectorAll('[data-checklist-row]')).indexOf(
@@ -361,6 +452,20 @@ function bindNotesEvents() {
         if (event.key === 'Enter') {
             event.preventDefault();
             els.addChecklist?.click();
+        }
+    });
+    els.historyBtn?.addEventListener('click', () => {
+        els.historyModal?.classList.remove('hidden');
+        els.historyModal?.classList.add('flex');
+    });
+    els.closeHistory?.addEventListener('click', () => {
+        els.historyModal?.classList.add('hidden');
+        els.historyModal?.classList.remove('flex');
+    });
+    els.historyModal?.addEventListener('click', (event) => {
+        if (event.target === els.historyModal) {
+            els.historyModal.classList.add('hidden');
+            els.historyModal.classList.remove('flex');
         }
     });
     window.addEventListener('beforeunload', (event) => {
