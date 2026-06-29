@@ -39,6 +39,50 @@
     background: rgb(248 250 252);
     color: rgb(100 116 139);
   }
+  .notes-soft-card {
+    border: 1px solid rgb(226 232 240);
+    background: linear-gradient(180deg, #fff 0%, rgb(248 250 252) 100%);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, .05);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .notes-soft-card:hover {
+    transform: translateY(-2px);
+    border-color: rgb(203 213 225);
+    box-shadow: 0 24px 50px rgba(15, 23, 42, .08);
+  }
+  .notes-finance-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .notes-finance-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, rgb(14 165 233), rgb(59 130 246));
+    opacity: .85;
+  }
+  .notes-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1rem;
+  }
+  .notes-sticky-card {
+    min-height: 210px;
+    animation: notesCardIn .22s ease both;
+  }
+  .notes-add-card {
+    min-height: 210px;
+    border-style: dashed;
+  }
+  @keyframes notesCardIn {
+    from { opacity: 0; transform: translateY(8px) scale(.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .notes-soft-card, .notes-sticky-card { transition: none; animation: none; }
+    .notes-soft-card:hover { transform: none; }
+  }
 </style>
 </head>
 <body class="bg-surface font-body text-on-surface min-h-screen flex overflow-x-hidden" data-layout-header="false" data-layout-footer="false" data-lk-nav-active="clients" data-lk-page-gate="case">
@@ -99,7 +143,7 @@
 </span>
 </div>
 <h1 id="notes-title" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-800 font-manrope tracking-tight break-words min-w-0" data-i18n="notes.title">Внутренние заметки</h1>
-<p id="notes-subtitle" class="text-sm font-body text-slate-500 mt-1" data-i18n="notes.subtitle">Заметки, риски и рабочий чеклист по клиенту. Клиент не видит этот раздел.</p>
+<p id="notes-subtitle" class="text-sm font-body text-slate-500 mt-1" data-i18n="notes.subtitle">Заметки, финансовые условия и рабочий чеклист по клиенту. Клиент не видит этот раздел.</p>
 </div>
 <div class="flex w-full min-w-0 shrink-0 flex-nowrap items-center gap-1.5 sm:gap-3 md:w-auto md:max-w-none">
 <a id="notes-back-link" href="./clients.html" aria-label="Назад к списку клиентов" class="inline-flex h-10 min-w-[2.5rem] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2 py-2 font-manrope text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 sm:min-w-0 sm:justify-start sm:px-5 sm:py-2.5 sm:text-sm">
@@ -131,59 +175,52 @@
 </div>
 
 <div id="notes-content" class="hidden grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
+<div class="min-w-0 space-y-6">
+<section class="bg-white rounded-[24px] p-5 sm:p-6 lg:p-8 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100 min-w-0">
+<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+<div class="min-w-0">
+<h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 font-manrope tracking-tight" data-i18n="notes.financialTitle">Финансовые условия</h2>
+<p class="mt-1 text-sm text-slate-500" data-i18n="notes.financialLead">Внутренние договорённости по стоимости и оплате кейса.</p>
+</div>
+<span id="notes-dirty-badge" class="hidden shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700" data-i18n="notes.unsaved">Есть изменения</span>
+</div>
+<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+<label class="notes-soft-card notes-finance-card block rounded-2xl p-4">
+<span class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+<span class="material-symbols-outlined text-[18px] text-blue-500">sell</span>
+<span data-i18n="notes.casePrice">Цена кейса</span>
+</span>
+<textarea id="case-price" class="notes-field min-h-[96px] resize-none border-slate-100 bg-white/90" data-i18n-placeholder="notes.casePricePlaceholder" placeholder="Например: 2500 EUR"></textarea>
+</label>
+<label class="notes-soft-card notes-finance-card block rounded-2xl p-4">
+<span class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+<span class="material-symbols-outlined text-[18px] text-blue-500">account_balance_wallet</span>
+<span data-i18n="notes.paymentModel">Модель оплаты</span>
+</span>
+<textarea id="payment-model" class="notes-field min-h-[96px] resize-none border-slate-100 bg-white/90" data-i18n-placeholder="notes.paymentModelPlaceholder" placeholder="Например: 50/50"></textarea>
+</label>
+<label class="notes-soft-card notes-finance-card block rounded-2xl p-4">
+<span class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+<span class="material-symbols-outlined text-[18px] text-blue-500">payments</span>
+<span data-i18n="notes.amountPaid">Уже оплачено</span>
+</span>
+<textarea id="amount-paid" class="notes-field min-h-[96px] resize-none border-slate-100 bg-white/90" data-i18n-placeholder="notes.amountPaidPlaceholder" placeholder="Например: 1000 EUR, 29.06"></textarea>
+</label>
+</div>
+</section>
+
 <section class="bg-white rounded-[24px] p-5 sm:p-6 lg:p-8 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100 min-w-0">
 <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 <div class="min-w-0">
 <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 font-manrope tracking-tight" data-i18n="notes.managerNotes">Заметки менеджера</h2>
 <p class="mt-1 text-sm text-slate-500" data-i18n="notes.managerNotesLead">Короткий контекст, договорённости и важные детали общения.</p>
 </div>
-<span id="notes-dirty-badge" class="hidden shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700" data-i18n="notes.unsaved">Есть изменения</span>
 </div>
-<div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="new-manager-note" data-i18n="notes.addNoteLabel">Новая заметка</label>
-<textarea id="new-manager-note" class="notes-field min-h-[112px] resize-y" data-i18n-placeholder="notes.addNotePlaceholder" placeholder="Добавьте рабочую заметку по клиенту..." rows="4"></textarea>
-<div class="mt-3 flex items-center justify-between gap-3">
-<p class="text-xs text-slate-400" data-i18n="notes.addNoteHint">Заметка сохранится после нажатия «Сохранить».</p>
-<button id="add-manager-note" type="button" class="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:opacity-95">
-<span class="material-symbols-outlined text-[18px]">add</span>
-<span data-i18n="notes.addNote">Добавить</span>
-</button>
-</div>
-</div>
-<div id="manager-notes-list" class="mt-5 space-y-3"></div>
+<div id="manager-notes-list" class="notes-board"></div>
 </section>
+</div>
 
 <div class="space-y-6 min-w-0">
-<section class="bg-white rounded-[24px] p-5 sm:p-6 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100">
-<div class="mb-5">
-<h2 class="text-lg font-extrabold text-slate-800 font-manrope" data-i18n="notes.risksTitle">Риски и контроль</h2>
-<p class="mt-1 text-sm text-slate-500" data-i18n="notes.risksLead">Всё, что может повлиять на сроки, документы или коммуникацию.</p>
-</div>
-<div class="space-y-4">
-<div>
-<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="priority" data-i18n="notes.priorityLabel">Приоритет</label>
-<select id="priority" class="notes-field">
-<option value="low" data-i18n="notes.priority.low">Низкий</option>
-<option value="normal" data-i18n="notes.priority.normal">Обычный</option>
-<option value="high" data-i18n="notes.priority.high">Высокий</option>
-<option value="urgent" data-i18n="notes.priority.urgent">Срочный</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="next-contact-at" data-i18n="notes.nextContactLabel">Следующий контакт</label>
-<input id="next-contact-at" class="notes-field" type="datetime-local"/>
-</div>
-<div>
-<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="risk-notes" data-i18n="notes.riskLabel">Риски</label>
-<textarea id="risk-notes" class="notes-field min-h-[118px] resize-y" data-i18n-placeholder="notes.riskPlaceholder" placeholder="Например: нужен свежий банковский документ." rows="5"></textarea>
-</div>
-<div>
-<label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2" for="payment-notes" data-i18n="notes.paymentLabel">Оплата и условия</label>
-<textarea id="payment-notes" class="notes-field min-h-[96px] resize-y" data-i18n-placeholder="notes.paymentPlaceholder" placeholder="Например: 50/50, второй платеж после записи." rows="4"></textarea>
-</div>
-</div>
-</section>
-
 <section class="bg-white rounded-[24px] p-5 sm:p-6 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100">
 <div class="mb-4 flex items-start justify-between gap-3">
 <div class="min-w-0">
@@ -219,8 +256,8 @@
 </div>
 </div>
 
-<script src="../js/lk-i18n.js?v=11" defer></script>
+<script src="../js/lk-i18n.js?v=12" defer></script>
 <script src="../js/mobile-nav.js" defer></script>
 <script src="../js/lk.js?v=21" defer></script>
-<script src="../js/notes.js?v=2" defer></script>
+<script src="../js/notes.js?v=3" defer></script>
 </body></html>

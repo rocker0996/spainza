@@ -116,19 +116,31 @@ function formatNotesDateTime(value) {
     return date.toLocaleString();
 }
 
-function instantToDatetimeLocal(value) {
-    if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '';
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+function parsePaymentTerms(rawValue) {
+    const raw = String(rawValue || '').trim();
+    const empty = { case_price: '', payment_model: '', amount_paid: '' };
+    if (!raw) return empty;
+    try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            return {
+                case_price: String(parsed.case_price || ''),
+                payment_model: String(parsed.payment_model || ''),
+                amount_paid: String(parsed.amount_paid || ''),
+            };
+        }
+    } catch {
+        // Legacy payment notes are kept as the payment model text.
+    }
+    return { ...empty, payment_model: raw };
 }
 
-function datetimeLocalToInstant(value) {
-    if (!value) return null;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return null;
-    return date.toISOString();
+function serializePaymentTerms(els) {
+    return JSON.stringify({
+        case_price: els.casePrice?.value || '',
+        payment_model: els.paymentModel?.value || '',
+        amount_paid: els.amountPaid?.value || '',
+    });
 }
 
 function getNotesEls() {
@@ -142,13 +154,10 @@ function getNotesEls() {
         documentsLink: document.getElementById('notes-documents-link'),
         save: document.getElementById('notes-save-btn'),
         dirty: document.getElementById('notes-dirty-badge'),
-        noteInput: document.getElementById('new-manager-note'),
-        addNote: document.getElementById('add-manager-note'),
         notesList: document.getElementById('manager-notes-list'),
-        risk: document.getElementById('risk-notes'),
-        payment: document.getElementById('payment-notes'),
-        priority: document.getElementById('priority'),
-        nextContact: document.getElementById('next-contact-at'),
+        casePrice: document.getElementById('case-price'),
+        paymentModel: document.getElementById('payment-model'),
+        amountPaid: document.getElementById('amount-paid'),
         checklist: document.getElementById('checklist-list'),
         checklistProgress: document.getElementById('checklist-progress'),
         newChecklist: document.getElementById('new-checklist-item'),
@@ -204,10 +213,10 @@ function collectNotesPayload() {
         .filter((item) => item.label);
     return {
         general_notes: JSON.stringify(notesState.managerNotes),
-        risk_notes: els.risk?.value || '',
-        payment_notes: els.payment?.value || '',
-        priority: els.priority?.value || 'normal',
-        next_contact_at: datetimeLocalToInstant(els.nextContact?.value || ''),
+        risk_notes: '',
+        payment_notes: serializePaymentTerms(els),
+        priority: 'normal',
+        next_contact_at: null,
         checklist,
     };
 }
@@ -217,15 +226,18 @@ function renderManagerNotes() {
     if (!notesList) return;
     if (!notesState.managerNotes.length) {
         notesList.innerHTML = `
-            <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-6 text-center">
+            ${renderAddNoteCard()}
+            <div class="notes-soft-card notes-sticky-card rounded-2xl border-dashed p-6 text-center">
                 <span class="material-symbols-outlined text-4xl text-slate-300">sticky_note_2</span>
                 <p class="mt-2 text-sm font-semibold text-slate-500">${notesEscape(nt('notes.emptyNotes'))}</p>
             </div>
         `;
         return;
     }
-    notesList.innerHTML = notesState.managerNotes.map((note, index) => `
-        <article data-manager-note data-note-index="${index}" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300">
+    notesList.innerHTML = [
+        renderAddNoteCard(),
+        ...notesState.managerNotes.map((note, index) => `
+        <article data-manager-note data-note-index="${index}" class="notes-soft-card notes-sticky-card rounded-2xl p-4">
             <div class="mb-3 flex items-start justify-between gap-3">
                 <div class="min-w-0">
                     <p class="text-xs font-bold uppercase tracking-wider text-slate-400">${notesEscape(nt('notes.noteCardTitle', { n: index + 1 }))}</p>
@@ -235,9 +247,31 @@ function renderManagerNotes() {
                     <span class="material-symbols-outlined text-[18px]">delete</span>
                 </button>
             </div>
-            <textarea data-note-text class="notes-field min-h-[96px] resize-y">${notesEscape(note.text)}</textarea>
+            <textarea data-note-text class="notes-field min-h-[126px] resize-y border-slate-100 bg-white/90">${notesEscape(note.text)}</textarea>
         </article>
-    `).join('');
+    `)
+    ].join('');
+}
+
+function renderAddNoteCard() {
+    return `
+        <article class="notes-soft-card notes-add-card rounded-2xl p-4">
+            <div class="mb-3 flex items-center gap-2">
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <span class="material-symbols-outlined text-[20px]">add</span>
+                </span>
+                <div class="min-w-0">
+                    <p class="text-sm font-extrabold text-slate-800 font-manrope">${notesEscape(nt('notes.addNoteLabel'))}</p>
+                    <p class="text-xs font-semibold text-slate-400">${notesEscape(nt('notes.addNoteHint'))}</p>
+                </div>
+            </div>
+            <textarea id="new-manager-note" class="notes-field min-h-[104px] resize-y border-slate-100 bg-white/90" data-i18n-placeholder="notes.addNotePlaceholder" placeholder="${notesEscape(nt('notes.addNotePlaceholder'))}" rows="4"></textarea>
+            <button id="add-manager-note" type="button" class="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:opacity-95">
+                <span class="material-symbols-outlined text-[18px]">add</span>
+                <span>${notesEscape(nt('notes.addNote'))}</span>
+            </button>
+        </article>
+    `;
 }
 
 function renderChecklist() {
@@ -304,11 +338,10 @@ function renderNotes() {
     if (els.documentsLink) els.documentsLink.href = `./documents.html?${query}`;
 
     notesState.managerNotes = parseManagerNotes(notes.general_notes, notes.updated_at);
-    if (els.noteInput) els.noteInput.value = '';
-    if (els.risk) els.risk.value = notes.risk_notes || '';
-    if (els.payment) els.payment.value = notes.payment_notes || '';
-    if (els.priority) els.priority.value = notes.priority || 'normal';
-    if (els.nextContact) els.nextContact.value = instantToDatetimeLocal(notes.next_contact_at);
+    const paymentTerms = parsePaymentTerms(notes.payment_notes);
+    if (els.casePrice) els.casePrice.value = paymentTerms.case_price;
+    if (els.paymentModel) els.paymentModel.value = paymentTerms.payment_model;
+    if (els.amountPaid) els.amountPaid.value = paymentTerms.amount_paid;
     renderManagerNotes();
     renderChecklist();
     setDirty(false);
@@ -368,13 +401,16 @@ async function saveNotes() {
 
 function bindNotesEvents() {
     const els = getNotesEls();
-    [els.risk, els.payment, els.priority, els.nextContact].forEach((node) => {
+    [els.casePrice, els.paymentModel, els.amountPaid].forEach((node) => {
         node?.addEventListener('input', () => setDirty(true));
         node?.addEventListener('change', () => setDirty(true));
     });
     els.save?.addEventListener('click', () => saveNotes());
-    els.addNote?.addEventListener('click', () => {
-        const text = (els.noteInput?.value || '').trim();
+    document.addEventListener('click', (event) => {
+        const addButton = event.target?.closest?.('#add-manager-note');
+        if (!addButton) return;
+        const noteInput = document.getElementById('new-manager-note');
+        const text = (noteInput?.value || '').trim();
         if (!text) return;
         notesState.managerNotes.unshift({
             id: `note_${Date.now()}`,
@@ -382,14 +418,15 @@ function bindNotesEvents() {
             created_at: new Date().toISOString(),
             updated_at: null,
         });
-        if (els.noteInput) els.noteInput.value = '';
+        if (noteInput) noteInput.value = '';
         renderManagerNotes();
         setDirty(true);
     });
-    els.noteInput?.addEventListener('keydown', (event) => {
+    document.addEventListener('keydown', (event) => {
+        if (!event.target?.matches?.('#new-manager-note')) return;
         if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
             event.preventDefault();
-            els.addNote?.click();
+            document.getElementById('add-manager-note')?.click();
         }
     });
     els.notesList?.addEventListener('input', (event) => {
