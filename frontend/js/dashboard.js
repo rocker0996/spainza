@@ -162,6 +162,10 @@
     const section = container.closest("section");
     const completedAt = caseData?.completed_at || caseData?.case_completed_at || null;
     const isCompleted = Boolean(completedAt);
+    const completedBadge = document.getElementById("dashboard-case-completed-badge");
+    if (completedBadge) {
+      completedBadge.classList.toggle("hidden", !isCompleted);
+    }
     if (section) {
       section.classList.toggle("bg-emerald-50", isCompleted);
       section.classList.toggle("border", isCompleted);
@@ -170,20 +174,9 @@
       section.classList.toggle("ring-emerald-100", isCompleted);
     }
 
-    const completedBanner = isCompleted
-      ? `<div class="mb-5 rounded-[12px] border border-emerald-200 bg-white/80 p-4 text-emerald-900">
-          <div class="flex items-center gap-2 font-headline font-bold text-sm">
-            <span class="material-symbols-outlined text-[20px] text-emerald-600">verified</span>
-            <span>${escapeHtml(t("dashboard.residenceApproved"))}</span>
-          </div>
-          <p class="mt-1 text-xs font-body text-emerald-700">${escapeHtml(t("dashboard.caseCompletedNote"))}</p>
-        </div>`
-      : "";
-
     const timeline = Array.isArray(caseData?.timeline) ? caseData.timeline : [];
     if (timeline.length === 0) {
       container.innerHTML = `
-        ${completedBanner}
         <div class="text-sm text-on-surface-variant font-body bg-surface-container-low p-4 rounded-[12px]">
           ${t("dashboard.timelineEmpty")}
         </div>
@@ -214,7 +207,6 @@
       .join("");
 
     container.innerHTML = `
-      ${completedBanner}
       <div class="absolute left-[31px] top-4 bottom-8 w-[2px] bg-outline-variant/20"></div>
       ${rows}
     `;
