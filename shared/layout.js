@@ -150,6 +150,19 @@
     });
   }
 
+  function loadCookieConsent() {
+    if (window.__spainzaCookieConsentLoaded || document.querySelector('script[src*="cookie-consent.js"]')) {
+      return;
+    }
+
+    var script = document.createElement("script");
+    script.defer = true;
+    script.src = window.location.protocol === "file:"
+      ? new URL("../frontend/js/cookie-consent.js", baseUrls[0]).href
+      : "/frontend/js/cookie-consent.js";
+    document.body.appendChild(script);
+  }
+
   function uniq(items) {
     var seen = {};
     var result = [];
@@ -263,5 +276,6 @@
   ]).finally(function () {
     initMobileNav();
     initLanguageSwitcher(language);
+    loadCookieConsent();
   });
 })();

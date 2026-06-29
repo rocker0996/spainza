@@ -1,5 +1,27 @@
 // Simple auth guard for /lk/* pages.
 (function () {
+  function loadCookieConsent() {
+    if (window.__spainzaCookieConsentLoaded || document.querySelector('script[src*="cookie-consent.js"]')) {
+      return;
+    }
+    const script = document.createElement("script");
+    script.defer = true;
+    const currentScript =
+      document.currentScript || document.querySelector('script[src*="lk.js"]');
+    if (currentScript && currentScript.src) {
+      try {
+        script.src = new URL("cookie-consent.js", currentScript.src).href;
+      } catch {
+        script.src = "../js/cookie-consent.js";
+      }
+    } else {
+      script.src = "../js/cookie-consent.js";
+    }
+    document.body.appendChild(script);
+  }
+
+  loadCookieConsent();
+
   const loginUrl =
     window.location.protocol === "file:"
       ? "../login.html"
