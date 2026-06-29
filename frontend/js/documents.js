@@ -15,6 +15,7 @@
   let targetUserId = null;
   let targetClientDisplayId = null;
   let isManagementDocumentsView = false;
+  let caseCompletion = null;
   
   // Filter state
   let currentFilters = {
@@ -242,6 +243,57 @@
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+
+  function daysUntilCaseFileCleanup(completedAt) {
+    const completed = window.LkI18n?.parseInstant(completedAt) || new Date(completedAt);
+    if (Number.isNaN(completed.getTime())) {
+      return null;
+    }
+    const cleanupAt = new Date(completed.getTime());
+    cleanupAt.setUTCDate(cleanupAt.getUTCDate() + 30);
+    return Math.max(0, Math.ceil((cleanupAt.getTime() - Date.now()) / 86400000));
+  }
+
+  async function loadCaseCompletionForDocuments(userId) {
+    if (!userId) {
+      caseCompletion = null;
+      return;
+    }
+    try {
+      const payload = await fetchFromApi(`/case-data/${userId}`);
+      const data = payload && payload.case_data ? payload.case_data : null;
+      caseCompletion = data && data.completed_at ? data : null;
+    } catch {
+      caseCompletion = null;
+    }
+  }
+
+  function renderCaseCompletionBanner() {
+    const banner = document.getElementById("documents-case-completion-banner");
+    if (!banner) return;
+    if (!caseCompletion || !caseCompletion.completed_at) {
+      banner.classList.add("hidden");
+      banner.innerHTML = "";
+      return;
+    }
+    const days = daysUntilCaseFileCleanup(caseCompletion.completed_at);
+    const detail =
+      days === 0
+        ? t("documents.caseCompletedCleanupSoon")
+        : t("documents.caseCompletedCleanupDays", { n: days });
+    banner.classList.remove("hidden");
+    banner.innerHTML = `
+      <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:p-5 text-emerald-900">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-emerald-600 shrink-0">verified</span>
+          <div class="min-w-0">
+            <div class="font-manrope text-sm font-bold">${escapeHtml(t("documents.caseCompletedTitle"))}</div>
+            <div class="mt-1 text-xs sm:text-sm leading-relaxed text-emerald-800">${escapeHtml(detail)}</div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   function translateHistoryAction(action) {
@@ -1063,6 +1115,8 @@
       console.error('❌ No documents payload received');
     }
 
+    await loadCaseCompletionForDocuments(targetUserId || currentUserId);
+    renderCaseCompletionBanner();
     renderDocuments();
 
     const prevButton = document.getElementById("documents-prev-btn");

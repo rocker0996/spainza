@@ -199,6 +199,76 @@ function updateMobileSortPills(column, direction) {
     });
 }
 
+function isCaseCompleted(user) {
+    return Boolean(user && (user.completed_at || user.case_completed_at));
+}
+
+function statusCompletedBadge() {
+    return `<span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold font-manrope text-emerald-700">
+        <span class="material-symbols-outlined text-[15px]">verified</span>
+        ${t('clients.completedStatus')}
+    </span>`;
+}
+
+function buildUserRowHtml(user, { completed = false } = {}) {
+    const initials = getUserInitials(user.name, user.email);
+    const roleBadgeColor = getRoleBadgeColor(user.role.key);
+    const pendingDocsCount = Number(user.pending_documents_count || 0);
+    const pendingDocsBadge = buildPendingDocsBadge(pendingDocsCount);
+    const pendingDocsBadgeCompact = buildPendingDocsBadge(pendingDocsCount, 'compact');
+    return `
+        <tr class="${completed ? 'bg-emerald-50/20 hover:bg-emerald-50/60' : 'hover:bg-slate-50/80'} transition-colors group">
+            <td class="px-8 py-6">${buildClientListIdButton(user)}</td>
+            <td class="px-8 py-6">
+                <div class="flex flex-col gap-1">
+                    <button type="button"
+                            class="flex items-center gap-3 w-full max-w-full text-left rounded-xl -m-1 p-1 border-0 bg-transparent cursor-pointer hover:bg-slate-100/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                            onclick='manageCaseForUser(${user.id}, ${JSON.stringify(user.display_id || "")})'
+                            title="${t('clients.openCase')}">
+                    ${user.avatar
+                        ? `<img class="w-10 h-10 rounded-full object-cover shrink-0 pointer-events-none" src="${user.avatar}" alt="${user.name || user.email}"/>`
+                        : `<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold text-xs shrink-0 pointer-events-none">${initials}</div>`
+                    }
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-slate-800 flex items-center gap-2 min-w-0">
+                            ${pendingDocsBadge}
+                            <span class="truncate">${user.name || t('clients.noName')}</span>
+                        </p>
+                    </div>
+                    </button>
+                    <p class="text-xs text-slate-500 pl-[52px]">${user.email}</p>
+                </div>
+            </td>
+            <td class="px-8 py-6">
+                <span class="inline-flex items-center px-3 py-1 rounded-full ${roleBadgeColor} text-xs font-bold font-manrope">
+                    ${roleLabel(user.role)}
+                </span>
+            </td>
+            <td class="px-8 py-6 text-sm text-slate-600">${completed ? statusCompletedBadge() : formatConsulateTargetDate(user.target_date)}</td>
+            <td class="px-8 py-6 text-sm text-slate-600">${formatDate(user.created_at)}</td>
+            <td class="px-8 py-6 text-right">
+                <div class="relative">
+                    <button class="p-2 rounded-xl hover:bg-white hover:shadow-sm transition-all text-slate-400 hover:text-primary"
+                            onclick="toggleDropdown(event, ${user.id})">
+                        <span class="material-symbols-outlined">more_vert</span>
+                    </button>
+                    <div class="dropdown-menu" id="${completed ? 'completed-' : ''}dropdown-${user.id}">
+                        <div class="dropdown-item" onclick='manageCaseForUser(${user.id}, ${JSON.stringify(user.display_id || "")})'>
+                            <span class="material-symbols-outlined text-[20px]">folder_managed</span>
+                            ${t('clients.manageCase')}
+                        </div>
+                        <div class="dropdown-item" onclick='viewUserDetails(${user.id}, ${JSON.stringify(user.display_id || "")})'>
+                            <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            ${t('clients.viewDocuments')}
+                            ${pendingDocsBadgeCompact}
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
 /** Публичный ID в списках: display_id или внутренний числовой id (без префикса). */
 function getClientListIdValue(user) {
     const d = user && user.display_id ? String(user.display_id).trim() : '';
@@ -290,67 +360,24 @@ function renderUsersTable(users) {
         return;
     }
 
-    tbody.innerHTML = users.map(user => {
-        const initials = getUserInitials(user.name, user.email);
-        const roleBadgeColor = getRoleBadgeColor(user.role.key);
-        const pendingDocsCount = Number(user.pending_documents_count || 0);
-        const pendingDocsBadge = buildPendingDocsBadge(pendingDocsCount);
-        const pendingDocsBadgeCompact = buildPendingDocsBadge(pendingDocsCount, 'compact');
-        
-        return `
-            <tr class="hover:bg-slate-50/80 transition-colors group">
-                <td class="px-8 py-6">${buildClientListIdButton(user)}</td>
-                <td class="px-8 py-6">
-                    <div class="flex flex-col gap-1">
-                        <button type="button"
-                                class="flex items-center gap-3 w-full max-w-full text-left rounded-xl -m-1 p-1 border-0 bg-transparent cursor-pointer hover:bg-slate-100/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-                                onclick='manageCaseForUser(${user.id}, ${JSON.stringify(user.display_id || "")})'
-                                title="${t('clients.openCase')}">
-                        ${user.avatar
-                            ? `<img class="w-10 h-10 rounded-full object-cover shrink-0 pointer-events-none" src="${user.avatar}" alt="${user.name || user.email}"/>`
-                            : `<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold text-xs shrink-0 pointer-events-none">${initials}</div>`
-                        }
-                        <div class="min-w-0 flex-1">
-                            <p class="font-bold text-slate-800 flex items-center gap-2 min-w-0">
-                                ${pendingDocsBadge}
-                                <span class="truncate">${user.name || t('clients.noName')}</span>
-                            </p>
-                        </div>
-                        </button>
-                        <p class="text-xs text-slate-500 pl-[52px]">${user.email}</p>
-                    </div>
-                </td>
-                <td class="px-8 py-6">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full ${roleBadgeColor} text-xs font-bold font-manrope">
-                        ${roleLabel(user.role)}
-                    </span>
-                </td>
-                <td class="px-8 py-6 text-sm text-slate-600">${formatConsulateTargetDate(user.target_date)}</td>
-                <td class="px-8 py-6 text-sm text-slate-600">${formatDate(user.created_at)}</td>
-                <td class="px-8 py-6 text-right">
-                    <div class="relative">
-                        <button class="p-2 rounded-xl hover:bg-white hover:shadow-sm transition-all text-slate-400 hover:text-primary"
-                                onclick="toggleDropdown(event, ${user.id})">
-                            <span class="material-symbols-outlined">more_vert</span>
-                        </button>
-                        <div class="dropdown-menu" id="dropdown-${user.id}">
-                            <div class="dropdown-item" onclick='manageCaseForUser(${user.id}, ${JSON.stringify(user.display_id || "")})'>
-                                <span class="material-symbols-outlined text-[20px]">folder_managed</span>
-                                ${t('clients.manageCase')}
-                            </div>
-                            <div class="dropdown-item" onclick='viewUserDetails(${user.id}, ${JSON.stringify(user.display_id || "")})'>
-                                <span class="material-symbols-outlined text-[20px]">visibility</span>
-                                ${t('clients.viewDocuments')}
-                                ${pendingDocsBadgeCompact}
-                            </div>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        `;
-    }).join('');
+    tbody.innerHTML = users.map((user) => buildUserRowHtml(user)).join('');
 
     renderUsersCards(users);
+}
+
+function renderCompletedUsers(completedUsers) {
+    const section = document.getElementById('completed-clients-section');
+    const tbody = document.getElementById('completed-users-table-body');
+    const cards = document.getElementById('completed-users-cards-list');
+    if (!section || !tbody || !cards) return;
+    section.classList.toggle('hidden', !completedUsers.length);
+    if (!completedUsers.length) {
+        tbody.innerHTML = '';
+        cards.innerHTML = '';
+        return;
+    }
+    tbody.innerHTML = completedUsers.map((user) => buildUserRowHtml(user, { completed: true })).join('');
+    cards.innerHTML = completedUsers.map((user) => buildUserCardHtml(user, { completed: true })).join('');
 }
 
 /**
@@ -369,7 +396,10 @@ function renderUsersCards(users) {
         return;
     }
 
-    list.innerHTML = users.map(user => {
+    list.innerHTML = users.map(user => buildUserCardHtml(user)).join('');
+}
+
+function buildUserCardHtml(user, { completed = false } = {}) {
         const initials = getUserInitials(user.name, user.email);
         const roleBadgeColor = getRoleBadgeColor(user.role.key);
         const pendingDocsCount = Number(user.pending_documents_count || 0);
@@ -378,7 +408,7 @@ function renderUsersCards(users) {
         const avatarHtml = buildUserAvatarHtml(user, initials, 'w-9 h-9', 'pointer-events-none');
 
         return `
-            <article class="bg-white rounded-xl shadow-[0px_8px_24px_rgba(117,118,130,0.06)] p-3 active:scale-[0.995] transition-transform">
+            <article class="${completed ? 'bg-emerald-50 border border-emerald-100' : 'bg-white'} rounded-xl shadow-[0px_8px_24px_rgba(117,118,130,0.06)] p-3 active:scale-[0.995] transition-transform">
                 <div class="flex items-center gap-2.5 mb-2">
                     <button type="button"
                             class="shrink-0 p-0 border-0 bg-transparent rounded-full cursor-pointer hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
@@ -408,8 +438,8 @@ function renderUsersCards(users) {
                 </div>
                 <dl class="grid grid-cols-2 gap-1.5 mb-2 text-[11px]">
                     <div class="rounded-lg bg-slate-50 px-2 py-1.5">
-                        <dt class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-0.5">${t('clients.sortConsulate')}</dt>
-                        <dd class="font-semibold text-slate-700 leading-tight">${formatConsulateTargetDate(user.target_date)}</dd>
+                        <dt class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-0.5">${completed ? t('clients.statusCol') : t('clients.sortConsulate')}</dt>
+                        <dd class="font-semibold text-slate-700 leading-tight">${completed ? t('clients.completedStatus') : formatConsulateTargetDate(user.target_date)}</dd>
                     </div>
                     <div class="rounded-lg bg-slate-50 px-2 py-1.5">
                         <dt class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-0.5">${t('clients.sortRegistration')}</dt>
@@ -431,7 +461,6 @@ function renderUsersCards(users) {
                 </div>
             </article>
         `;
-    }).join('');
 }
 
 /**
@@ -519,13 +548,15 @@ function toggleDropdown(event, userId) {
     
     // Close all other dropdowns
     document.querySelectorAll('.dropdown-menu').forEach(menu => {
-        if (menu.id !== `dropdown-${userId}`) {
+        if (menu.id !== `dropdown-${userId}` && menu.id !== `completed-dropdown-${userId}`) {
             menu.classList.remove('show');
         }
     });
     
     // Toggle current dropdown
-    const dropdown = document.getElementById(`dropdown-${userId}`);
+    const dropdown =
+        document.getElementById(`dropdown-${userId}`) ||
+        document.getElementById(`completed-dropdown-${userId}`);
     if (dropdown) {
         dropdown.classList.toggle('show');
     }
@@ -595,9 +626,12 @@ function getSortedUsers(column, direction) {
 
 function renderWithCurrentSort() {
     const sortedUsers = getSortedUsers(currentSortColumn, currentSortDirection);
+    const activeUsers = sortedUsers.filter((user) => !isCaseCompleted(user));
+    const completedUsers = sortedUsers.filter(isCaseCompleted);
     updateSortIcons(currentSortColumn, currentSortDirection);
     updateMobileSortPills(currentSortColumn, currentSortDirection);
-    renderUsersTable(sortedUsers);
+    renderUsersTable(activeUsers);
+    renderCompletedUsers(completedUsers);
 }
 
 /**

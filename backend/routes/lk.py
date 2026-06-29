@@ -413,6 +413,7 @@ def get_current_user():
         (support_row["display_id"] or "").strip() if support_row else ""
     ) or None
     support_user_id = int(support_row["id"]) if support_row else None
+    case_data = get_case_data_by_user_id(g.db, int(user["id"]))
 
     return (
         jsonify(
@@ -452,6 +453,8 @@ def get_current_user():
                 ],
                 "assignable_visa_types": get_assignable_visa_types(role_key),
                 "assigned_manager": _assigned_manager_payload(g.db, int(user["id"])),
+                "case_completed_at": (case_data or {}).get("completed_at"),
+                "case_retention_cleanup_at": (case_data or {}).get("retention_cleanup_at"),
                 "display_id": (user["display_id"] or "").strip() or None,
                 "support_display_id": support_display_id,
                 "support_user_id": support_user_id,
@@ -1089,6 +1092,7 @@ def get_users_list():
         case_data = get_case_data_by_user_id(g.db, user["id"])
         visa_type = case_data.get("visa_type") if case_data else None
         target_date = (case_data.get("target_date") or "").strip() if case_data else ""
+        completed_at = case_data.get("completed_at") if case_data else None
 
         users_data.append({
             "id": user["id"],
@@ -1100,6 +1104,9 @@ def get_users_list():
             "created_at": normalize_storage_datetime(user["created_at"]),
             "visa_type": visa_type,
             "target_date": target_date,
+            "completed_at": completed_at,
+            "case_completed_at": completed_at,
+            "retention_cleanup_at": case_data.get("retention_cleanup_at") if case_data else None,
             "pending_documents_count": pending_counts_by_user.get(user["id"], 0),
             "role": {
                 "key": user_role_data["key"],
