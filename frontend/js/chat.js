@@ -162,8 +162,8 @@
   const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
   const MAX_FILE_BYTES = 25 * 1024 * 1024;
 
-  /** @type {{ file: File, kind: 'image'|'file', previewUrl: string|null, status: 'ready'|'uploading' } | null} */
-  let pendingAttachment = null;
+  /** @type {Array<{ file: File, kind: 'image'|'file', previewUrl: string|null, status: 'ready'|'uploading' }>} */
+  let pendingAttachments = [];
   /** @type {{ id: number, senderId: number, senderName: string, previewText: string } | null} */
   let pendingReply = null;
   let messageActionsMessageId = null;
@@ -1103,7 +1103,7 @@
     const lower = raw.toLowerCase();
 
     if (lower.includes("too large") || lower.includes("413")) {
-      if (pendingAttachment && pendingAttachment.kind === "image") {
+      if (pendingAttachments.some((item) => item.kind === "image")) {
         return t("chat.imageTooLarge");
       }
       return t("chat.fileTooLarge");
@@ -1119,7 +1119,7 @@
     ) {
       return t("chat.fileUnsafe");
     }
-    if (pendingAttachment && pendingAttachment.kind === "image") {
+    if (pendingAttachments.some((item) => item.kind === "image")) {
       return t("chat.imageUploadError");
     }
     return t("chat.fileUploadError", { error: raw });
@@ -1134,14 +1134,16 @@
   }
 
   function revokePendingPreviewUrl() {
-    if (pendingAttachment && pendingAttachment.previewUrl) {
-      URL.revokeObjectURL(pendingAttachment.previewUrl);
-    }
+    pendingAttachments.forEach((item) => {
+      if (item.previewUrl) {
+        URL.revokeObjectURL(item.previewUrl);
+      }
+    });
   }
 
   function clearPendingAttachment() {
     revokePendingPreviewUrl();
-    pendingAttachment = null;
+    pendingAttachments = [];
     renderAttachmentPreview();
   }
 
@@ -1165,36 +1167,43 @@
       return;
     }
 
-    if (!pendingAttachment) {
+    if (!pendingAttachments.length) {
       chatAttachmentPreview.classList.add("hidden");
       chatAttachmentPreview.innerHTML = "";
       return;
     }
 
-    const { file, kind, previewUrl, status } = pendingAttachment;
-    const ext = getFileExtension(file.name);
-    const icon = kind === "image" && previewUrl ? "" : getFileIcon(ext);
-    const isUploading = status === "uploading";
+    const isUploading = pendingAttachments.some((item) => item.status === "uploading");
     const percent = typeof uploadPercent === "number" ? Math.min(100, Math.max(0, uploadPercent)) : 0;
-
-    const thumb =
-      kind === "image" && previewUrl
-        ? `<img src="${escapeHtml(previewUrl)}" class="chat-attachment-preview__thumb" alt=""/>`
-        : `<div class="chat-attachment-preview__thumb bg-white flex items-center justify-center border border-stone-200">
-             <span class="material-symbols-outlined text-[28px] text-primary-container">${icon || "insert_drive_file"}</span>
-           </div>`;
 
     const statusText = isUploading
       ? t("chat.uploadingAttachment", { percent: Math.round(percent) })
       : t("chat.attachmentReady");
+    const itemsHtml = pendingAttachments.map(({ file, kind, previewUrl }) => {
+      const ext = getFileExtension(file.name);
+      const icon = kind === "image" && previewUrl ? "" : getFileIcon(ext);
+      const thumb =
+        kind === "image" && previewUrl
+          ? `<img src="${escapeHtml(previewUrl)}" class="chat-attachment-preview__thumb" alt=""/>`
+          : `<div class="chat-attachment-preview__thumb bg-white flex items-center justify-center border border-stone-200">
+               <span class="material-symbols-outlined text-[28px] text-primary-container">${icon || "insert_drive_file"}</span>
+             </div>`;
+      return `
+        <div class="chat-attachment-preview__row flex items-center gap-3 min-w-0">
+          ${thumb}
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-on-surface truncate">${escapeHtml(file.name)}</div>
+            <div class="text-xs text-outline mt-0.5">${escapeHtml(statusText)}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
 
     chatAttachmentPreview.classList.remove("hidden");
     chatAttachmentPreview.innerHTML = `
       <div class="chat-attachment-preview__card">
-        ${thumb}
-        <div class="flex-1 min-w-0">
-          <div class="text-sm font-medium text-on-surface truncate">${escapeHtml(file.name)}</div>
-          <div class="text-xs text-outline mt-0.5">${escapeHtml(statusText)}</div>
+        <div class="flex-1 min-w-0 space-y-2">
+          ${itemsHtml}
           ${
             isUploading
               ? `<div class="chat-attachment-preview__progress" role="progressbar" aria-valuenow="${Math.round(percent)}" aria-valuemin="0" aria-valuemax="100">
@@ -1215,26 +1224,33 @@
     }
   }
 
-  function queueAttachment(file) {
+  function queueAttachments(files) {
     if (!activeConversationId) {
       showAttachmentError(t("chat.selectChatForFile"));
       return;
     }
 
-    const validation = validateAttachmentFile(file);
-    if (!validation.ok) {
-      showAttachmentError(validation.message);
-      return;
+    const list = Array.from(files || []).filter(Boolean);
+    if (!list.length) return;
+
+    const next = [];
+    for (const file of list) {
+      const validation = validateAttachmentFile(file);
+      if (!validation.ok) {
+        showAttachmentError(validation.message);
+        return;
+      }
+      const kind = validation.kind;
+      next.push({
+        file,
+        kind,
+        previewUrl: kind === "image" ? URL.createObjectURL(file) : null,
+        status: "ready",
+      });
     }
 
     revokePendingPreviewUrl();
-    const kind = validation.kind;
-    let previewUrl = null;
-    if (kind === "image") {
-      previewUrl = URL.createObjectURL(file);
-    }
-
-    pendingAttachment = { file, kind, previewUrl, status: "ready" };
+    pendingAttachments = next;
     renderAttachmentPreview();
     if (byId.messageInput) {
       byId.messageInput.focus();
@@ -1648,10 +1664,7 @@
       event.preventDefault();
       dragDepth = 0;
       setDropOverlayVisible(false);
-      const file = event.dataTransfer.files[0];
-      if (file) {
-        queueAttachment(file);
-      }
+      queueAttachments(event.dataTransfer.files);
     });
   }
 
@@ -2103,7 +2116,7 @@
     }
 
     const text = input.value.trim();
-    const hasAttachment = Boolean(pendingAttachment && pendingAttachment.file);
+    const hasAttachment = pendingAttachments.length > 0;
 
     if (!text && !hasAttachment) {
       input.focus();
@@ -2122,19 +2135,18 @@
 
     try {
       if (hasAttachment) {
-        const { file, kind } = pendingAttachment;
-        pendingAttachment.status = "uploading";
+        pendingAttachments.forEach((item) => {
+          item.status = "uploading";
+        });
         renderAttachmentPreview(0);
 
         const formData = new FormData();
         if (text) {
           formData.append("message_text", text);
         }
-        if (kind === "image") {
-          formData.append("image", file);
-        } else {
-          formData.append("file", file);
-        }
+        pendingAttachments.forEach(({ file, kind }) => {
+          formData.append(kind === "image" ? "image" : "file", file, file.name);
+        });
         if (pendingReply) {
           formData.append("reply_to_message_id", String(pendingReply.id));
         }
@@ -2163,10 +2175,10 @@
       await loadConversations();
     } catch (error) {
       console.error("Failed to send message:", error);
-      if (pendingAttachment) {
-        pendingAttachment.status = "ready";
-        renderAttachmentPreview();
-      }
+      pendingAttachments.forEach((item) => {
+        item.status = "ready";
+      });
+      renderAttachmentPreview();
       const message = hasAttachment ? mapAttachmentError(error) : t("chat.sendError");
       await showAttachmentError(message);
     } finally {
@@ -2181,10 +2193,11 @@
     const input = document.createElement("input");
     input.type = "file";
     input.accept = accept;
+    input.multiple = true;
     input.onchange = (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (file) {
-        onSelected(file);
+      const files = e.target.files;
+      if (files && files.length) {
+        onSelected(files);
       }
     };
     input.click();
@@ -2536,7 +2549,7 @@
 
   if (byId.attachImage) {
     byId.attachImage.addEventListener("click", () => {
-      openFilePicker("image/*", queueAttachment);
+      openFilePicker("image/*", queueAttachments);
     });
   }
 
@@ -2544,7 +2557,7 @@
     byId.attachDocument.addEventListener("click", () => {
       openFilePicker(
         ".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.png,.jpg,.jpeg,.gif,.webp",
-        queueAttachment
+        queueAttachments
       );
     });
   }

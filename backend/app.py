@@ -24,6 +24,7 @@ from routes.admin_messages import admin_messages_bp
 from routes.application_progress import bp as application_progress_bp
 from routes.telegram_lk import telegram_lk_bp
 from services.auth_service import parse_storage_datetime
+from services.file_retention import cleanup_expired_files
 from utils.db import get_db_connection, initialize_database_schema
 from utils.rate_limiter import InMemoryRateLimiter
 from utils.security import verify_auth_token
@@ -317,6 +318,10 @@ def create_app() -> Flask:
 
     init_connection = get_db_connection()
     initialize_database_schema(init_connection)
+    try:
+        cleanup_expired_files(init_connection)
+    except Exception as error:
+        app.logger.exception("File retention cleanup failed: %s", error)
     init_connection.close()
 
     @app.before_request

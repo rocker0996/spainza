@@ -3,6 +3,7 @@ import os
 import uuid
 import zipfile
 import mimetypes
+import unicodedata
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
@@ -80,6 +81,14 @@ class FileService:
         if '.' not in filename:
             return ""
         return filename.rsplit('.', 1)[1].lower()
+
+    def display_filename(self, filename):
+        """Return a safe user-facing filename while preserving Unicode characters."""
+        raw = str(filename or "").replace("\\", "/")
+        name = os.path.basename(raw).strip()
+        name = unicodedata.normalize("NFC", name)
+        name = "".join(ch for ch in name if ch not in "\x00\r\n")
+        return name[:180] or "file"
 
     def _check_size(self, file, max_size):
         file.seek(0, os.SEEK_END)
@@ -196,7 +205,7 @@ class FileService:
         if not self._allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
             raise ValueError(f"File type not allowed. Allowed types: {', '.join(ALLOWED_IMAGE_EXTENSIONS)}")
 
-        original_name = file.filename or ""
+        original_name = self.display_filename(file.filename)
         ext = self._extract_extension(original_name)
         safe_original_name = secure_filename(original_name)
         if not self._extract_extension(safe_original_name) and ext:
@@ -228,7 +237,7 @@ class FileService:
         if not self._allowed_file(file.filename, ALLOWED_MESSAGE_FILE_EXTENSIONS):
             raise ValueError(f"File type not allowed. Allowed types: {', '.join(ALLOWED_MESSAGE_FILE_EXTENSIONS)}")
 
-        original_name = file.filename or ""
+        original_name = self.display_filename(file.filename)
         ext = self._extract_extension(original_name)
         safe_original_name = secure_filename(original_name)
         if not self._extract_extension(safe_original_name) and ext:
@@ -249,8 +258,8 @@ class FileService:
         # Save file
         file.save(filepath)
         
-        # Return relative path and original filename
-        return f"messages/{user_id}/{filename}", safe_original_name
+        # Return relative path and original display filename.
+        return f"messages/{user_id}/{filename}", original_name
     
     def save_document(self, file, user_id, document_type='general'):
         """Save a document file."""
@@ -260,7 +269,7 @@ class FileService:
         if not self._allowed_file(file.filename, ALLOWED_DOCUMENT_WITH_IMAGES):
             raise ValueError(f"File type not allowed. Allowed types: {', '.join(ALLOWED_DOCUMENT_WITH_IMAGES)}")
 
-        original_name = file.filename or ""
+        original_name = self.display_filename(file.filename)
         ext = self._extract_extension(original_name)
         safe_original_name = secure_filename(original_name)
         if not self._extract_extension(safe_original_name) and ext:

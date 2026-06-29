@@ -4,7 +4,10 @@ import json
 import sqlite3
 from typing import Any, Optional
 
-from utils.time import normalize_storage_datetime, to_storage_datetime
+from utils.time import normalize_storage_datetime, parse_storage_datetime, to_storage_datetime
+
+
+_PRESERVE_VALUE = object()
 
 
 def _ensure_case_data_columns(connection: sqlite3.Connection) -> None:
@@ -18,6 +21,8 @@ def _ensure_case_data_columns(connection: sqlite3.Connection) -> None:
         "archive_file_name": "TEXT",
         "timeline_manual": "INTEGER DEFAULT 0",
         "document_requests_manual": "INTEGER DEFAULT 0",
+        "completed_at": "TEXT",
+        "retention_cleanup_at": "TEXT",
     }
 
     for column_name, column_type in required_columns.items():
@@ -42,6 +47,8 @@ def create_case_data_table(connection: sqlite3.Connection) -> None:
             manager_id INTEGER,
             created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+            completed_at TEXT,
+            retention_cleanup_at TEXT,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (referral_id) REFERENCES users(id) ON DELETE SET NULL,
             FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE SET NULL
@@ -59,7 +66,7 @@ def get_case_data_by_user_id(connection: sqlite3.Connection, user_id: int) -> Op
         SELECT id, user_id, visa_type, target_date, country, archive_file_path,
                archive_file_name, timeline_data, document_requests, referral_id,
                manager_id, created_at, updated_at,
-               timeline_manual, document_requests_manual
+               timeline_manual, document_requests_manual, completed_at, retention_cleanup_at
         FROM case_data
         WHERE user_id = ?
         """,
@@ -91,7 +98,22 @@ def get_case_data_by_user_id(connection: sqlite3.Connection, user_id: int) -> Op
         "updated_at": normalize_storage_datetime(row[12]),
         "timeline_manual": _bool_col(13),
         "document_requests_manual": _bool_col(14),
+        "completed_at": normalize_storage_datetime(row[15]),
+        "retention_cleanup_at": normalize_storage_datetime(row[16]),
     }
+
+
+def normalize_case_completed_at(value: Any) -> str | None:
+    """Normalize case completion marker from API payload to storage UTC text."""
+    if value is None or value is False:
+        return None
+    text = str(value).strip()
+    if not text or text.lower() in {"false", "null", "none", "0"}:
+        return None
+    parsed = parse_storage_datetime(text)
+    if parsed:
+        return to_storage_datetime(parsed)
+    return to_storage_datetime()
 
 
 def case_data_flag_is_true(value) -> bool:
@@ -320,6 +342,8 @@ def upsert_case_data(
     manager_id: Optional[int] = None,
     timeline_manual: bool = False,
     document_requests_manual: bool = False,
+    completed_at: Optional[str] | object = _PRESERVE_VALUE,
+    retention_cleanup_at: Optional[str] | object = _PRESERVE_VALUE,
 ) -> bool:
     """Insert or update case data for a user."""
     try:
@@ -331,6 +355,16 @@ def upsert_case_data(
         # Check if record exists
         existing = get_case_data_by_user_id(connection, user_id)
         now_text = to_storage_datetime()
+        if existing:
+            if completed_at is _PRESERVE_VALUE:
+                completed_at = existing.get("completed_at")
+            if retention_cleanup_at is _PRESERVE_VALUE:
+                retention_cleanup_at = existing.get("retention_cleanup_at")
+        else:
+            if completed_at is _PRESERVE_VALUE:
+                completed_at = None
+            if retention_cleanup_at is _PRESERVE_VALUE:
+                retention_cleanup_at = None
         
         if existing:
             # Update existing record
@@ -348,6 +382,8 @@ def upsert_case_data(
                     manager_id = ?,
                     timeline_manual = ?,
                     document_requests_manual = ?,
+                    completed_at = ?,
+                    retention_cleanup_at = ?,
                     updated_at = ?
                 WHERE user_id = ?
                 """,
@@ -363,6 +399,8 @@ def upsert_case_data(
                     manager_id,
                     1 if timeline_manual else 0,
                     1 if document_requests_manual else 0,
+                    completed_at,
+                    retention_cleanup_at,
                     now_text,
                     user_id,
                 )
@@ -374,8 +412,9 @@ def upsert_case_data(
                 INSERT INTO case_data (user_id, visa_type, target_date, country,
                                       archive_file_path, archive_file_name,
                                       timeline_data, document_requests, referral_id, manager_id,
-                                      timeline_manual, document_requests_manual, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                      timeline_manual, document_requests_manual,
+                                      completed_at, retention_cleanup_at, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     user_id,
@@ -390,6 +429,8 @@ def upsert_case_data(
                     manager_id,
                     1 if timeline_manual else 0,
                     1 if document_requests_manual else 0,
+                    completed_at,
+                    retention_cleanup_at,
                     now_text,
                     now_text,
                 )

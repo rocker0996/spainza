@@ -45,6 +45,8 @@ let caseData = {
     archiveFileName: null,
     archiveFileId: null,
     archiveDownloadUrl: null,
+    completedAt: null,
+    retentionCleanupAt: null,
     timeline: [],
     documentRequests: [],
     /** true = не подставлять шаблон таймлайна с сервера */
@@ -67,6 +69,29 @@ function escapeHtmlCase(value) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
+}
+
+function formatCaseInstant(value) {
+    if (!value) return '';
+    if (window.LkI18n && window.LkI18n.formatLocalDateTime) {
+        return window.LkI18n.formatLocalDateTime(value);
+    }
+    try {
+        return new Intl.DateTimeFormat(getCaseLocale() === 'en' ? 'en-US' : 'ru-RU', {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+        }).format(new Date(value));
+    } catch {
+        return String(value);
+    }
+}
+
+function addDaysToInstant(value, days) {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString();
 }
 
 /** Высота textarea по содержимому: стартует с ~1 строки, растёт при вводе (потолок — часть окна). */
@@ -581,6 +606,8 @@ async function bootstrapCaseEditors(loadedCaseData) {
         caseData.archiveFileName = loadedCaseData.archive_file_name || null;
         caseData.archiveFileId = loadedCaseData.archive_file_id || null;
         caseData.archiveDownloadUrl = loadedCaseData.archive_download_url || null;
+        caseData.completedAt = loadedCaseData.completed_at || null;
+        caseData.retentionCleanupAt = loadedCaseData.retention_cleanup_at || null;
     }
 
     const clientRoleKey = (currentUser && currentUser.role && currentUser.role.key) || '';
@@ -631,6 +658,7 @@ async function bootstrapCaseEditors(loadedCaseData) {
     updateArchiveStatus();
 
     renderTimeline();
+    renderCaseCompletionPanel();
     renderDocumentRequests();
 
     const prevTimeline =
@@ -861,6 +889,61 @@ function renderTimeline() {
     window.requestAnimationFrame(() => {
         autosizeAllCaseStepTextareas();
     });
+}
+
+function renderCaseCompletionPanel() {
+    const panel = document.getElementById('case-completion-panel');
+    if (!panel) return;
+
+    const completed = Boolean(caseData.completedAt);
+    const cleanupAt = completed ? addDaysToInstant(caseData.completedAt, 30) : null;
+    const statusText = completed
+        ? t('case.completedResidenceReceived')
+        : t('case.completedNotMarked');
+    const detailText = completed
+        ? t('case.retentionCaseFilesUntil', { date: formatCaseInstant(cleanupAt) })
+        : t('case.retentionCaseFilesRule');
+    const buttonText = completed
+        ? t('case.undoResidenceReceived')
+        : t('case.markResidenceReceived');
+    const buttonClass = completed
+        ? 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100'
+        : 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100';
+    const icon = completed ? 'task_alt' : 'verified';
+
+    panel.innerHTML = `
+        <div class="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="min-w-0">
+                <div class="flex items-center gap-2 font-manrope text-sm font-bold text-slate-800">
+                    <span class="material-symbols-outlined text-[19px] ${completed ? 'text-emerald-600' : 'text-slate-400'}">${icon}</span>
+                    <span>${escapeHtmlCase(statusText)}</span>
+                </div>
+                <p class="mt-1 text-xs leading-relaxed text-slate-500">${escapeHtmlCase(detailText)}</p>
+            </div>
+            <button id="case-completion-toggle-btn" type="button" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 font-manrope text-xs font-bold transition-colors ${buttonClass}" ${isEditMode ? '' : 'disabled'}>
+                <span class="material-symbols-outlined text-[18px]">${completed ? 'undo' : 'check_circle'}</span>
+                <span>${escapeHtmlCase(buttonText)}</span>
+            </button>
+        </div>
+    `;
+
+    const button = document.getElementById('case-completion-toggle-btn');
+    if (button) {
+        button.classList.toggle('opacity-50', !isEditMode);
+        button.classList.toggle('cursor-not-allowed', !isEditMode);
+        button.addEventListener('click', toggleCaseCompletion);
+    }
+}
+
+function toggleCaseCompletion() {
+    if (!isEditMode) {
+        showEnableEditModeToast();
+        return;
+    }
+    caseData.completedAt = caseData.completedAt ? null : new Date().toISOString();
+    caseData.retentionCleanupAt = null;
+    renderCaseCompletionPanel();
+    showSaveNotification();
 }
 
 /**
@@ -1382,6 +1465,7 @@ function toggleEditMode(enabled) {
     }
     isEditMode = enabled;
     renderTimeline();
+    renderCaseCompletionPanel();
     renderDocumentRequests();
 
     const visaSelect = document.getElementById('visa-type');
@@ -1448,6 +1532,7 @@ function setupViewModeInterceptors() {
         '#add-step-btn',
         '#send-doc-requests-btn',
         '#add-custom-doc-btn',
+        '#case-completion-toggle-btn',
         '#timeline-container textarea',
         '#timeline-container select',
         '#timeline-container .drag-handle',
@@ -1636,6 +1721,7 @@ async function saveCaseData() {
             document_requests: caseData.documentRequests,
             timeline_manual: !!caseData.timelineManual,
             document_requests_manual: !!caseData.documentRequestsManual,
+            completed_at: caseData.completedAt,
         };
         
         

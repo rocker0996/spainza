@@ -266,23 +266,15 @@ def send_message(conversation_id):
             request.content_type and "multipart/form-data" in request.content_type
         ):
             message_text = request.form.get('message_text')
-            image_file = request.files.get('image')
-            file_upload = request.files.get('file')
-            
-            image_path = None
-            file_path = None
-            file_name = None
+            image_files = [
+                file for file in request.files.getlist('image') if file and file.filename
+            ]
+            file_uploads = [
+                file for file in request.files.getlist('file') if file and file.filename
+            ]
             file_service = FileService()
-            
-            if image_file:
-                # Save image
-                image_path = file_service.save_message_image(image_file, user_id)
-            
-            if file_upload:
-                # Save file
-                file_path, file_name = file_service.save_message_file(file_upload, user_id)
-            
-            if not message_text and not image_path and not file_path:
+
+            if not message_text and not image_files and not file_uploads:
                 return jsonify({'error': 'Message must contain text, image, or file'}), 400
 
             reply_to_message_id = request.form.get('reply_to_message_id')
@@ -291,24 +283,61 @@ def send_message(conversation_id):
                     reply_to_message_id = int(reply_to_message_id)
                 except (TypeError, ValueError):
                     return jsonify({'error': 'Invalid reply_to_message_id'}), 400
-            
-            message_id = Message.send_message(
-                conversation_id,
-                user_id,
-                receiver_id,
-                message_text,
-                image_path,
-                file_path,
-                file_name,
-                reply_to_message_id=reply_to_message_id,
-            )
+
+            message_ids = []
+            first_message = True
+
+            for image_file in image_files:
+                image_path = file_service.save_message_image(image_file, user_id)
+                message_ids.append(
+                    Message.send_message(
+                        conversation_id,
+                        user_id,
+                        receiver_id,
+                        message_text if first_message else None,
+                        image_path,
+                        None,
+                        None,
+                        reply_to_message_id=reply_to_message_id if first_message else None,
+                    )
+                )
+                first_message = False
+
+            for file_upload in file_uploads:
+                file_path, file_name = file_service.save_message_file(file_upload, user_id)
+                message_ids.append(
+                    Message.send_message(
+                        conversation_id,
+                        user_id,
+                        receiver_id,
+                        message_text if first_message else None,
+                        None,
+                        file_path,
+                        file_name,
+                        reply_to_message_id=reply_to_message_id if first_message else None,
+                    )
+                )
+                first_message = False
+
+            if not message_ids:
+                message_ids.append(
+                    Message.send_message(
+                        conversation_id,
+                        user_id,
+                        receiver_id,
+                        message_text,
+                        reply_to_message_id=reply_to_message_id,
+                    )
+                )
+
+            message_id = message_ids[0]
             _notify_message_received(
                 g.db,
                 sender_id=user_id,
                 receiver_id=receiver_id,
                 message_text=message_text,
-                image_path=image_path,
-                file_path=file_path,
+                image_path="batch" if image_files else None,
+                file_path="batch" if file_uploads else None,
                 conversation_id=conversation_id,
             )
         else:
@@ -343,6 +372,7 @@ def send_message(conversation_id):
         
         return jsonify({
             'message_id': message_id,
+            'message_ids': [message_id] if 'message_ids' not in locals() else message_ids,
             'success': True
         }), 201
     except Exception as e:

@@ -41,6 +41,7 @@ from models.case_data import (
     get_case_data_by_user_id,
     mark_document_requests_sent,
     merge_document_requests_preserve_sent,
+    normalize_case_completed_at,
     upsert_case_data,
 )
 from services.case_template_apply import (
@@ -1221,6 +1222,8 @@ def get_case_data(user_id: int):
             "manager_id": get_primary_manager_id_for_client(g.db, user_id),
             "timeline_manual": False,
             "document_requests_manual": False,
+            "completed_at": None,
+            "retention_cleanup_at": None,
             "team_assignment_kind": team_kind,
             "team_members": team_members,
         }
@@ -1510,6 +1513,7 @@ def update_case_data(user_id: int):
     document_requests = payload.get("document_requests", [])
     referral_id = payload.get("referral_id")
     manager_id = payload.get("manager_id")
+    completed_at_requested = "completed_at" in payload
 
     # Validate data types
     if not isinstance(timeline, list):
@@ -1533,6 +1537,17 @@ def update_case_data(user_id: int):
     
     # Get old case data to track changes
     old_case_data = get_case_data_by_user_id(g.db, user_id)
+    old_completed_at = old_case_data.get("completed_at") if old_case_data else None
+    old_retention_cleanup_at = old_case_data.get("retention_cleanup_at") if old_case_data else None
+    completed_at = (
+        normalize_case_completed_at(payload.get("completed_at"))
+        if completed_at_requested
+        else old_completed_at
+    )
+    if completed_at == old_completed_at:
+        retention_cleanup_at = old_retention_cleanup_at
+    else:
+        retention_cleanup_at = None
     # Archive metadata is managed only by /case-data/<user_id>/archive upload endpoint.
     archive_file_path = old_case_data.get("archive_file_path") if old_case_data else None
     archive_file_name = old_case_data.get("archive_file_name") if old_case_data else None
@@ -1611,6 +1626,14 @@ def update_case_data(user_id: int):
 
     # График заявки и чек-лист запросов документов (раньше в case_history не попадали)
     if old_case_data:
+        if old_completed_at != completed_at:
+            add_history_entry(
+                g.db,
+                user_id,
+                g.current_user_id,
+                "Статус завершения кейса изменён",
+                "ВНЖ получен" if completed_at else "Отметка завершения снята",
+            )
         old_timeline = old_case_data.get("timeline") or []
         old_docs = old_case_data.get("document_requests") or []
         snap = lambda data: json.dumps(data, sort_keys=True, ensure_ascii=False, default=str)
@@ -1675,6 +1698,8 @@ def update_case_data(user_id: int):
         manager_id,
         timeline_manual=timeline_manual,
         document_requests_manual=document_requests_manual,
+        completed_at=completed_at,
+        retention_cleanup_at=retention_cleanup_at,
     )
     
     if not success:
@@ -1746,7 +1771,7 @@ def upload_case_archive(user_id: int):
     try:
         file_service = FileService()
         archive_path = file_service.save_document(archive_file, user_id, "case-archive")
-        stored_name = archive_file.filename
+        stored_name = file_service.display_filename(archive_file.filename)
         file_size_bytes = os.path.getsize(file_service.get_file_path(archive_path))
 
         current_case = get_case_data_by_user_id(g.db, user_id)
@@ -1763,6 +1788,8 @@ def upload_case_archive(user_id: int):
         manager_id = (current_case or {}).get("manager_id")
         timeline_manual = bool((current_case or {}).get("timeline_manual"))
         document_requests_manual = bool((current_case or {}).get("document_requests_manual"))
+        completed_at = (current_case or {}).get("completed_at")
+        retention_cleanup_at = (current_case or {}).get("retention_cleanup_at")
 
         success = upsert_case_data(
             g.db,
@@ -1778,6 +1805,8 @@ def upload_case_archive(user_id: int):
             manager_id,
             timeline_manual=timeline_manual,
             document_requests_manual=document_requests_manual,
+            completed_at=completed_at,
+            retention_cleanup_at=retention_cleanup_at,
         )
         if not success:
             return jsonify({"success": False, "error": "failed to save archive metadata"}), 500
