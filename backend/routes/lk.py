@@ -57,6 +57,10 @@ from models.case_history import (
     add_history_entry,
     get_case_history,
 )
+from models.case_notes import (
+    get_case_notes,
+    upsert_case_notes,
+)
 from models.document import (
     count_rejected_documents_for_user,
     get_pending_document_counts_for_users,
@@ -1490,6 +1494,63 @@ def get_case_history_endpoint(user_id: int):
         import traceback
         traceback.print_exc()
         return jsonify({"success": False, "error": "Не удалось загрузить историю"}), 500
+
+
+def _viewer_may_access_internal_notes(connection, viewer_user_id: int, client_user_id: int) -> bool:
+    viewer = get_user_by_id(connection, viewer_user_id)
+    if not viewer:
+        return False
+    if not is_portal_staff_role(normalize_role_key(viewer["role_key"] or "")):
+        return False
+    return _viewer_may_access_client_case_data(connection, viewer_user_id, client_user_id)
+
+
+@lk_bp.get("/case-notes/<int:user_id>")
+def get_case_notes_endpoint(user_id: int):
+    """Return staff-only internal notes for a client case."""
+    if not _viewer_may_access_internal_notes(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+    if not get_user_by_id(g.db, user_id):
+        return jsonify({"success": False, "error": "target user not found"}), 404
+    return jsonify({"success": True, "notes": get_case_notes(g.db, user_id)}), 200
+
+
+@lk_bp.put("/case-notes/<int:user_id>")
+def update_case_notes_endpoint(user_id: int):
+    """Update staff-only internal notes for a client case."""
+    if not _viewer_may_access_internal_notes(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+    if not get_user_by_id(g.db, user_id):
+        return jsonify({"success": False, "error": "target user not found"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    old_notes = get_case_notes(g.db, user_id)
+    try:
+        notes = upsert_case_notes(g.db, user_id, g.current_user_id, payload)
+    except Exception as error:
+        current_app.logger.exception("Failed to save case notes: %s", error)
+        return jsonify({"success": False, "error": "failed to save case notes"}), 500
+
+    old_snapshot = json.dumps(old_notes, sort_keys=True, ensure_ascii=False, default=str)
+    new_snapshot = json.dumps(notes, sort_keys=True, ensure_ascii=False, default=str)
+    if old_snapshot != new_snapshot:
+        add_history_entry(
+            g.db,
+            user_id,
+            g.current_user_id,
+            "Внутренние заметки обновлены",
+            "Изменены staff-only заметки по клиенту",
+        )
+
+    add_security_log(
+        g.db,
+        g.current_user_id,
+        "case_notes_updated",
+        f"Обновлены внутренние заметки клиента #{user_id}",
+        details=f"Priority: {notes.get('priority') or 'normal'}",
+        ip_address=_request_ip(),
+    )
+    return jsonify({"success": True, "notes": notes}), 200
 
 
 @lk_bp.put("/case-data/<int:user_id>")

@@ -262,6 +262,10 @@ function buildUserRowHtml(user, { completed = false } = {}) {
                             ${t('clients.viewDocuments')}
                             ${pendingDocsBadgeCompact}
                         </div>
+                        <div class="dropdown-item" onclick='viewInternalNotes(${user.id}, ${JSON.stringify(user.display_id || "")})'>
+                            <span class="material-symbols-outlined text-[20px]">edit_note</span>
+                            ${t('clients.internalNotes')}
+                        </div>
                     </div>
                 </div>
             </td>
@@ -446,7 +450,7 @@ function buildUserCardHtml(user, { completed = false } = {}) {
                         <dd class="font-semibold text-slate-700 leading-tight">${formatDate(user.created_at)}</dd>
                     </div>
                 </dl>
-                <div class="flex gap-1.5">
+                <div class="grid grid-cols-3 gap-1.5">
                     <button type="button" class="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg bg-primary/10 text-primary text-[11px] font-bold font-manrope active:scale-[0.98] transition-transform"
                             onclick='manageCaseForUser(${user.id}, ${JSON.stringify(user.display_id || "")})'>
                         <span class="material-symbols-outlined text-[16px]">folder_managed</span>
@@ -457,6 +461,11 @@ function buildUserCardHtml(user, { completed = false } = {}) {
                         <span class="material-symbols-outlined text-[16px]">description</span>
                         ${t('clients.docsBtn')}
                         ${pendingDocsBadgeCompact}
+                    </button>
+                    <button type="button" class="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-bold font-manrope active:scale-[0.98] transition-transform"
+                            onclick='viewInternalNotes(${user.id}, ${JSON.stringify(user.display_id || "")})'>
+                        <span class="material-symbols-outlined text-[16px]">edit_note</span>
+                        ${t('clients.notesBtn')}
                     </button>
                 </div>
             </article>
@@ -584,6 +593,15 @@ function viewUserDetails(userId, displayIdOpt) {
         return;
     }
     window.location.href = `./documents.html?userId=${encodeURIComponent(String(userId))}`;
+}
+
+function viewInternalNotes(userId, displayIdOpt) {
+    const did = String(displayIdOpt || "").trim().toUpperCase();
+    if (/^[A-Z]{2}\d{4}$/.test(did)) {
+        window.location.href = `./notes.html?client=${encodeURIComponent(did)}`;
+        return;
+    }
+    window.location.href = `./notes.html?userId=${encodeURIComponent(String(userId))}`;
 }
 
 function getSortedUsers(column, direction) {
@@ -906,6 +924,7 @@ window.sortTable = sortTable;
 window.toggleDropdown = toggleDropdown;
 window.manageCaseForUser = manageCaseForUser;
 window.viewUserDetails = viewUserDetails;
+window.viewInternalNotes = viewInternalNotes;
 window.openAddClientModal = openAddClientModal;
 window.closeAddClientModal = closeAddClientModal;
 window.copyClientListId = copyClientListId;

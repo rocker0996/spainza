@@ -337,7 +337,7 @@ def create_app() -> Flask:
 
     @app.before_request
     def require_token_for_protected_api():
-        protected_paths = ("/api/lk", "/api/user", "/api/users", "/api/roles", "/api/documents", "/api/document-history", "/api/application", "/api/case-data", "/api/case-history", "/api/case-templates", "/api/conversations", "/api/messages", "/api/admin", "/api/logout")
+        protected_paths = ("/api/lk", "/api/user", "/api/users", "/api/roles", "/api/documents", "/api/document-history", "/api/application", "/api/case-data", "/api/case-history", "/api/case-notes", "/api/case-templates", "/api/conversations", "/api/messages", "/api/admin", "/api/logout")
         if not request.path.startswith(protected_paths):
             return None
 
