@@ -257,9 +257,6 @@ function renderAddNoteCard() {
     return `
         <article class="notes-soft-card notes-add-card rounded-2xl p-4">
             <div class="mb-3 flex items-center gap-2">
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <span class="material-symbols-outlined text-[20px]">add</span>
-                </span>
                 <div class="min-w-0">
                     <p class="text-sm font-extrabold text-slate-800 font-manrope">${notesEscape(nt('notes.addNoteLabel'))}</p>
                     <p class="text-xs font-semibold text-slate-400">${notesEscape(nt('notes.addNoteHint'))}</p>
