@@ -219,10 +219,10 @@ function buildUserRowHtml(user, { completed = false } = {}) {
     return `
         <tr class="${completed ? 'bg-emerald-50/20 hover:bg-emerald-50/60' : 'hover:bg-slate-50/80'} transition-colors group">
             <td class="px-8 py-6 text-center">${buildClientListIdButton(user)}</td>
-            <td class="px-8 py-6 text-center">
-                <div class="flex flex-col items-center gap-1 text-center">
+            <td class="px-8 py-6">
+                <div class="flex flex-col gap-1">
                     <button type="button"
-                            class="flex items-center justify-center gap-3 w-full max-w-full text-center rounded-xl -m-1 p-1 border-0 bg-transparent cursor-pointer hover:bg-slate-100/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                            class="flex items-center gap-3 w-full max-w-full text-left rounded-xl -m-1 p-1 border-0 bg-transparent cursor-pointer hover:bg-slate-100/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                             onclick='manageCaseForUser(${user.id}, ${JSON.stringify(user.display_id || "")})'
                             title="${t('clients.openCase')}">
                     ${user.avatar
@@ -230,13 +230,13 @@ function buildUserRowHtml(user, { completed = false } = {}) {
                         : `<div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold text-xs shrink-0 pointer-events-none">${initials}</div>`
                     }
                     <div class="min-w-0 flex-1">
-                        <p class="font-bold text-slate-800 flex items-center justify-center gap-2 min-w-0">
+                        <p class="font-bold text-slate-800 flex items-center gap-2 min-w-0">
                             ${pendingDocsBadge}
                             <span class="truncate">${user.name || t('clients.noName')}</span>
                         </p>
                     </div>
                     </button>
-                    <p class="text-xs text-slate-500 max-w-[220px] truncate">${user.email}</p>
+                    <p class="text-xs text-slate-500 pl-[52px]">${user.email}</p>
                 </div>
             </td>
             <td class="px-8 py-6 text-center">
@@ -246,7 +246,7 @@ function buildUserRowHtml(user, { completed = false } = {}) {
             </td>
             <td class="px-8 py-6 text-center text-sm text-slate-600">${completed ? statusCompletedBadge() : formatConsulateTargetDate(user.target_date)}</td>
             <td class="px-8 py-6 text-center text-sm text-slate-600">${formatDate(user.created_at)}</td>
-            <td class="px-8 py-6 text-center">
+            <td class="px-8 py-6 text-right">
                 <div class="relative">
                     <button class="p-2 rounded-xl hover:bg-white hover:shadow-sm transition-all text-slate-400 hover:text-primary"
                             onclick="toggleDropdown(event, ${user.id})">
