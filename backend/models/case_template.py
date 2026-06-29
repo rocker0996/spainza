@@ -4,6 +4,8 @@ import json
 import sqlite3
 from typing import Any, Optional
 
+from utils.time import normalize_storage_datetime, to_storage_datetime
+
 
 def create_manager_case_templates_table(connection: sqlite3.Connection) -> None:
     connection.execute(
@@ -18,7 +20,7 @@ def create_manager_case_templates_table(connection: sqlite3.Connection) -> None:
             duration_months INTEGER,
             timeline_json TEXT NOT NULL DEFAULT '[]',
             document_items_json TEXT NOT NULL DEFAULT '[]',
-            updated_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             UNIQUE(manager_id, visa_type),
             FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE CASCADE
         )
@@ -36,7 +38,7 @@ def _row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
         "duration_months": row["duration_months"],
         "timeline": json.loads(row["timeline_json"] or "[]"),
         "document_items": json.loads(row["document_items_json"] or "[]"),
-        "updated_at": row["updated_at"] or "",
+        "updated_at": normalize_storage_datetime(row["updated_at"]),
     }
 
 
@@ -91,7 +93,7 @@ def upsert_template_for_manager(
             manager_id, visa_type, title, public_description,
             processing_fee_eur, duration_months, timeline_json, document_items_json, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(manager_id, visa_type) DO UPDATE SET
             title = excluded.title,
             public_description = excluded.public_description,
@@ -99,7 +101,7 @@ def upsert_template_for_manager(
             duration_months = excluded.duration_months,
             timeline_json = excluded.timeline_json,
             document_items_json = excluded.document_items_json,
-            updated_at = datetime('now')
+            updated_at = excluded.updated_at
         """,
         (
             manager_id,
@@ -110,6 +112,7 @@ def upsert_template_for_manager(
             duration_months,
             timeline_json,
             document_json,
+            to_storage_datetime(),
         ),
     )
     connection.commit()

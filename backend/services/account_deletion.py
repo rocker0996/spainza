@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from typing import Any
 
 from config import Config
@@ -13,6 +12,7 @@ from models.user import (
     get_user_by_id,
     normalize_role_key,
 )
+from utils.time import to_storage_datetime
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ def send_account_deletion_request_to_support(connection, user_id: int) -> None:
         )
         return
 
-    when_label = datetime.now().strftime("%d.%m.%Y %H:%M")
+    when_label = to_storage_datetime()
     message_text = build_account_deletion_request_message(user, when_label)
     conversation_id = Message.get_or_create_conversation(SUPPORT_USER_ID, uid, restore=True)
     Message.send_message(

@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlite3
 
 from models.user import get_role_definition, get_user_by_id, is_portal_staff_role, normalize_role_key
+from utils.time import to_storage_datetime
 
 
 def create_manager_moderators_table(connection: sqlite3.Connection) -> None:
@@ -14,7 +15,7 @@ def create_manager_moderators_table(connection: sqlite3.Connection) -> None:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             manager_id INTEGER NOT NULL,
             moderator_id INTEGER NOT NULL,
-            assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            assigned_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (moderator_id) REFERENCES users(id) ON DELETE CASCADE,
             UNIQUE(manager_id, moderator_id)
@@ -37,7 +38,7 @@ def _migrate_manager_moderators_drop_slots(connection: sqlite3.Connection) -> No
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             manager_id INTEGER NOT NULL,
             moderator_id INTEGER NOT NULL,
-            assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            assigned_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (moderator_id) REFERENCES users(id) ON DELETE CASCADE,
             UNIQUE(manager_id, moderator_id)
@@ -47,9 +48,11 @@ def _migrate_manager_moderators_drop_slots(connection: sqlite3.Connection) -> No
     connection.execute(
         """
         INSERT OR IGNORE INTO manager_moderators_new (manager_id, moderator_id, assigned_at)
-        SELECT manager_id, moderator_id, COALESCE(assigned_at, CURRENT_TIMESTAMP)
+        SELECT manager_id, moderator_id, COALESCE(assigned_at, ?)
         FROM manager_moderators
         """
+        ,
+        (to_storage_datetime(),),
     )
     connection.execute("DROP TABLE manager_moderators")
     connection.execute("ALTER TABLE manager_moderators_new RENAME TO manager_moderators")
@@ -109,10 +112,10 @@ def add_manager_moderator_link(
     try:
         connection.execute(
             """
-            INSERT OR IGNORE INTO manager_moderators (manager_id, moderator_id)
-            VALUES (?, ?)
+            INSERT OR IGNORE INTO manager_moderators (manager_id, moderator_id, assigned_at)
+            VALUES (?, ?, ?)
             """,
-            (manager_id, moderator_id),
+            (manager_id, moderator_id, to_storage_datetime()),
         )
         connection.commit()
         return True, "ok"

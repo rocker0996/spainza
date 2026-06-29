@@ -32,6 +32,7 @@ from services.notification_service import (
     notify,
 )
 import os
+from utils.time import normalize_storage_datetime
 
 documents_bp = Blueprint("documents", __name__)
 file_service = FileService()
@@ -101,7 +102,7 @@ def list_documents():
             "file_type": row["file_type"] or "PDF",
             "file_size": row["file_size"] or "1.0 MB",
             "is_priority": bool(row["is_priority"]),
-            "last_action_at": row["last_action_at"] or "",
+            "last_action_at": normalize_storage_datetime(row["last_action_at"]),
             "source": "uploaded",
             "rejection_comment": row["rejection_comment"] or "",
         }
@@ -127,7 +128,7 @@ def list_documents():
                     "file_type": "Запрос",
                     "file_size": "",
                     "is_priority": req.get("priority") == "urgent",
-                    "last_action_at": case_data.get("updated_at", ""),
+                    "last_action_at": normalize_storage_datetime(case_data.get("updated_at", "")),
                     "source": "request",
                     "description": req.get("description", ""),
                     "priority": req.get("priority", "normal")

@@ -1,7 +1,9 @@
 """Document model queries for SQLite."""
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 import sqlite3
+
+from utils.time import normalize_storage_datetime, to_storage_datetime, utc_now
 
 
 def ensure_documents_columns(connection: sqlite3.Connection) -> None:
@@ -35,8 +37,8 @@ def create_documents_table(connection: sqlite3.Connection) -> None:
             file_type TEXT NOT NULL DEFAULT 'PDF',
             file_size TEXT NOT NULL DEFAULT '1.0 MB',
             is_priority INTEGER NOT NULL DEFAULT 0,
-            last_action_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_action_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             file_path TEXT,
             rejection_comment TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
@@ -66,10 +68,22 @@ def create_document(connection: sqlite3.Connection, user_id: int, title: str, fi
     """Create a new document record."""
     cursor = connection.execute(
         """
-        INSERT INTO documents (user_id, title, status, file_type, file_size, is_priority, file_path)
-        VALUES (?, ?, 'pending', ?, ?, ?, ?)
+        INSERT INTO documents (
+            user_id, title, status, file_type, file_size, is_priority, file_path,
+            last_action_at, created_at
+        )
+        VALUES (?, ?, 'pending', ?, ?, ?, ?, ?, ?)
         """,
-        (user_id, title, file_type, file_size, is_priority, file_path),
+        (
+            user_id,
+            title,
+            file_type,
+            file_size,
+            is_priority,
+            file_path,
+            to_storage_datetime(),
+            to_storage_datetime(),
+        ),
     )
     connection.commit()
     return cursor.lastrowid
@@ -93,10 +107,10 @@ def approve_document(connection: sqlite3.Connection, document_id: int) -> bool:
     cursor = connection.execute(
         """
         UPDATE documents
-        SET status = 'approved', rejection_comment = NULL, last_action_at = CURRENT_TIMESTAMP
+        SET status = 'approved', rejection_comment = NULL, last_action_at = ?
         WHERE id = ?
         """,
-        (document_id,),
+        (to_storage_datetime(), document_id),
     )
     connection.commit()
     return cursor.rowcount > 0
@@ -107,10 +121,10 @@ def reject_document(connection: sqlite3.Connection, document_id: int, comment: s
     cursor = connection.execute(
         """
         UPDATE documents
-        SET status = 'rejected', rejection_comment = ?, last_action_at = CURRENT_TIMESTAMP
+        SET status = 'rejected', rejection_comment = ?, last_action_at = ?
         WHERE id = ?
         """,
-        (comment, document_id),
+        (comment, to_storage_datetime(), document_id),
     )
     connection.commit()
     return cursor.rowcount > 0
@@ -121,10 +135,10 @@ def revoke_approval(connection: sqlite3.Connection, document_id: int) -> bool:
     cursor = connection.execute(
         """
         UPDATE documents
-        SET status = 'pending', rejection_comment = NULL, last_action_at = CURRENT_TIMESTAMP
+        SET status = 'pending', rejection_comment = NULL, last_action_at = ?
         WHERE id = ?
         """,
-        (document_id,),
+        (to_storage_datetime(), document_id),
     )
     connection.commit()
     return cursor.rowcount > 0
@@ -157,20 +171,20 @@ def replace_document_file(
             """
             UPDATE documents
             SET title = ?, file_path = ?, file_type = ?, file_size = ?, status = 'pending',
-                rejection_comment = NULL, last_action_at = CURRENT_TIMESTAMP
+                rejection_comment = NULL, last_action_at = ?
             WHERE id = ?
             """,
-            (title, file_path, file_type, file_size, document_id),
+            (title, file_path, file_type, file_size, to_storage_datetime(), document_id),
         )
     else:
         cursor = connection.execute(
             """
             UPDATE documents
             SET file_path = ?, file_type = ?, file_size = ?, status = 'pending',
-                rejection_comment = NULL, last_action_at = CURRENT_TIMESTAMP
+                rejection_comment = NULL, last_action_at = ?
             WHERE id = ?
             """,
-            (file_path, file_type, file_size, document_id),
+            (file_path, file_type, file_size, to_storage_datetime(), document_id),
         )
     connection.commit()
     return cursor.rowcount > 0
@@ -230,7 +244,7 @@ def seed_documents_for_user(connection: sqlite3.Connection, user_id: int) -> Non
     ]
 
     rows = []
-    now = datetime.utcnow()
+    now = utc_now()
     for index in range(42):
         title, icon, status, priority = title_templates[index % len(title_templates)]
         timestamp = now - timedelta(hours=index * 6)
@@ -245,7 +259,7 @@ def seed_documents_for_user(connection: sqlite3.Connection, user_id: int) -> Non
                 file_type,
                 file_size,
                 priority,
-                timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                to_storage_datetime(timestamp),
             )
         )
 

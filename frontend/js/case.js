@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Case management page - Dynamic client case loading and management
  */
 
@@ -307,7 +307,6 @@ async function resolveCasePageTargetUserId() {
  */
 async function loadLoggedInUser() {
     try {
-        console.log('Loading logged-in user...');
         const response = await fetch(`${API_BASE}/user`, {
             credentials: 'include',
             headers: {
@@ -321,7 +320,6 @@ async function loadLoggedInUser() {
         }
 
         const data = await response.json();
-        console.log('Logged-in user response:', data);
         
         // API returns data directly, not data.user
         if (data.success) {
@@ -333,9 +331,7 @@ async function loadLoggedInUser() {
             
             // Store available visa types for this user
             availableVisaTypes = data.assignable_visa_types || [];
-            console.log('Available visa types for user:', availableVisaTypes);
             
-            console.log('Normalized logged-in user:', loggedInUser);
             return loggedInUser;
         }
         return null;
@@ -441,7 +437,6 @@ function renderVisaTypeOptions() {
             visaSelect.value = availableVisaTypes[0].value;
         }
         
-        console.log('Rendered visa type options:', availableVisaTypes.length);
     }
 }
 
@@ -483,7 +478,6 @@ async function loadCaseData(userId) {
         });
 
         if (!response.ok) {
-            console.log('No case data found for user');
             return null;
         }
 
@@ -1644,7 +1638,6 @@ async function saveCaseData() {
             document_requests_manual: !!caseData.documentRequestsManual,
         };
         
-        console.log('Saving case data:', payload);
         
         const response = await fetch(`${API_BASE}/case-data/${currentUserId}`, {
             method: 'PUT',
@@ -1655,7 +1648,6 @@ async function saveCaseData() {
             body: JSON.stringify(payload)
         });
 
-        console.log('Save response status:', response.status);
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -1664,14 +1656,12 @@ async function saveCaseData() {
         }
 
         const data = await response.json();
-        console.log('Save response data:', data);
 
         if (saveSeq !== caseSaveSeq) {
             return true;
         }
         
         if (data.success) {
-            console.log('Case data saved successfully');
             return true;
         }
         return false;
@@ -1690,7 +1680,6 @@ async function saveCaseData() {
  */
 function addHistoryEntry(action, details = '') {
     // History is now tracked automatically by the backend
-    console.log('📝 History will be tracked by backend:', action, details);
 }
 
 function loadTeamAssignments(loadedCaseData) {
@@ -1720,12 +1709,10 @@ async function initializeCasePage() {
     }
 
     // Show loading state
-    console.log(`Loading case for user ID: ${currentUserId}`);
 
     // Load logged-in user (manager/admin who is viewing the case) FIRST
     // This is important because we need their permissions to render visa types
     loggedInUser = await loadLoggedInUser();
-    console.log('Logged-in user:', loggedInUser);
     
     if (!loggedInUser) {
         console.error('Failed to load logged-in user');
@@ -1900,16 +1887,11 @@ document.addEventListener('DOMContentLoaded', () => {
  * History modal functions
  */
 function openHistoryModal() {
-    console.log('🔓 Opening history modal...');
     const modal = document.getElementById('history-modal');
-    console.log('Modal element:', modal);
     
     if (modal) {
-        console.log('Modal classes before:', modal.className);
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        console.log('Modal classes after:', modal.className);
-        console.log('Modal display style:', window.getComputedStyle(modal).display);
         loadCaseHistory();
     } else {
         console.error('❌ History modal element not found!');
@@ -1925,7 +1907,6 @@ function closeHistoryModal() {
 }
 
 async function loadCaseHistory() {
-    console.log('📜 Loading case history from API...');
     
     const container = document.getElementById('history-log-list');
     if (!container) {
@@ -1950,7 +1931,6 @@ async function loadCaseHistory() {
         const data = await response.json();
         const historyItems = data.history || [];
         
-        console.log('📋 Loaded history items:', historyItems.length);
         
         if (historyItems.length === 0) {
             container.innerHTML = `<p class="text-sm text-slate-500">${t('case.historyEmpty')}</p>`;
@@ -1987,7 +1967,7 @@ async function loadCaseHistory() {
                                 <p class="font-manrope font-bold text-sm text-slate-800">${actionEsc}</p>
                                 ${detailsEsc ? `<p class="text-xs text-slate-500 mt-1.5 whitespace-pre-wrap break-words leading-relaxed">${detailsEsc}</p>` : ''}
                             </div>
-                            <span class="text-xs text-slate-400 whitespace-nowrap shrink-0">${formatTimeAgo(new Date(item.created_at))}</span>
+                            <span class="text-xs text-slate-400 whitespace-nowrap shrink-0">${formatTimeAgo(item.created_at)}</span>
                         </div>
                         <p class="text-xs text-slate-400 mt-2">${t('case.history.byUser', { name: editorNameEsc })}</p>
                     </div>
@@ -1995,7 +1975,6 @@ async function loadCaseHistory() {
             `;
         }).join('');
         
-        console.log('✅ History rendered');
     } catch (error) {
         console.error('❌ Error loading history:', error);
         container.innerHTML = `<p class="text-sm text-red-500">${t('case.historyError')}</p>`;

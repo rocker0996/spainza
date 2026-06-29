@@ -47,6 +47,7 @@ def main() -> int:
         import sqlite3
         from werkzeug.security import generate_password_hash
         from models.user import random_user_display_id, get_user_by_email
+        from utils.time import to_storage_datetime
 
         email = {args.email!r}.lower()
         password = {args.password!r}
@@ -59,14 +60,15 @@ def main() -> int:
 
         existing = get_user_by_email(conn, email)
         pwd_hash = generate_password_hash(password)
+        now_text = to_storage_datetime()
 
         if existing:
             uid = int(existing["id"])
             conn.execute(
                 "UPDATE users SET password_hash=?, role_key=?, name=?, "
-                "profile_setup_completed=1, email_verified_at=COALESCE(email_verified_at, datetime('now')), "
+                "profile_setup_completed=1, email_verified_at=COALESCE(email_verified_at, ?), "
                 "email_verification_token_hash=NULL WHERE id=?",
-                (pwd_hash, role, name, uid),
+                (pwd_hash, role, name, now_text, uid),
             )
             conn.commit()
             print(f"UPDATED user id={{uid}} email={{email}} role={{role}}")
@@ -77,10 +79,10 @@ def main() -> int:
                     '''
                     INSERT INTO users (
                         id, email, password_hash, role_key, display_id, name,
-                        profile_setup_completed, email_verified_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, 1, datetime('now'))
+                        profile_setup_completed, email_verified_at, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
                     ''',
-                    (forced_id, email, pwd_hash, role, display_id, name),
+                    (forced_id, email, pwd_hash, role, display_id, name, now_text, now_text),
                 )
                 conn.execute(
                     "INSERT INTO sqlite_sequence (name, seq) VALUES ('users', ?) "
@@ -93,10 +95,10 @@ def main() -> int:
                     '''
                     INSERT INTO users (
                         email, password_hash, role_key, display_id, name,
-                        profile_setup_completed, email_verified_at
-                    ) VALUES (?, ?, ?, ?, ?, 1, datetime('now'))
+                        profile_setup_completed, email_verified_at, created_at
+                    ) VALUES (?, ?, ?, ?, ?, 1, ?, ?)
                     ''',
-                    (email, pwd_hash, role, display_id, name),
+                    (email, pwd_hash, role, display_id, name, now_text, now_text),
                 )
                 uid = int(cur.lastrowid)
             conn.commit()

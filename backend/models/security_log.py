@@ -1,7 +1,8 @@
 """Security event logs for user accounts."""
 
-from datetime import datetime
 import sqlite3
+
+from utils.time import normalize_storage_datetime, to_storage_datetime
 
 
 def create_security_logs_table(connection: sqlite3.Connection) -> None:
@@ -15,7 +16,7 @@ def create_security_logs_table(connection: sqlite3.Connection) -> None:
             event_title TEXT NOT NULL,
             details TEXT NOT NULL DEFAULT '',
             ip_address TEXT NOT NULL DEFAULT '',
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
         """
@@ -32,7 +33,7 @@ def add_security_log(
     ip_address: str = "",
 ) -> int:
     """Insert security event log and return id."""
-    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = to_storage_datetime()
     cursor = connection.execute(
         """
         INSERT INTO security_logs (
@@ -62,4 +63,15 @@ def get_security_logs_for_user(connection: sqlite3.Connection, user_id: int, lim
         """,
         (user_id, max(1, min(limit, 100))),
     )
-    return cursor.fetchall()
+    rows = cursor.fetchall()
+    return [
+        {
+            "id": row["id"],
+            "event_type": row["event_type"],
+            "event_title": row["event_title"],
+            "details": row["details"],
+            "ip_address": row["ip_address"],
+            "created_at": normalize_storage_datetime(row["created_at"]),
+        }
+        for row in rows
+    ]

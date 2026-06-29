@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from email.message import EmailMessage
 import hashlib
 import secrets
@@ -25,27 +25,14 @@ from models.user import (
     set_pending_email_change,
     update_user_password_and_clear_reset,
 )
+from services.email_templates import (
+    email_change_confirmation_bodies,
+    email_changed_notification_bodies,
+    password_reset_email_bodies,
+    verification_email_bodies,
+)
 from utils.security import hash_password
-
-
-def utc_now() -> datetime:
-    """Return timezone-aware UTC datetime."""
-    return datetime.now(timezone.utc)
-
-
-def to_storage_datetime(value: datetime) -> str:
-    """Serialize datetime for SQLite text columns."""
-    return value.astimezone(timezone.utc).isoformat(timespec="seconds")
-
-
-def parse_storage_datetime(value: str | None) -> datetime | None:
-    """Parse SQLite text datetime from this service."""
-    if not value:
-        return None
-    try:
-        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-    except ValueError:
-        return None
+from utils.time import parse_storage_datetime, to_storage_datetime, utc_now
 
 
 def generate_plain_token() -> str:
@@ -154,7 +141,13 @@ def build_public_url(path: str, token: str) -> str:
     return f"{base_url}{path}{separator}{urlencode({'token': token})}"
 
 
-def send_account_email(to_email: str, subject: str, text_body: str) -> dict[str, Any]:
+def send_account_email(
+    to_email: str,
+    subject: str,
+    text_body: str,
+    *,
+    html_body: str | None = None,
+) -> dict[str, Any]:
     """
     Send an account email when SMTP is configured.
     Without SMTP settings, log the body so the flow can be tested locally.
@@ -170,6 +163,8 @@ def send_account_email(to_email: str, subject: str, text_body: str) -> dict[str,
     message["To"] = to_email
     message["Subject"] = subject
     message.set_content(text_body)
+    if html_body:
+        message.add_alternative(html_body, subtype="html")
 
     port = int(current_app.config.get("SMTP_PORT", 587))
     username = current_app.config.get("SMTP_USERNAME")
@@ -195,30 +190,24 @@ def send_account_email(to_email: str, subject: str, text_body: str) -> dict[str,
 def send_verification_email(to_email: str, token: str) -> dict[str, Any]:
     """Send email verification instructions."""
     url = build_public_url("/api/verify-email", token)
+    text_body, html_body = verification_email_bodies(url)
     return send_account_email(
         to_email,
         "Подтвердите email в Spainza",
-        (
-            "Здравствуйте!\n\n"
-            "Чтобы активировать аккаунт Spainza, откройте ссылку:\n"
-            f"{url}\n\n"
-            "Если вы не регистрировались, просто проигнорируйте это письмо."
-        ),
+        text_body,
+        html_body=html_body,
     )
 
 
 def send_password_reset_email(to_email: str, token: str) -> dict[str, Any]:
     """Send password reset instructions."""
     url = build_public_url("/frontend/login.html", token)
+    text_body, html_body = password_reset_email_bodies(url)
     return send_account_email(
         to_email,
         "Восстановление пароля Spainza",
-        (
-            "Здравствуйте!\n\n"
-            "Для смены пароля откройте ссылку и задайте новый пароль:\n"
-            f"{url}\n\n"
-            "Если вы не запрашивали восстановление, просто проигнорируйте это письмо."
-        ),
+        text_body,
+        html_body=html_body,
     )
 
 
@@ -313,29 +302,22 @@ def confirm_pending_email_change(
 def send_email_change_confirmation_email(to_email: str, token: str) -> dict[str, Any]:
     """Send confirmation instructions to the new email address."""
     url = build_public_url("/api/verify-email-change", token)
+    text_body, html_body = email_change_confirmation_bodies(url)
     return send_account_email(
         to_email,
         "Подтвердите новый email в Spainza",
-        (
-            "Здравствуйте!\n\n"
-            "Вы запросили смену email в аккаунте Spainza. "
-            "Чтобы подтвердить новый адрес, откройте ссылку:\n"
-            f"{url}\n\n"
-            "Пока ссылка не подтверждена, в аккаунте остаётся прежний email.\n"
-            "Если вы не запрашивали смену, просто проигнорируйте это письмо."
-        ),
+        text_body,
+        html_body=html_body,
     )
 
 
 def send_email_changed_notification_email(to_email: str) -> dict[str, Any]:
     """Notify the previous email that the account address was changed."""
+    text_body, html_body = email_changed_notification_bodies()
     return send_account_email(
         to_email,
         "Email аккаунта Spainza изменён",
-        (
-            "Здравствуйте!\n\n"
-            "Ваш адрес электронной почты был изменен. "
-            "Если это были не вы — срочно свяжитесь с поддержкой."
-        ),
+        text_body,
+        html_body=html_body,
     )
 

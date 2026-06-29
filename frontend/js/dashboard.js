@@ -141,7 +141,7 @@
 
   function formatTimeAgo(value) {
     if (!value) return t("common.justNow");
-    const date = new Date(value);
+    const date = window.LkI18n?.parseInstant(value) || new Date(value);
     if (Number.isNaN(date.getTime())) return t("common.justNow");
 
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000);

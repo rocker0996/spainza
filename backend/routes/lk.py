@@ -93,6 +93,7 @@ from services.manager_client_assign import (
     try_assign_client_to_manager,
 )
 from utils.security import hash_password, is_valid_email, is_valid_password, verify_password
+from utils.time import normalize_storage_datetime
 
 lk_bp = Blueprint("lk", __name__)
 
@@ -419,7 +420,7 @@ def get_current_user():
                 "id": user["id"],
                 "name": user["name"] or "",
                 "email": user["email"] or "",
-                "created_at": user["created_at"] or "",
+                "created_at": normalize_storage_datetime(user["created_at"]),
                 "avatar": user["avatar"] or "",
                 "phone": user["phone"] or "",
                 "main_goal": user["main_goal"] or "",
@@ -454,7 +455,7 @@ def get_current_user():
                 "support_display_id": support_display_id,
                 "support_user_id": support_user_id,
                 "pending_email": (user["pending_email"] or "").strip() or None,
-                "pending_email_expires_at": user["pending_email_expires_at"] or None,
+                "pending_email_expires_at": normalize_storage_datetime(user["pending_email_expires_at"]) or None,
             }
         ),
         200,
@@ -623,7 +624,7 @@ def get_current_user_security_logs():
             "event_title": row["event_title"] or "",
             "details": row["details"] or "",
             "ip_address": row["ip_address"] or "",
-            "created_at": row["created_at"] or "",
+            "created_at": normalize_storage_datetime(row["created_at"]),
         }
         for row in rows
     ]
@@ -890,7 +891,7 @@ def _json_user_detail_for_staff_view(target_user) -> dict:
         "email": target_user["email"] or "",
         "avatar": target_user["avatar"] or "",
         "phone": target_user["phone"] or "",
-        "created_at": target_user["created_at"] or "",
+        "created_at": normalize_storage_datetime(target_user["created_at"]),
         "main_goal": target_user["main_goal"] or "",
         "locale": target_user["locale"] or "ru",
         "application_type": target_user["application_type"] or "",
@@ -1095,7 +1096,7 @@ def get_users_list():
             "email": user["email"] or "",
             "avatar": user["avatar"] or "",
             "phone": user["phone"] or "",
-            "created_at": user["created_at"] or "",
+            "created_at": normalize_storage_datetime(user["created_at"]),
             "visa_type": visa_type,
             "target_date": target_date,
             "pending_documents_count": pending_counts_by_user.get(user["id"], 0),
@@ -1886,7 +1887,7 @@ def list_case_templates():
                 "label_en": vt.get("label_en") or key,
                 "has_saved_template": row is not None,
                 "title": (row or {}).get("title") or "",
-                "updated_at": (row or {}).get("updated_at") or "",
+                "updated_at": normalize_storage_datetime((row or {}).get("updated_at")),
             }
         )
 

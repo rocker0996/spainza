@@ -1,6 +1,6 @@
 """Message model."""
-from datetime import datetime
 from utils.db import get_db_connection
+from utils.time import normalize_storage_datetime, to_storage_datetime
 
 
 def _normalize_locale(locale):
@@ -31,9 +31,10 @@ class Message:
     """Message model for chat system."""
     
     @staticmethod
-    def create_table():
+    def create_table(connection=None):
         """Create messages table if it doesn't exist."""
-        db = get_db_connection()
+        owns_connection = connection is None
+        db = connection or get_db_connection()
         db.execute('''
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +43,7 @@ class Message:
                 receiver_id INTEGER NOT NULL,
                 message_text TEXT,
                 image_path TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
                 read_status INTEGER DEFAULT 0,
                 is_system_message INTEGER DEFAULT 0,
                 FOREIGN KEY (sender_id) REFERENCES users (id),
@@ -55,12 +56,12 @@ class Message:
                 id TEXT PRIMARY KEY,
                 user1_id INTEGER NOT NULL,
                 user2_id INTEGER NOT NULL,
-                last_message_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_message_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
                 user1_deleted INTEGER DEFAULT 0,
                 user2_deleted INTEGER DEFAULT 0,
-                user1_history_cleared_at TIMESTAMP,
-                user2_history_cleared_at TIMESTAMP,
+                user1_history_cleared_at TEXT,
+                user2_history_cleared_at TEXT,
                 FOREIGN KEY (user1_id) REFERENCES users (id),
                 FOREIGN KEY (user2_id) REFERENCES users (id),
                 UNIQUE(user1_id, user2_id)
@@ -69,6 +70,8 @@ class Message:
         Message._ensure_conversation_columns(db)
         Message._ensure_message_columns(db)
         db.commit()
+        if owns_connection:
+            db.close()
 
     @staticmethod
     def _ensure_message_columns(db):
@@ -198,12 +201,12 @@ class Message:
                 'other_user_role': row[3],
                 'other_user_avatar': row[4],
                 'other_user_display_id': row[5] or None,
-                'last_message_at': row[6],
+                'last_message_at': normalize_storage_datetime(row[6]),
                 'unread_count': row[7],
                 'last_message': row[8],
-                'last_message_time': row[9],
+                'last_message_time': normalize_storage_datetime(row[9]),
                 'last_inbound_message': row[10],
-                'last_inbound_message_time': row[11]
+                'last_inbound_message_time': normalize_storage_datetime(row[11])
             })
         
         return conversations
@@ -259,10 +262,10 @@ class Message:
                 'other_user_role': row[3],
                 'other_user_avatar': row[4],
                 'other_user_display_id': row[5] or None,
-                'last_message_at': row[6],
+                'last_message_at': normalize_storage_datetime(row[6]),
                 'hidden_for_subject': bool(row[7]),
                 'last_message': row[8],
-                'last_message_time': row[9],
+                'last_message_time': normalize_storage_datetime(row[9]),
             })
 
         return conversations
@@ -295,9 +298,13 @@ class Message:
         
         if cursor.fetchone() is None:
             # Create new conversation
+            now_text = to_storage_datetime()
             db.execute(
-                'INSERT INTO conversations (id, user1_id, user2_id) VALUES (?, ?, ?)',
-                (conversation_id, user1_id, user2_id)
+                """
+                INSERT INTO conversations (id, user1_id, user2_id, last_message_at, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (conversation_id, user1_id, user2_id, now_text, now_text),
             )
         elif restore:
             # Conversation exists and restore flag is True - restore it for the initiator
@@ -432,7 +439,7 @@ class Message:
             "file_path": row["file_path"],
             "file_name": row["file_name"],
             "is_system_message": row["is_system_message"],
-            "created_at": row["created_at"],
+            "created_at": normalize_storage_datetime(row["created_at"]),
             "read_status": row["read_status"],
             "sender_name": row["sender_name"],
             "sender_avatar": row["sender_avatar"],
@@ -525,7 +532,7 @@ class Message:
                     "file_path": row["file_path"],
                     "file_name": row["file_name"],
                     "is_system_message": row["is_system_message"],
-                    "created_at": row["created_at"],
+                    "created_at": normalize_storage_datetime(row["created_at"]),
                     "read_status": row["read_status"],
                     "sender_name": row["sender_name"],
                     "sender_avatar": row["sender_avatar"],
@@ -610,13 +617,15 @@ class Message:
         # If receiver has deleted this conversation, restore it for them
         Message.restore_conversation_for_user(conversation_id, receiver_id)
         
+        now_text = to_storage_datetime()
         cursor = db.execute(
             """
             INSERT INTO messages (
                 conversation_id, sender_id, receiver_id, message_text,
-                image_path, file_path, file_name, is_system_message, reply_to_message_id
+                image_path, file_path, file_name, is_system_message, reply_to_message_id,
+                created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 conversation_id,
@@ -628,13 +637,14 @@ class Message:
                 file_name,
                 1 if is_system_message else 0,
                 reply_to_message_id,
+                now_text,
             ),
         )
         
         # Update conversation last_message_at
         db.execute(
-            'UPDATE conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?',
-            (conversation_id,)
+            'UPDATE conversations SET last_message_at = ? WHERE id = ?',
+            (now_text, conversation_id)
         )
         
         db.commit()
@@ -733,14 +743,16 @@ class Message:
         system_message = build_chat_system_message("delete", user_name, locale)
         
         db.execute('''
-            INSERT INTO messages (conversation_id, sender_id, receiver_id, message_text, is_system_message)
-            VALUES (?, ?, ?, ?, 1)
-        ''', (conversation_id, user_id, other_user_id, system_message))
+            INSERT INTO messages (
+                conversation_id, sender_id, receiver_id, message_text, is_system_message, created_at
+            )
+            VALUES (?, ?, ?, ?, 1, ?)
+        ''', (conversation_id, user_id, other_user_id, system_message, to_storage_datetime()))
         
         # Update last_message_at
         db.execute(
-            'UPDATE conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?',
-            (conversation_id,)
+            'UPDATE conversations SET last_message_at = ? WHERE id = ?',
+            (to_storage_datetime(), conversation_id)
         )
         
         db.commit()
@@ -769,7 +781,7 @@ class Message:
         else:
             raise ValueError("User not part of this conversation")
 
-        cleared_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        cleared_at = to_storage_datetime()
         db.execute(
             f"UPDATE conversations SET {cleared_field} = ? WHERE id = ?",
             (cleared_at, conversation_id),
@@ -792,8 +804,8 @@ class Message:
         )
 
         db.execute(
-            "UPDATE conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = ?",
-            (conversation_id,),
+            "UPDATE conversations SET last_message_at = ? WHERE id = ?",
+            (cleared_at, conversation_id),
         )
 
         db.commit()
@@ -825,7 +837,7 @@ class Message:
         if not participants or int(user_id) not in participants:
             raise ValueError("User not part of this conversation")
 
-        deleted_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        deleted_at = to_storage_datetime()
         db.execute(
             """
             UPDATE messages

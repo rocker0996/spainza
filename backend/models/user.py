@@ -6,6 +6,8 @@ import sqlite3
 import string
 from typing import Any
 
+from utils.time import to_storage_datetime
+
 _DISPLAY_ID_PATTERN = re.compile(r"^[A-Z]{2}\d{4}$")
 
 DEFAULT_ROLE_KEY = "user"
@@ -213,7 +215,7 @@ def create_users_table(connection: sqlite3.Connection) -> None:
             password_hash TEXT NOT NULL,
             avatar TEXT,
             role_key TEXT NOT NULL DEFAULT 'user',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
         )
         """
     )
@@ -326,10 +328,10 @@ def create_user(connection: sqlite3.Connection, email: str, password_hash: str) 
         try:
             cursor = connection.execute(
                 """
-                INSERT INTO users (email, password_hash, role_key, display_id)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO users (email, password_hash, role_key, display_id, created_at)
+                VALUES (?, ?, ?, ?, ?)
                 """,
-                (email, password_hash, DEFAULT_ROLE_KEY, display_id),
+                (email, password_hash, DEFAULT_ROLE_KEY, display_id, to_storage_datetime()),
             )
             connection.commit()
             return cursor.lastrowid, display_id
@@ -981,7 +983,7 @@ def create_manager_clients_table(connection: sqlite3.Connection) -> None:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             manager_id INTEGER NOT NULL,
             client_id INTEGER NOT NULL,
-            assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            assigned_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (client_id) REFERENCES users(id) ON DELETE CASCADE,
             UNIQUE(manager_id, client_id)
@@ -995,8 +997,8 @@ def assign_client_to_manager(connection: sqlite3.Connection, manager_id: int, cl
     """Assign a client to a manager."""
     try:
         connection.execute(
-            "INSERT INTO manager_clients (manager_id, client_id) VALUES (?, ?)",
-            (manager_id, client_id),
+            "INSERT INTO manager_clients (manager_id, client_id, assigned_at) VALUES (?, ?, ?)",
+            (manager_id, client_id, to_storage_datetime()),
         )
         connection.commit()
         return True

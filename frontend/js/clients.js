@@ -124,7 +124,8 @@ function getUserInitials(name, email) {
 function formatDate(dateString) {
     if (!dateString) return t('clients.dateUnknown');
 
-    const date = new Date(dateString);
+    const date = window.LkI18n?.parseInstant(dateString) || new Date(dateString);
+    if (Number.isNaN(date.getTime())) return t('clients.dateUnknown');
     const month = window.LkI18n
         ? window.LkI18n.formatMonthShort(date.getMonth())
         : date.getMonth();
@@ -577,8 +578,8 @@ function getSortedUsers(column, direction) {
                 valueB = b.target_date || '';
                 break;
             case 'date':
-                valueA = new Date(a.created_at || 0).getTime();
-                valueB = new Date(b.created_at || 0).getTime();
+                valueA = (window.LkI18n?.parseInstant(a.created_at)?.getTime()) || 0;
+                valueB = (window.LkI18n?.parseInstant(b.created_at)?.getTime()) || 0;
                 break;
             default:
                 return 0;

@@ -4,6 +4,8 @@ import json
 import sqlite3
 from typing import Any, Optional
 
+from utils.time import normalize_storage_datetime, to_storage_datetime
+
 
 def _ensure_case_data_columns(connection: sqlite3.Connection) -> None:
     """Ensure newly introduced columns exist in case_data table."""
@@ -38,8 +40,8 @@ def create_case_data_table(connection: sqlite3.Connection) -> None:
             document_requests TEXT,
             referral_id INTEGER,
             manager_id INTEGER,
-            created_at TEXT DEFAULT (datetime('now')),
-            updated_at TEXT DEFAULT (datetime('now')),
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (referral_id) REFERENCES users(id) ON DELETE SET NULL,
             FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE SET NULL
@@ -85,8 +87,8 @@ def get_case_data_by_user_id(connection: sqlite3.Connection, user_id: int) -> Op
         "document_requests": json.loads(row[8]) if row[8] else [],
         "referral_id": row[9],
         "manager_id": row[10],
-        "created_at": row[11],
-        "updated_at": row[12],
+        "created_at": normalize_storage_datetime(row[11]),
+        "updated_at": normalize_storage_datetime(row[12]),
         "timeline_manual": _bool_col(13),
         "document_requests_manual": _bool_col(14),
     }
@@ -322,23 +324,16 @@ def upsert_case_data(
     """Insert or update case data for a user."""
     try:
         _ensure_case_data_columns(connection)
-        print(f"[upsert_case_data] Starting for user_id={user_id}")
-        print(f"[upsert_case_data] visa_type={visa_type}, target_date={target_date}")
-        print(f"[upsert_case_data] country={country}, archive_file_name={archive_file_name}")
-        print(f"[upsert_case_data] referral_id={referral_id}, manager_id={manager_id}")
-        print(f"[upsert_case_data] timeline length={len(timeline)}, doc_requests length={len(document_requests)}")
-        
         # Serialize lists to JSON
         timeline_json = json.dumps(timeline)
         document_requests_json = json.dumps(document_requests)
         
         # Check if record exists
         existing = get_case_data_by_user_id(connection, user_id)
-        print(f"[upsert_case_data] Existing record: {existing is not None}")
+        now_text = to_storage_datetime()
         
         if existing:
             # Update existing record
-            print(f"[upsert_case_data] Updating existing record")
             connection.execute(
                 """
                 UPDATE case_data
@@ -353,7 +348,7 @@ def upsert_case_data(
                     manager_id = ?,
                     timeline_manual = ?,
                     document_requests_manual = ?,
-                    updated_at = datetime('now')
+                    updated_at = ?
                 WHERE user_id = ?
                 """,
                 (
@@ -368,19 +363,19 @@ def upsert_case_data(
                     manager_id,
                     1 if timeline_manual else 0,
                     1 if document_requests_manual else 0,
+                    now_text,
                     user_id,
                 )
             )
         else:
             # Insert new record
-            print(f"[upsert_case_data] Inserting new record")
             connection.execute(
                 """
                 INSERT INTO case_data (user_id, visa_type, target_date, country,
                                       archive_file_path, archive_file_name,
                                       timeline_data, document_requests, referral_id, manager_id,
-                                      timeline_manual, document_requests_manual)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                      timeline_manual, document_requests_manual, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     user_id,
@@ -395,11 +390,12 @@ def upsert_case_data(
                     manager_id,
                     1 if timeline_manual else 0,
                     1 if document_requests_manual else 0,
+                    now_text,
+                    now_text,
                 )
             )
         
         connection.commit()
-        print(f"[upsert_case_data] Success!")
         return True
     except Exception as e:
         import traceback

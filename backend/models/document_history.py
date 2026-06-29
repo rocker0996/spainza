@@ -2,7 +2,8 @@
 
 import sqlite3
 from typing import Optional, Any
-from datetime import datetime
+
+from utils.time import normalize_storage_datetime, to_storage_datetime
 
 
 def create_document_history_table(connection: sqlite3.Connection) -> None:
@@ -16,7 +17,7 @@ def create_document_history_table(connection: sqlite3.Connection) -> None:
             editor_id INTEGER NOT NULL,
             action TEXT NOT NULL,
             details TEXT,
-            created_at TIMESTAMP DEFAULT (datetime('now', 'localtime')),
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (editor_id) REFERENCES users(id) ON DELETE CASCADE
@@ -37,9 +38,9 @@ def add_document_history_entry(
     try:
         cursor = connection.cursor()
         cursor.execute("""
-            INSERT INTO document_history (document_id, user_id, editor_id, action, details)
-            VALUES (?, ?, ?, ?, ?)
-        """, (document_id, user_id, editor_id, action, details))
+            INSERT INTO document_history (document_id, user_id, editor_id, action, details, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (document_id, user_id, editor_id, action, details, to_storage_datetime()))
         connection.commit()
         return True
     except sqlite3.Error as e:
@@ -82,7 +83,7 @@ def get_document_history_by_user(
             'document_id': row[1],
             'action': row[2],
             'details': row[3],
-            'created_at': row[4],
+            'created_at': normalize_storage_datetime(row[4]),
             'document_title': row[5],
             'editor': {
                 'name': row[6],
@@ -125,7 +126,7 @@ def get_document_history_by_document(
             'id': row[0],
             'action': row[1],
             'details': row[2],
-            'created_at': row[3],
+            'created_at': normalize_storage_datetime(row[3]),
             'editor': {
                 'name': row[4],
                 'email': row[5],

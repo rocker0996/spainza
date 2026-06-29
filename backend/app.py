@@ -7,22 +7,13 @@ from flask import Flask, g, jsonify, redirect, request, send_from_directory
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from config import Config, is_production_env
-from models.document import create_documents_table, ensure_documents_columns
-from models.security_log import create_security_logs_table
 from models.user import (
-    create_users_table,
-    create_manager_clients_table,
     get_role_permissions,
     get_user_auth_by_id,
     get_user_by_id,
     normalize_role_key,
     staff_may_access_target_user_workspace,
 )
-from models.case_data import create_case_data_table
-from models.case_history import create_case_history_table
-from models.case_template import create_manager_case_templates_table
-from models.manager_moderator import create_manager_moderators_table
-from models.message import Message
 from routes.auth import auth_bp
 from routes.documents import documents_bp
 from routes.health import health_bp
@@ -32,9 +23,8 @@ from routes.messages import messages_bp
 from routes.admin_messages import admin_messages_bp
 from routes.application_progress import bp as application_progress_bp
 from routes.telegram_lk import telegram_lk_bp
-from models.notifications import create_notification_tables
 from services.auth_service import parse_storage_datetime
-from utils.db import get_db_connection
+from utils.db import get_db_connection, initialize_database_schema
 from utils.rate_limiter import InMemoryRateLimiter
 from utils.security import verify_auth_token
 
@@ -326,17 +316,7 @@ def create_app() -> Flask:
     app.register_blueprint(telegram_lk_bp, url_prefix="/api/lk")
 
     init_connection = get_db_connection()
-    create_users_table(init_connection)
-    create_documents_table(init_connection)
-    ensure_documents_columns(init_connection)
-    create_security_logs_table(init_connection)
-    create_manager_clients_table(init_connection)
-    create_manager_moderators_table(init_connection)
-    create_case_data_table(init_connection)
-    create_case_history_table(init_connection)
-    create_manager_case_templates_table(init_connection)
-    create_notification_tables(init_connection)
-    Message.create_table()
+    initialize_database_schema(init_connection)
     init_connection.close()
 
     @app.before_request

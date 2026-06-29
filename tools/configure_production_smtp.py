@@ -107,9 +107,11 @@ def _connect(client: paramiko.SSHClient) -> None:
 def _resolve_smtp_password() -> str:
     local = _parse_env_file(ROOT / ".env")
     deploy = _parse_env_file(ROOT / ".env.deploy")
+    production = _parse_env_file(ROOT / ".env.production")
     for source in (
         os.environ.get("SMTP_PASSWORD", "").strip(),
         deploy.get("SMTP_PASSWORD", "").strip(),
+        production.get("SMTP_PASSWORD", "").strip(),
         local.get("SMTP_PASSWORD", "").strip(),
     ):
         if source:

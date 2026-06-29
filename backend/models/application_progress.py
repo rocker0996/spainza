@@ -1,7 +1,8 @@
 """Application progress model for tracking client application stages."""
 
-from datetime import datetime
 from typing import Dict, List, Optional
+
+from utils.time import to_storage_datetime
 
 
 class ApplicationStage:
@@ -276,7 +277,7 @@ class ApplicationProgress:
             for stage in stages:
                 if stage.order < current_stage_order:
                     stage.is_completed = True
-                    stage.completed_date = datetime.now().isoformat()
+                    stage.completed_date = to_storage_datetime()
         
         # Calculate progress percentage
         total_stages = len(stages)
@@ -289,7 +290,7 @@ class ApplicationProgress:
             'current_stage_id': current_stage_id,
             'progress_percentage': progress_percentage,
             'stages': [stage.to_dict() for stage in stages],
-            'updated_at': datetime.now().isoformat()
+            'updated_at': to_storage_datetime()
         }
     
     @staticmethod
@@ -321,7 +322,7 @@ class ApplicationProgress:
             for stage in stages:
                 if stage.order < current_stage_order:
                     stage.is_completed = True
-                    stage.completed_date = datetime.now().isoformat()
+                    stage.completed_date = to_storage_datetime()
         
         # Calculate progress percentage
         total_stages = len(stages)
@@ -331,6 +332,6 @@ class ApplicationProgress:
         progress_data['current_stage_id'] = new_stage_id
         progress_data['progress_percentage'] = progress_percentage
         progress_data['stages'] = [stage.to_dict() for stage in stages]
-        progress_data['updated_at'] = datetime.now().isoformat()
+        progress_data['updated_at'] = to_storage_datetime()
         
         return progress_data

@@ -77,7 +77,7 @@
 
   function formatTime(iso) {
     if (!iso) return "";
-    const date = new Date(iso);
+    const date = window.LkI18n?.parseInstant(iso) || new Date(iso);
     if (Number.isNaN(date.getTime())) return "";
     const now = new Date();
     const locale = window.LkI18n?.getLocale() === "en" ? "en-US" : "ru-RU";

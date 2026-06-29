@@ -1,4 +1,4 @@
-// Documents page: load user documents and handle pagination.
+﻿// Documents page: load user documents and handle pagination.
 (function () {
 
   const CARDS_PER_PAGE = 12;
@@ -223,9 +223,17 @@
   }
 
   function toDisplayDate(value) {
-    const date = new Date(value);
+    const date = window.LkI18n?.parseInstant(value) || new Date(value);
     if (Number.isNaN(date.getTime())) {
       return t("documents.card.dateUnknown");
+    }
+    if (window.LkI18n?.formatLocalDateTime) {
+      return window.LkI18n.formatLocalDateTime(date, {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     }
     const localeTag = window.LkI18n ? window.LkI18n.dateLocaleTag() : "ru-RU";
     return date.toLocaleString(localeTag, {
@@ -316,8 +324,8 @@
         return orderA - orderB;
       }
 
-      const timeA = new Date(a.last_action_at || 0).getTime();
-      const timeB = new Date(b.last_action_at || 0).getTime();
+      const timeA = (window.LkI18n?.parseInstant(a.last_action_at)?.getTime()) || 0;
+      const timeB = (window.LkI18n?.parseInstant(b.last_action_at)?.getTime()) || 0;
       return timeB - timeA;
     });
   }
@@ -707,9 +715,7 @@
     }
     
     try {
-      console.log('📜 Loading document history for user:', historyUserId);
       const historyData = await fetchFromApi(`/document-history/${historyUserId}`);
-      console.log('📦 History data received:', historyData);
       
       if (!historyData || !historyData.success || !historyData.history) {
         console.error('❌ Invalid history data:', historyData);
@@ -1035,11 +1041,8 @@
       targetUserId && !viewingOwnDocuments
         ? `/documents?userId=${targetUserId}`
         : "/documents";
-    console.log('🔍 Fetching documents from:', documentsUrl);
-    console.log('🔍 Target user ID:', targetUserId);
     
     const documentsPayload = await fetchFromApi(documentsUrl);
-    console.log('📦 Documents payload received:', documentsPayload);
     
     if (!documentsPayload) {
       showDocumentsToast(t("documents.toast.loadFailed"), "error");
@@ -1055,8 +1058,6 @@
         }
       }
       
-      console.log('📄 Total documents loaded:', allDocuments.length);
-      console.log('📄 Documents:', allDocuments);
     } else {
       allDocuments = [];
       console.error('❌ No documents payload received');
@@ -1156,7 +1157,6 @@
         uploadTitle = String(enteredTitle).trim();
       }
       
-      console.log('📤 Starting upload:', file.name, file.type, file.size);
       
       const uploadBtn = document.getElementById(`document-upload-${documentId}`);
       if (uploadBtn) {
@@ -1166,14 +1166,11 @@
       
       try {
         const result = await uploadDocument(file, uploadTitle, documentId);
-        console.log('✅ Upload successful:', result);
         
         const documentsUrl = targetUserId ? `/documents?userId=${targetUserId}` : "/documents";
-        console.log('🔄 Reloading documents from:', documentsUrl);
         const documentsPayload = await fetchFromApi(documentsUrl);
         if (documentsPayload) {
           allDocuments = documentsPayload.documents || [];
-          console.log('📄 Documents reloaded, count:', allDocuments.length);
           renderDocuments();
         }
         const isRequestUpload = Boolean(documentId);
@@ -1524,7 +1521,6 @@
       const file = e.target.files[0];
       if (!file) return;
       
-      console.log('🔄 Replacing file for document:', documentId, file.name);
       
       try {
         const apiBases = resolveApiBases();
@@ -1545,7 +1541,6 @@
               if (!result.success) {
                 throw new Error(result.error || 'Replace failed');
               }
-              console.log('✅ File replaced successfully:', result);
 
               const documentsUrl = targetUserId ? `/documents?userId=${targetUserId}` : "/documents";
               const documentsPayload = await fetchFromApi(documentsUrl);

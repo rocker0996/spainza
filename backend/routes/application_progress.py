@@ -1,6 +1,6 @@
 """Application progress API routes."""
 
-from flask import Blueprint, jsonify, request, g
+from flask import Blueprint, current_app, jsonify, request, g
 from models.application_progress import ApplicationProgress
 from models.user import get_user_by_id, staff_may_access_target_user_workspace
 from services.notification_service import (
@@ -39,8 +39,9 @@ def get_progress():
         
         return jsonify(progress_data), 200
         
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        current_app.logger.exception("failed to get application progress")
+        return jsonify({'success': False, 'error': 'internal server error'}), 500
 
 
 @bp.route('/api/application/progress/<int:user_id>', methods=['GET'])
@@ -79,8 +80,9 @@ def get_user_progress(user_id):
         
         return jsonify(progress_data), 200
         
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        current_app.logger.exception("failed to get user application progress")
+        return jsonify({'success': False, 'error': 'internal server error'}), 500
 
 
 @bp.route('/api/application/progress/<int:user_id>', methods=['PUT'])
@@ -159,8 +161,9 @@ def update_user_progress(user_id):
             'progress': progress_data
         }), 200
         
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        current_app.logger.exception("failed to update user application progress")
+        return jsonify({'success': False, 'error': 'internal server error'}), 500
 
 
 @bp.route('/api/application/types', methods=['GET'])
@@ -182,5 +185,6 @@ def get_application_types():
         
         return jsonify(types_info), 200
         
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        current_app.logger.exception("failed to get application types")
+        return jsonify({'success': False, 'error': 'internal server error'}), 500

@@ -79,7 +79,7 @@
     if (!createdAt) {
       return empty;
     }
-    const parsedDate = new Date(createdAt);
+    const parsedDate = window.LkI18n?.parseInstant(createdAt) || new Date(createdAt);
     if (Number.isNaN(parsedDate.getTime())) {
       return empty;
     }

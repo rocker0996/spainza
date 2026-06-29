@@ -654,7 +654,7 @@
       "case.archiveChooseFile": "Выберите файл",
       "case.archiveNoFile": "Файл не выбран",
       "case.sendRequests": "Отправить запросы",
-      "case.historyTitle": "История изменений кейса (UTC+0)",
+      "case.historyTitle": "История изменений кейса",
       "case.addDocRequest": "Добавить запрос документа",
       "case.addDocConfirm": "Добавить",
       "case.docTitle": "Название документа",
@@ -1314,7 +1314,7 @@
       "case.archiveChooseFile": "Choose file",
       "case.archiveNoFile": "No file selected",
       "case.sendRequests": "Send requests",
-      "case.historyTitle": "Case change history (UTC+0)",
+      "case.historyTitle": "Case change history",
       "case.addDocRequest": "Add document request",
       "case.addDocConfirm": "Add",
       "case.docTitle": "Document title",
@@ -1445,6 +1445,54 @@
 
   function dateLocaleTag() {
     return getLocale() === "en" ? "en-US" : "ru-RU";
+  }
+
+  function parseInstant(value) {
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value;
+    }
+    if (value === null || value === undefined || value === "") {
+      return null;
+    }
+    var raw = String(value).trim();
+    if (!raw) {
+      return null;
+    }
+    var normalized = raw;
+    var hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalized);
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(normalized)) {
+      normalized = normalized.replace(" ", "T");
+    }
+    if (!hasTimezone && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(normalized)) {
+      normalized += "Z";
+    }
+    var date = new Date(normalized);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function formatLocalDateTime(value, options) {
+    var date = parseInstant(value);
+    if (!date) {
+      return "";
+    }
+    return date.toLocaleString(dateLocaleTag(), options || {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  function formatLocalTime(value, options) {
+    var date = parseInstant(value);
+    if (!date) {
+      return "";
+    }
+    return date.toLocaleTimeString(dateLocaleTag(), options || {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }
 
   function formatMonthShort(monthIndex) {
@@ -1582,15 +1630,8 @@
   }
 
   function formatTimeAgo(dateInput) {
-    var date;
-    if (typeof dateInput === "string") {
-      date = new Date(dateInput.replace(" ", "T"));
-    } else if (dateInput instanceof Date) {
-      date = dateInput;
-    } else {
-      date = new Date(dateInput);
-    }
-    if (Number.isNaN(date.getTime())) {
+    var date = parseInstant(dateInput);
+    if (!date) {
       return t("documents.history.recently");
     }
     var now = new Date();
@@ -1740,6 +1781,9 @@
     t: t,
     applyDocument: applyDocument,
     dateLocaleTag: dateLocaleTag,
+    parseInstant: parseInstant,
+    formatLocalDateTime: formatLocalDateTime,
+    formatLocalTime: formatLocalTime,
     formatMonthShort: formatMonthShort,
     roleLabel: roleLabel,
     visaLabel: visaLabel,

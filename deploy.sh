@@ -79,20 +79,8 @@ def weak(value: str, *markers: str) -> bool:
 
 generated_admin_password = None
 
-data.setdefault("POSTGRES_DB", "spainza")
-data.setdefault("POSTGRES_USER", "spainza")
-if weak(data.get("POSTGRES_PASSWORD", "")):
-    data["POSTGRES_PASSWORD"] = secrets.token_hex(32)
-
 if weak(data.get("JWT_SECRET", "")):
     data["JWT_SECRET"] = secrets.token_urlsafe(48)
-
-data["POSTGRES_HOST"] = "spainza-postgres"
-data["POSTGRES_PORT"] = "5432"
-data["DATABASE_URL"] = (
-    f"postgresql://{data['POSTGRES_USER']}:{data['POSTGRES_PASSWORD']}"
-    f"@spainza-postgres:5432/{data['POSTGRES_DB']}"
-)
 
 data.setdefault("COOKIE_SECURE", "1")
 
@@ -133,12 +121,6 @@ if not (data.get("TELEGRAM_BOT_TOKEN") or "").strip():
                     break
 
 ordered = [
-    "POSTGRES_DB",
-    "POSTGRES_USER",
-    "POSTGRES_PASSWORD",
-    "POSTGRES_HOST",
-    "POSTGRES_PORT",
-    "DATABASE_URL",
     "JWT_SECRET",
     "COOKIE_SECURE",
     "BOOTSTRAP_ADMIN_EMAIL",
@@ -168,12 +150,10 @@ echo "[3/6] Building and starting containers"
 compose up -d --build --remove-orphans
 
 echo "[4/6] Waiting for container health"
-wait_for_service_health "spainza-postgres"
 wait_for_service_health "spainza-backend"
 wait_for_service_health "spainza-site"
 
 echo "[5/6] Running runtime health checks"
-compose exec -T spainza-postgres sh -lc 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
 compose exec -T spainza-backend python -c "import urllib.request; urllib.request.urlopen('http://spainza-backend:5000/api/health', timeout=5).read(); urllib.request.urlopen('http://spainza-site:80/', timeout=5).read()"
 
 echo "[6/6] Configuring shared edge nginx"

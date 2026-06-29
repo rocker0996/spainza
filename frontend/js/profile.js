@@ -263,9 +263,12 @@
   }
 
   function formatLogDate(value) {
-    const date = new Date(value);
+    const date = window.LkI18n?.parseInstant(value) || new Date(value);
     if (Number.isNaN(date.getTime())) {
       return t("profile.dateUnknown");
+    }
+    if (window.LkI18n?.formatLocalDateTime) {
+      return window.LkI18n.formatLocalDateTime(date);
     }
     const localeTag = window.LkI18n ? window.LkI18n.dateLocaleTag() : "ru-RU";
     return date.toLocaleString(localeTag, {
@@ -1129,7 +1132,7 @@ ${body}
         return;
       }
       if (!payload.success || !payload.telegram_url) {
-        window.alert(payload.error || t("profile.telegramConnectFailed"));
+        setProfileStatus("save", "profile.telegramConnectFailed", true);
         return;
       }
       state.telegram.pending_link = true;
@@ -1139,7 +1142,7 @@ ${body}
       renderTelegramSection();
       startTelegramLinkPolling();
     } catch (error) {
-      window.alert(t("profile.telegramConnectFailed"));
+      setProfileStatus("save", "profile.telegramConnectFailed", true);
     } finally {
       byId.telegramConnectBtn.disabled = false;
     }
@@ -1162,7 +1165,7 @@ ${body}
       state.notifications.telegram = false;
       renderTelegramSection();
     } catch (error) {
-      window.alert(t("profile.telegramDisconnectFailed"));
+      setProfileStatus("save", "profile.telegramDisconnectFailed", true);
     }
   }
 
@@ -1415,12 +1418,12 @@ ${body}
       return;
     }
     if (!file.type.startsWith("image/")) {
-      window.alert(t("profile.avatarImageOnly"));
+      setProfileStatus("save", "profile.avatarImageOnly", true);
       byId.avatarFileInput.value = "";
       return;
     }
     if (file.size > 3 * 1024 * 1024) {
-      window.alert(t("profile.avatarMaxSize"));
+      setProfileStatus("save", "profile.avatarMaxSize", true);
       byId.avatarFileInput.value = "";
       return;
     }
@@ -1429,7 +1432,7 @@ ${body}
     reader.onload = () => {
       const result = String(reader.result || "");
       if (!result.startsWith("data:image/")) {
-        window.alert(t("profile.avatarReadError"));
+        setProfileStatus("save", "profile.avatarReadError", true);
         return;
       }
       state.avatar = result;
@@ -1439,7 +1442,7 @@ ${body}
       setProfileStatus("save", "profile.avatarSelected", false);
     };
     reader.onerror = () => {
-      window.alert(t("profile.avatarFileError"));
+      setProfileStatus("save", "profile.avatarFileError", true);
     };
     reader.readAsDataURL(file);
   });
@@ -1474,7 +1477,7 @@ ${body}
     window.location.href = "./status.html";
   });
   byId.configure2fa?.addEventListener("click", () => {
-    window.alert(t("profile.subscriptionSoon"));
+    setProfileStatus("save", "profile.subscriptionSoon", false);
   });
   byId.securityLog?.addEventListener("click", openSecurityLogs);
   byId.closeSecurityLogModal?.addEventListener("click", hideSecurityLogModal);

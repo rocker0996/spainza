@@ -1,4 +1,4 @@
-// User and admin messaging logic with backend integration.
+﻿// User and admin messaging logic with backend integration.
 (function () {
   const byId = {
     activeName: document.getElementById("active-chat-name"),
@@ -661,8 +661,8 @@
     return (messages || [])
       .filter((message) => message && message.file_url)
       .sort((a, b) => {
-        const timeA = new Date(a.created_at || 0).getTime();
-        const timeB = new Date(b.created_at || 0).getTime();
+        const timeA = (window.LkI18n?.parseInstant(a.created_at)?.getTime()) || 0;
+        const timeB = (window.LkI18n?.parseInstant(b.created_at)?.getTime()) || 0;
         return timeB - timeA;
       });
   }
@@ -933,7 +933,6 @@
           }
         }
       } catch (error) {
-        console.log("No case data or manager assigned yet");
       }
     } catch (error) {
       console.error("Failed to ensure default chats:", error);
@@ -1009,7 +1008,7 @@
   function formatTime(timestamp) {
     if (!timestamp) return "--:--";
 
-    const date = new Date(timestamp);
+    const date = window.LkI18n?.parseInstant(timestamp) || new Date(timestamp);
     const now = new Date();
     const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
 
@@ -1028,7 +1027,7 @@
   }
 
   function getDateKey(timestamp) {
-    const date = new Date(timestamp);
+    const date = window.LkI18n?.parseInstant(timestamp) || new Date(timestamp);
     if (Number.isNaN(date.getTime())) {
       return "";
     }
@@ -1040,7 +1039,7 @@
   }
 
   function formatDateSeparator(timestamp) {
-    const date = new Date(timestamp);
+    const date = window.LkI18n?.parseInstant(timestamp) || new Date(timestamp);
     if (Number.isNaN(date.getTime())) {
       return "";
     }
@@ -1068,7 +1067,7 @@
   /** Время внутри пузыря сообщения — только часы и минуты. */
   function formatMessageTime(timestamp) {
     if (!timestamp) return "--:--";
-    const date = new Date(timestamp);
+    const date = window.LkI18n?.parseInstant(timestamp) || new Date(timestamp);
     if (Number.isNaN(date.getTime())) {
       return "--:--";
     }

@@ -5,8 +5,10 @@ from __future__ import annotations
 import hashlib
 import secrets
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any, Optional
+
+from utils.time import parse_storage_datetime, to_storage_datetime, utc_now
 
 
 LINK_CODE_TTL_MINUTES = 10
@@ -25,8 +27,8 @@ def create_notification_tables(connection: sqlite3.Connection) -> None:
             status TEXT NOT NULL DEFAULT 'pending',
             attempts INTEGER NOT NULL DEFAULT 0,
             last_error TEXT,
-            next_retry_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
-            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            next_retry_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             sent_at TEXT,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
@@ -45,7 +47,7 @@ def create_notification_tables(connection: sqlite3.Connection) -> None:
             telegram_chat_id INTEGER NOT NULL UNIQUE,
             telegram_user_id INTEGER,
             telegram_username TEXT,
-            linked_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            linked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             is_active INTEGER NOT NULL DEFAULT 1,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
@@ -59,7 +61,7 @@ def create_notification_tables(connection: sqlite3.Connection) -> None:
             code_hash TEXT NOT NULL,
             expires_at TEXT NOT NULL,
             used_at TEXT,
-            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
@@ -81,7 +83,7 @@ def create_notification_tables(connection: sqlite3.Connection) -> None:
             user_id INTEGER,
             expires_at TEXT NOT NULL,
             completed_at TEXT,
-            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
         )
         """
@@ -100,8 +102,8 @@ def _hash_link_code(code: str, secret_key: str) -> str:
     return hashlib.sha256(f"{normalized}:{secret_key}".encode("utf-8")).hexdigest()
 
 
-def _now_local() -> str:
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def _now_utc() -> str:
+    return to_storage_datetime()
 
 
 def create_telegram_link_code(
@@ -113,15 +115,16 @@ def create_telegram_link_code(
     connection.execute(
         """
         UPDATE telegram_link_codes
-        SET used_at = datetime('now', 'localtime')
+        SET used_at = ?
         WHERE user_id = ? AND used_at IS NULL
         """,
-        (user_id,),
+        (_now_utc(), user_id),
     )
     code = f"{secrets.randbelow(1_000_000):06d}"
     expires_at = (
-        datetime.now() + timedelta(minutes=LINK_CODE_TTL_MINUTES)
-    ).strftime("%Y-%m-%d %H:%M:%S")
+        utc_now() + timedelta(minutes=LINK_CODE_TTL_MINUTES)
+    )
+    expires_at = to_storage_datetime(expires_at_dt)
     connection.execute(
         """
         INSERT INTO telegram_link_codes (user_id, code_hash, expires_at)
@@ -152,12 +155,12 @@ def consume_telegram_link_code(
     ).fetchone()
     if not row or row["used_at"]:
         return None
-    expires_at = datetime.strptime(row["expires_at"], "%Y-%m-%d %H:%M:%S")
-    if datetime.now() > expires_at:
+    expires_at = parse_storage_datetime(row["expires_at"])
+    if not expires_at or utc_now() > expires_at:
         return None
     connection.execute(
         "UPDATE telegram_link_codes SET used_at = ? WHERE id = ?",
-        (_now_local(), row["id"]),
+        (_now_utc(), row["id"]),
     )
     connection.commit()
     return int(row["user_id"])
@@ -172,8 +175,9 @@ def create_telegram_login_session(
     start_code = f"login{code}"
     poll_token = secrets.token_urlsafe(24)
     expires_at = (
-        datetime.now() + timedelta(minutes=LOGIN_SESSION_TTL_MINUTES)
-    ).strftime("%Y-%m-%d %H:%M:%S")
+        utc_now() + timedelta(minutes=LOGIN_SESSION_TTL_MINUTES)
+    )
+    expires_at = to_storage_datetime(expires_at_dt)
     connection.execute(
         """
         INSERT INTO telegram_login_sessions (poll_token, start_code, code_hash, expires_at)
@@ -207,8 +211,8 @@ def consume_telegram_login_session(
     ).fetchone()
     if not row or row["status"] != "pending":
         return None
-    expires_at = datetime.strptime(row["expires_at"], "%Y-%m-%d %H:%M:%S")
-    if datetime.now() > expires_at:
+    expires_at = parse_storage_datetime(row["expires_at"])
+    if not expires_at or utc_now() > expires_at:
         connection.execute(
             "UPDATE telegram_login_sessions SET status = 'expired' WHERE id = ?",
             (int(row["id"]),),
@@ -229,7 +233,7 @@ def complete_telegram_login_session(
         SET status = 'completed', user_id = ?, completed_at = ?
         WHERE id = ? AND status = 'pending'
         """,
-        (user_id, _now_local(), session_id),
+        (user_id, _now_utc(), session_id),
     )
     connection.commit()
 
@@ -268,14 +272,14 @@ def upsert_telegram_link(
     connection.execute(
         """
         INSERT INTO user_telegram_links (
-            user_id, telegram_chat_id, telegram_user_id, telegram_username, is_active
+            user_id, telegram_chat_id, telegram_user_id, telegram_username, linked_at, is_active
         )
-        VALUES (?, ?, ?, ?, 1)
+        VALUES (?, ?, ?, ?, ?, 1)
         ON CONFLICT(user_id) DO UPDATE SET
             telegram_chat_id = excluded.telegram_chat_id,
             telegram_user_id = excluded.telegram_user_id,
             telegram_username = excluded.telegram_username,
-            linked_at = datetime('now', 'localtime'),
+            linked_at = excluded.linked_at,
             is_active = 1
         """,
         (
@@ -283,6 +287,7 @@ def upsert_telegram_link(
             telegram_chat_id,
             telegram_user_id,
             (telegram_username or "").strip() or None,
+            _now_utc(),
         ),
     )
     connection.execute(
@@ -349,10 +354,16 @@ def enqueue_notification(
 
     cursor = connection.execute(
         """
-        INSERT INTO notification_outbox (user_id, event_type, payload_json)
-        VALUES (?, ?, ?)
+        INSERT INTO notification_outbox (user_id, event_type, payload_json, next_retry_at, created_at)
+        VALUES (?, ?, ?, ?, ?)
         """,
-        (user_id, event_type, json.dumps(payload, ensure_ascii=False)),
+        (
+            user_id,
+            event_type,
+            json.dumps(payload, ensure_ascii=False),
+            _now_utc(),
+            _now_utc(),
+        ),
     )
     connection.commit()
     return cursor.lastrowid
@@ -368,11 +379,11 @@ def fetch_pending_notifications(
         SELECT id, user_id, event_type, payload_json, attempts
         FROM notification_outbox
         WHERE status = 'pending'
-          AND next_retry_at <= datetime('now', 'localtime')
+          AND next_retry_at <= ?
         ORDER BY id ASC
         LIMIT ?
         """,
-        (limit,),
+        (_now_utc(), limit),
     ).fetchall()
 
 
@@ -380,10 +391,10 @@ def mark_notification_sent(connection: sqlite3.Connection, notification_id: int)
     connection.execute(
         """
         UPDATE notification_outbox
-        SET status = 'sent', sent_at = datetime('now', 'localtime'), last_error = NULL
+        SET status = 'sent', sent_at = ?, last_error = NULL
         WHERE id = ?
         """,
-        (notification_id,),
+        (_now_utc(), notification_id),
     )
     connection.commit()
 
@@ -403,8 +414,9 @@ def mark_notification_failed(
         delay_seconds = min(3600, 30 * (2 ** max(0, attempts - 1)))
 
     next_retry = (
-        datetime.now() + timedelta(seconds=delay_seconds)
-    ).strftime("%Y-%m-%d %H:%M:%S")
+        utc_now() + timedelta(seconds=delay_seconds)
+    )
+    next_retry = to_storage_datetime(next_retry_dt)
     connection.execute(
         """
         UPDATE notification_outbox
