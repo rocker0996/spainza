@@ -141,6 +141,115 @@
     return window.LkI18n ? window.LkI18n.t(key, params) : key;
   }
 
+  const staffDashboardI18n = {
+    ru: {
+      "dashboard.staffEyebrow": "Операционный пульт",
+      "dashboard.staffTitle": "Рабочая главная",
+      "dashboard.staffSubtitle": "Клиенты, документы, сообщения и ближайшие даты в одном рабочем обзоре.",
+      "dashboard.staffTemplates": "Шаблоны",
+      "dashboard.staffKpiClients": "Клиенты",
+      "dashboard.staffKpiClientsHint": "в доступе",
+      "dashboard.staffKpiPendingDocs": "Документы",
+      "dashboard.staffKpiPendingDocsHint": "клиентов ждут проверки",
+      "dashboard.staffKpiMessages": "Сообщения",
+      "dashboard.staffKpiMessagesHint": "непрочитанных",
+      "dashboard.staffKpiDeadlines": "Даты",
+      "dashboard.staffKpiDeadlinesHint": "в ближайшие 14 дней",
+      "dashboard.staffPriorityQueue": "Очередь приоритетов",
+      "dashboard.staffUpcomingDates": "Ближайшие даты",
+      "dashboard.staffInbox": "Последние сообщения",
+      "dashboard.staffCase": "Кейс",
+      "dashboard.staffDocs": "Документы",
+      "dashboard.staffMessages": "Сообщения",
+      "dashboard.staffNotes": "Заметки",
+      "dashboard.staffNoPriority": "Нет клиентов, требующих действия",
+      "dashboard.staffNoDeadlines": "Нет ближайших дат",
+      "dashboard.staffNoMessages": "Нет последних сообщений",
+      "dashboard.staffNoDate": "Дата не указана",
+      "dashboard.staffDeadlineOverdue": "Просрочено",
+      "dashboard.staffDeadlineToday": "Сегодня",
+      "dashboard.staffDeadlineTomorrow": "Завтра",
+      "dashboard.staffDeadlineInDays": "через {n} дн.",
+      "dashboard.staffUnnamedClient": "Клиент без имени",
+      "dashboard.staffFocusTitle": "Фокус дня",
+      "dashboard.staffFocusHint": "сводка",
+      "dashboard.staffFocusDeadline": "Ближайшая дата",
+      "dashboard.staffFocusDocuments": "Документы",
+      "dashboard.staffFocusDialog": "Диалог",
+      "dashboard.staffFocusLoad": "Нагрузка",
+      "dashboard.staffFocusLoadValue": "{n} активных кейсов",
+      "dashboard.staffCrmSlice": "CRM-срез",
+      "dashboard.staffCrmActive": "Активные",
+      "dashboard.staffCrmDocs": "На проверке",
+      "dashboard.staffCrmUpcoming": "Ближайшие даты",
+      "dashboard.staffCrmCompleted": "Завершены",
+      "dashboard.staffImportantActions": "Важные действия",
+      "dashboard.staffActionOverdue": "Дата уже прошла: {date}",
+      "dashboard.staffActionNoDate": "Нужно указать дату консульства",
+      "dashboard.staffActionPendingDocs": "Документы на проверке: {n}",
+      "dashboard.staffNoImportantActions": "Срочных действий сейчас нет",
+    },
+    en: {
+      "dashboard.staffEyebrow": "Operations console",
+      "dashboard.staffTitle": "Work dashboard",
+      "dashboard.staffSubtitle": "Clients, documents, messages, and upcoming dates in one operational view.",
+      "dashboard.staffTemplates": "Templates",
+      "dashboard.staffKpiClients": "Clients",
+      "dashboard.staffKpiClientsHint": "visible",
+      "dashboard.staffKpiPendingDocs": "Documents",
+      "dashboard.staffKpiPendingDocsHint": "clients need review",
+      "dashboard.staffKpiMessages": "Messages",
+      "dashboard.staffKpiMessagesHint": "unread",
+      "dashboard.staffKpiDeadlines": "Dates",
+      "dashboard.staffKpiDeadlinesHint": "next 14 days",
+      "dashboard.staffPriorityQueue": "Priority queue",
+      "dashboard.staffUpcomingDates": "Upcoming dates",
+      "dashboard.staffInbox": "Recent messages",
+      "dashboard.staffCase": "Case",
+      "dashboard.staffDocs": "Documents",
+      "dashboard.staffMessages": "Messages",
+      "dashboard.staffNotes": "Notes",
+      "dashboard.staffNoPriority": "No clients need action",
+      "dashboard.staffNoDeadlines": "No upcoming dates",
+      "dashboard.staffNoMessages": "No recent messages",
+      "dashboard.staffNoDate": "No date set",
+      "dashboard.staffDeadlineOverdue": "Overdue",
+      "dashboard.staffDeadlineToday": "Today",
+      "dashboard.staffDeadlineTomorrow": "Tomorrow",
+      "dashboard.staffDeadlineInDays": "in {n} days",
+      "dashboard.staffUnnamedClient": "Unnamed client",
+      "dashboard.staffFocusTitle": "Daily focus",
+      "dashboard.staffFocusHint": "summary",
+      "dashboard.staffFocusDeadline": "Next date",
+      "dashboard.staffFocusDocuments": "Documents",
+      "dashboard.staffFocusDialog": "Conversation",
+      "dashboard.staffFocusLoad": "Workload",
+      "dashboard.staffFocusLoadValue": "{n} active cases",
+      "dashboard.staffCrmSlice": "CRM snapshot",
+      "dashboard.staffCrmActive": "Active",
+      "dashboard.staffCrmDocs": "In review",
+      "dashboard.staffCrmUpcoming": "Upcoming dates",
+      "dashboard.staffCrmCompleted": "Completed",
+      "dashboard.staffImportantActions": "Important actions",
+      "dashboard.staffActionOverdue": "Date has passed: {date}",
+      "dashboard.staffActionNoDate": "Set the consulate date",
+      "dashboard.staffActionPendingDocs": "Documents to review: {n}",
+      "dashboard.staffNoImportantActions": "No urgent actions right now",
+    },
+  };
+
+  function ensureStaffDashboardI18n() {
+    if (!window.LkI18n || !window.LkI18n.STRINGS) return;
+    window.LkI18n.STRINGS.ru = {
+      ...(window.LkI18n.STRINGS.ru || {}),
+      ...staffDashboardI18n.ru,
+    };
+    window.LkI18n.STRINGS.en = {
+      ...(window.LkI18n.STRINGS.en || {}),
+      ...staffDashboardI18n.en,
+    };
+  }
+
   function isStaffUser(user) {
     const raw = user?.role?.level;
     const level = parseFloat(String(raw ?? ""));
@@ -857,6 +966,7 @@
 
   async function initStaffDashboard(user) {
     setDashboardMode("staff");
+    ensureStaffDashboardI18n();
     try {
       const [usersPayload, badgesPayload, conversationsPayload] = await Promise.all([
         apiGet("/api/users").catch(() => ({ success: false, users: [] })),
@@ -1078,6 +1188,7 @@
 
   function refreshDashboardLocale() {
     if (dashboardSessionUser && isStaffUser(dashboardSessionUser)) {
+      ensureStaffDashboardI18n();
       renderStaffKpis();
       renderStaffFocus();
       renderStaffCrmSlice();
