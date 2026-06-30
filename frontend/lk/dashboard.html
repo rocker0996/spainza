@@ -243,6 +243,33 @@
             }
           }
 
+          .staff-action-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-height: 3.25rem;
+            padding: 0.875rem 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(121, 116, 126, 0.18);
+            background: #f8fafc;
+            color: inherit;
+            text-decoration: none;
+            font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+            font-size: 0.875rem;
+            font-weight: 700;
+            transition: background-color 0.2s ease, transform 0.15s ease;
+          }
+          .staff-action-link:hover {
+            background: #ffffff;
+          }
+          .staff-action-link:active {
+            transform: scale(0.99);
+          }
+          .staff-action-link .material-symbols-outlined {
+            color: #003ec7;
+            font-size: 20px;
+          }
+
       </style>
 </head>
 <body class="bg-surface font-body text-on-surface min-h-screen flex overflow-x-hidden" data-layout-header="false" data-layout-footer="false" data-lk-nav-active="dashboard">
@@ -346,8 +373,8 @@
 </div>
 </div>
 </header>
-<!-- Grid Layout -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8">
+<!-- Client Dashboard -->
+<div id="client-dashboard" class="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8">
 <!-- Left Column: Progress & Overview -->
 <div class="lg:col-span-7 flex flex-col gap-8">
 <!-- Case Progress Tracker (Bento style card) -->
@@ -419,6 +446,128 @@
 </div>
 </section>
 </div>
+</div>
+</div>
+<!-- Staff Dashboard -->
+<div id="staff-dashboard" class="hidden flex flex-col gap-6 md:gap-8">
+<section class="bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
+<div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+<div>
+<p class="text-xs font-label font-semibold uppercase tracking-[0.08em] text-outline mb-2" data-i18n="dashboard.staffEyebrow">Операционный пульт</p>
+<h1 class="text-2xl md:text-3xl font-headline font-extrabold text-on-surface tracking-tight" data-i18n="dashboard.staffTitle">Рабочая главная</h1>
+<p class="text-sm md:text-base text-on-surface-variant font-body mt-2 max-w-2xl" data-i18n="dashboard.staffSubtitle">Клиенты, документы, сообщения и ближайшие даты в одном рабочем обзоре.</p>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 lg:flex gap-2">
+<a href="./clients.html" class="inline-flex items-center justify-center gap-2 rounded-[12px] bg-primary-container text-on-primary px-3 py-2.5 text-xs font-bold font-headline uppercase tracking-wider no-underline hover:opacity-90 transition-opacity" data-lk-gate="clients">
+<span class="material-symbols-outlined text-[18px]">groups</span>
+<span data-i18n="nav.clients">Клиенты</span>
+</a>
+<a href="./messages.html" class="inline-flex items-center justify-center gap-2 rounded-[12px] bg-surface-container-low border border-outline-variant/25 text-on-surface px-3 py-2.5 text-xs font-bold font-headline uppercase tracking-wider no-underline hover:bg-surface-container transition-colors" data-lk-gate="messages">
+<span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+<span data-i18n="nav.messages">Сообщения</span>
+</a>
+<a href="./configurator.html" class="inline-flex items-center justify-center gap-2 rounded-[12px] bg-surface-container-low border border-outline-variant/25 text-on-surface px-3 py-2.5 text-xs font-bold font-headline uppercase tracking-wider no-underline hover:bg-surface-container transition-colors" data-lk-gate="configurator">
+<span class="material-symbols-outlined text-[18px]">rule_settings</span>
+<span data-i18n="dashboard.staffTemplates">Шаблоны</span>
+</a>
+<a href="./profile.html" class="inline-flex items-center justify-center gap-2 rounded-[12px] bg-surface-container-low border border-outline-variant/25 text-on-surface px-3 py-2.5 text-xs font-bold font-headline uppercase tracking-wider no-underline hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+<span data-i18n="nav.profile">Профиль</span>
+</a>
+</div>
+</div>
+</section>
+
+<section class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5" id="staff-kpi-grid" aria-busy="true">
+<div class="bg-surface-container-lowest rounded-[12px] p-4 md:p-5 ambient-shadow">
+<div class="flex items-center justify-between gap-3 mb-3">
+<span class="text-xs font-label font-bold uppercase tracking-widest text-outline" data-i18n="dashboard.staffKpiClients">Клиенты</span>
+<span class="material-symbols-outlined text-primary-container">group</span>
+</div>
+<p class="text-2xl md:text-3xl font-headline font-extrabold text-on-surface" id="staff-kpi-total">—</p>
+<p class="text-xs text-on-surface-variant mt-1" data-i18n="dashboard.staffKpiClientsHint">в доступе</p>
+</div>
+<div class="bg-surface-container-lowest rounded-[12px] p-4 md:p-5 ambient-shadow">
+<div class="flex items-center justify-between gap-3 mb-3">
+<span class="text-xs font-label font-bold uppercase tracking-widest text-outline" data-i18n="dashboard.staffKpiPendingDocs">Документы</span>
+<span class="material-symbols-outlined text-tertiary-container">pending_actions</span>
+</div>
+<p class="text-2xl md:text-3xl font-headline font-extrabold text-on-surface" id="staff-kpi-pending-docs">—</p>
+<p class="text-xs text-on-surface-variant mt-1" data-i18n="dashboard.staffKpiPendingDocsHint">клиентов ждут проверки</p>
+</div>
+<div class="bg-surface-container-lowest rounded-[12px] p-4 md:p-5 ambient-shadow">
+<div class="flex items-center justify-between gap-3 mb-3">
+<span class="text-xs font-label font-bold uppercase tracking-widest text-outline" data-i18n="dashboard.staffKpiMessages">Сообщения</span>
+<span class="material-symbols-outlined text-secondary">mark_chat_unread</span>
+</div>
+<p class="text-2xl md:text-3xl font-headline font-extrabold text-on-surface" id="staff-kpi-unread">—</p>
+<p class="text-xs text-on-surface-variant mt-1" data-i18n="dashboard.staffKpiMessagesHint">непрочитанных</p>
+</div>
+<div class="bg-surface-container-lowest rounded-[12px] p-4 md:p-5 ambient-shadow">
+<div class="flex items-center justify-between gap-3 mb-3">
+<span class="text-xs font-label font-bold uppercase tracking-widest text-outline" data-i18n="dashboard.staffKpiDeadlines">Даты</span>
+<span class="material-symbols-outlined text-primary">event_upcoming</span>
+</div>
+<p class="text-2xl md:text-3xl font-headline font-extrabold text-on-surface" id="staff-kpi-deadlines">—</p>
+<p class="text-xs text-on-surface-variant mt-1" data-i18n="dashboard.staffKpiDeadlinesHint">в ближайшие 14 дней</p>
+</div>
+</section>
+
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-5 md:gap-8">
+<section class="xl:col-span-7 bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
+<div class="flex items-center justify-between gap-4 mb-5">
+<h2 class="text-lg md:text-xl font-headline font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container">priority_high</span>
+<span data-i18n="dashboard.staffPriorityQueue">Очередь приоритетов</span>
+</h2>
+<a href="./clients.html" class="text-primary-container text-xs md:text-sm font-semibold font-headline hover:text-primary transition-colors no-underline" data-lk-gate="clients" data-i18n="common.viewAll">Смотреть все</a>
+</div>
+<div id="staff-priority-list" class="flex flex-col gap-3 min-h-[8rem]"></div>
+</section>
+<section class="xl:col-span-5 bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
+<h2 class="text-lg md:text-xl font-headline font-bold text-on-surface mb-5 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">event</span>
+<span data-i18n="dashboard.staffUpcomingDates">Ближайшие даты</span>
+</h2>
+<div id="staff-deadline-list" class="flex flex-col gap-3 min-h-[8rem]"></div>
+</section>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-5 md:gap-8">
+<section class="xl:col-span-7 bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
+<div class="flex items-center justify-between gap-4 mb-5">
+<h2 class="text-lg md:text-xl font-headline font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">forum</span>
+<span data-i18n="dashboard.staffInbox">Последние сообщения</span>
+</h2>
+<a href="./messages.html" class="text-primary-container text-xs md:text-sm font-semibold font-headline hover:text-primary transition-colors no-underline" data-lk-gate="messages" data-i18n="common.viewAll">Смотреть все</a>
+</div>
+<div id="staff-inbox-list" class="flex flex-col gap-3 min-h-[8rem]"></div>
+</section>
+<section class="xl:col-span-5 bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
+<h2 class="text-lg md:text-xl font-headline font-bold text-on-surface mb-5 flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container">bolt</span>
+<span data-i18n="dashboard.staffQuickActions">Быстрые действия</span>
+</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3">
+<a href="./clients.html" class="staff-action-link" data-lk-gate="clients">
+<span class="material-symbols-outlined">groups</span>
+<span data-i18n="dashboard.staffOpenClients">Открыть клиентов</span>
+</a>
+<a href="./messages.html" class="staff-action-link" data-lk-gate="messages">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span data-i18n="dashboard.staffOpenMessages">Открыть сообщения</span>
+</a>
+<a href="./configurator.html" class="staff-action-link" data-lk-gate="configurator">
+<span class="material-symbols-outlined">rule_settings</span>
+<span data-i18n="dashboard.staffOpenTemplates">Настроить шаблоны</span>
+</a>
+<a href="./support.html" class="staff-action-link">
+<span class="material-symbols-outlined">help_center</span>
+<span data-i18n="nav.support">Поддержка</span>
+</a>
+</div>
+</section>
 </div>
 </main>
 <script src="../js/lk-i18n.js?v=8" defer></script>

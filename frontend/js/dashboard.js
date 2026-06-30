@@ -6,6 +6,8 @@
   let dashboardSessionUser = null;
   let dashboardConversations = [];
   let dashboardLastCaseData = null;
+  let dashboardStaffUsers = [];
+  let dashboardStaffBadges = null;
   let quickReplyHandlersBound = false;
 
   /**
@@ -137,6 +139,120 @@
 
   function t(key, params) {
     return window.LkI18n ? window.LkI18n.t(key, params) : key;
+  }
+
+  function isStaffUser(user) {
+    const raw = user?.role?.level;
+    const level = parseFloat(String(raw ?? ""));
+    return Number.isFinite(level) && level <= 4;
+  }
+
+  function setDashboardMode(mode) {
+    const clientNode = document.getElementById("client-dashboard");
+    const staffNode = document.getElementById("staff-dashboard");
+    if (clientNode) {
+      clientNode.classList.toggle("hidden", mode === "staff");
+    }
+    if (staffNode) {
+      staffNode.classList.toggle("hidden", mode !== "staff");
+    }
+  }
+
+  function parseTargetDate(value) {
+    const raw = String(value || "").trim();
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+    if (!match) return null;
+    const date = new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3])
+    );
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function formatTargetDate(value) {
+    const date = parseTargetDate(value);
+    if (!date) return t("dashboard.staffNoDate");
+    const month = window.LkI18n
+      ? window.LkI18n.formatMonthShort(date.getMonth())
+      : String(date.getMonth() + 1);
+    return `${date.getDate()} ${month} ${date.getFullYear()}`;
+  }
+
+  function daysUntilTarget(value) {
+    const date = parseTargetDate(value);
+    if (!date) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    return Math.round((date.getTime() - today.getTime()) / 86400000);
+  }
+
+  function formatDeadlineMeta(days) {
+    if (days === null) return t("dashboard.staffNoDate");
+    if (days < 0) return t("dashboard.staffDeadlineOverdue");
+    if (days === 0) return t("dashboard.staffDeadlineToday");
+    if (days === 1) return t("dashboard.staffDeadlineTomorrow");
+    return t("dashboard.staffDeadlineInDays", { n: days });
+  }
+
+  function isCaseCompleted(user) {
+    return Boolean(user && (user.completed_at || user.case_completed_at));
+  }
+
+  function isClientLikeUser(user) {
+    const role = user?.role || {};
+    const level = parseFloat(String(role.level ?? ""));
+    if (Number.isFinite(level)) {
+      return level > 4;
+    }
+    const key = String(role.key || role.role_key || "").toLowerCase();
+    return !["management", "admin", "support", "moderator", "manager"].includes(key);
+  }
+
+  function clientRef(user) {
+    const displayId = String(user?.display_id || "").trim().toUpperCase();
+    if (/^[A-Z]{2}\d{4}$/.test(displayId)) {
+      return `client=${encodeURIComponent(displayId)}`;
+    }
+    return `userId=${encodeURIComponent(String(user?.id || ""))}`;
+  }
+
+  function clientDisplayName(user) {
+    return (
+      String(user?.name || "").trim() ||
+      String(user?.email || "").trim() ||
+      t("dashboard.staffUnnamedClient")
+    );
+  }
+
+  function initialsForUser(user) {
+    const base = clientDisplayName(user);
+    return base
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0))
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "CL";
+  }
+
+  function roleLabel(role) {
+    if (!role) return "";
+    if (window.LkI18n && role.key) {
+      return window.LkI18n.roleLabel(role.key);
+    }
+    return role.name_ru || role.name_en || role.key || "";
+  }
+
+  function staffEmptyState(icon, textKey) {
+    return `
+      <div class="flex flex-col items-center justify-center gap-3 min-h-[8rem] rounded-[12px] bg-surface-container-low p-6 text-center">
+        <span class="material-symbols-outlined text-4xl text-outline">${icon}</span>
+        <p class="text-sm font-semibold font-headline text-on-surface-variant">${escapeHtml(t(textKey))}</p>
+      </div>
+    `;
   }
 
   function formatTimeAgo(value) {
@@ -345,6 +461,243 @@
     textNode.textContent = preview;
   }
 
+  function staffClientUsers() {
+    return (Array.isArray(dashboardStaffUsers) ? dashboardStaffUsers : []).filter(
+      isClientLikeUser
+    );
+  }
+
+  function activeStaffUsers() {
+    return staffClientUsers().filter(
+      (user) => !isCaseCompleted(user)
+    );
+  }
+
+  function pendingDocsCount(user) {
+    return Number(user?.pending_documents_count || 0);
+  }
+
+  function sortPriorityUsers(users) {
+    return [...users].sort((a, b) => {
+      const pa = pendingDocsCount(a);
+      const pb = pendingDocsCount(b);
+      if (pa !== pb) return pb - pa;
+
+      const da = daysUntilTarget(a?.target_date);
+      const db = daysUntilTarget(b?.target_date);
+      const va = da === null ? Number.POSITIVE_INFINITY : da;
+      const vb = db === null ? Number.POSITIVE_INFINITY : db;
+      if (va !== vb) return va - vb;
+
+      return clientDisplayName(a).localeCompare(clientDisplayName(b));
+    });
+  }
+
+  function staffAvatarHtml(user) {
+    if (user?.avatar) {
+      return `<img class="w-10 h-10 rounded-full object-cover shrink-0" src="${escapeHtml(user.avatar)}" alt="${escapeHtml(clientDisplayName(user))}"/>`;
+    }
+    return `<div class="w-10 h-10 rounded-full bg-primary-fixed text-primary-container flex items-center justify-center text-xs font-extrabold font-headline shrink-0">${escapeHtml(initialsForUser(user))}</div>`;
+  }
+
+  function renderStaffKpis() {
+    const users = staffClientUsers();
+    const activeUsers = activeStaffUsers();
+    const upcoming = activeUsers.filter((user) => {
+      const days = daysUntilTarget(user?.target_date);
+      return days !== null && days >= 0 && days <= 14;
+    });
+    const pendingClients = activeUsers.filter((user) => pendingDocsCount(user) > 0);
+    const unread =
+      Number(dashboardStaffBadges?.unread_count) ||
+      (Array.isArray(dashboardConversations)
+        ? dashboardConversations.reduce(
+            (sum, item) => sum + Number(item?.unread_count || item?.unread || 0),
+            0
+          )
+        : 0);
+
+    const totalNode = document.getElementById("staff-kpi-total");
+    const pendingNode = document.getElementById("staff-kpi-pending-docs");
+    const unreadNode = document.getElementById("staff-kpi-unread");
+    const deadlinesNode = document.getElementById("staff-kpi-deadlines");
+    const kpiGrid = document.getElementById("staff-kpi-grid");
+    if (totalNode) totalNode.textContent = String(users.length);
+    if (pendingNode) pendingNode.textContent = String(pendingClients.length);
+    if (unreadNode) unreadNode.textContent = String(unread);
+    if (deadlinesNode) deadlinesNode.textContent = String(upcoming.length);
+    if (kpiGrid) kpiGrid.setAttribute("aria-busy", "false");
+  }
+
+  function renderPriorityRow(user) {
+    const ref = clientRef(user);
+    const docs = pendingDocsCount(user);
+    const days = daysUntilTarget(user?.target_date);
+    const dateLabel = formatTargetDate(user?.target_date);
+    const role = roleLabel(user?.role);
+    return `
+      <article class="rounded-[12px] border border-outline-variant/20 bg-surface p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            ${staffAvatarHtml(user)}
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="font-headline text-sm font-extrabold text-on-surface truncate">${escapeHtml(clientDisplayName(user))}</h3>
+                ${docs > 0 ? `<span class="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">${docs}</span>` : ""}
+              </div>
+              <p class="text-xs text-outline truncate">${escapeHtml(user?.email || "")}</p>
+              <p class="text-xs text-on-surface-variant mt-1">${escapeHtml(role)} · ${escapeHtml(dateLabel)} · ${escapeHtml(formatDeadlineMeta(days))}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:flex gap-2 shrink-0">
+            <a href="./case.html?${ref}" class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary-container text-on-primary px-3 py-2 text-xs font-bold no-underline hover:opacity-90">
+              <span class="material-symbols-outlined text-[16px]">folder_managed</span>${escapeHtml(t("dashboard.staffCase"))}
+            </a>
+            <a href="./documents.html?${ref}" class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-surface-container-low text-on-surface px-3 py-2 text-xs font-bold no-underline hover:bg-surface-container">
+              <span class="material-symbols-outlined text-[16px]">description</span>${escapeHtml(t("dashboard.staffDocs"))}
+            </a>
+            <a href="./messages.html?openUserId=${encodeURIComponent(String(user?.display_id || user?.id || ""))}" class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-surface-container-low text-on-surface px-3 py-2 text-xs font-bold no-underline hover:bg-surface-container">
+              <span class="material-symbols-outlined text-[16px]">chat_bubble</span>${escapeHtml(t("dashboard.staffMessages"))}
+            </a>
+            <a href="./notes.html?${ref}" class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-surface-container-low text-on-surface px-3 py-2 text-xs font-bold no-underline hover:bg-surface-container">
+              <span class="material-symbols-outlined text-[16px]">edit_note</span>${escapeHtml(t("dashboard.staffNotes"))}
+            </a>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  function renderStaffPriorityList() {
+    const container = document.getElementById("staff-priority-list");
+    if (!container) return;
+    const users = sortPriorityUsers(activeStaffUsers()).filter((user) => {
+      const days = daysUntilTarget(user?.target_date);
+      return pendingDocsCount(user) > 0 || (days !== null && days <= 14);
+    });
+    if (!users.length) {
+      container.innerHTML = staffEmptyState("task_alt", "dashboard.staffNoPriority");
+      return;
+    }
+    container.innerHTML = users.slice(0, 6).map(renderPriorityRow).join("");
+  }
+
+  function renderStaffDeadlines() {
+    const container = document.getElementById("staff-deadline-list");
+    if (!container) return;
+    const users = activeStaffUsers()
+      .map((user) => ({ user, days: daysUntilTarget(user?.target_date) }))
+      .filter((item) => item.days !== null && item.days >= 0 && item.days <= 14)
+      .sort((a, b) => a.days - b.days);
+
+    if (!users.length) {
+      container.innerHTML = staffEmptyState("event_available", "dashboard.staffNoDeadlines");
+      return;
+    }
+
+    container.innerHTML = users
+      .slice(0, 6)
+      .map(({ user, days }) => {
+        const ref = clientRef(user);
+        return `
+          <a href="./case.html?${ref}" class="flex items-center justify-between gap-3 rounded-[12px] bg-surface p-4 border border-outline-variant/20 no-underline hover:bg-surface-container-low transition-colors">
+            <div class="min-w-0">
+              <p class="text-sm font-bold font-headline text-on-surface truncate">${escapeHtml(clientDisplayName(user))}</p>
+              <p class="text-xs text-outline truncate">${escapeHtml(formatTargetDate(user?.target_date))}</p>
+            </div>
+            <span class="shrink-0 rounded-full bg-primary-fixed px-3 py-1 text-xs font-bold text-primary-container">${escapeHtml(formatDeadlineMeta(days))}</span>
+          </a>
+        `;
+      })
+      .join("");
+  }
+
+  function conversationTime(conversation) {
+    return (
+      conversation?.last_message_at ||
+      conversation?.last_inbound_message_time ||
+      conversation?.updated_at ||
+      ""
+    );
+  }
+
+  function renderStaffInbox() {
+    const container = document.getElementById("staff-inbox-list");
+    if (!container) return;
+    const items = Array.isArray(dashboardConversations) ? dashboardConversations : [];
+    if (!items.length) {
+      container.innerHTML = staffEmptyState("mark_chat_read", "dashboard.staffNoMessages");
+      return;
+    }
+    const sorted = [...items].sort((a, b) => {
+      const da = window.LkI18n?.parseInstant(conversationTime(a)) || new Date(conversationTime(a));
+      const db = window.LkI18n?.parseInstant(conversationTime(b)) || new Date(conversationTime(b));
+      return (db?.getTime?.() || 0) - (da?.getTime?.() || 0);
+    });
+    container.innerHTML = sorted
+      .slice(0, 5)
+      .map((conv) => {
+        const name =
+          String(conv?.other_user_name || "").trim() ||
+          String(conv?.other_user_email || "").trim() ||
+          t("dashboard.staffUnnamedClient");
+        const text =
+          formatMessagePreviewForUi(conv?.last_inbound_message || conv?.last_message || "") ||
+          t("common.noMessages");
+        const openRef = conv?.other_user_display_id || conv?.other_user_id || "";
+        const unread = Number(conv?.unread_count || conv?.unread || 0);
+        return `
+          <a href="./messages.html?openUserId=${encodeURIComponent(String(openRef))}" class="flex items-start gap-3 rounded-[12px] bg-surface p-4 border border-outline-variant/20 no-underline hover:bg-surface-container-low transition-colors">
+            <img class="w-9 h-9 rounded-full object-cover shrink-0" src="${escapeHtml(conv?.other_user_avatar || defaultAvatar)}" alt="${escapeHtml(name)}"/>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <p class="text-sm font-bold font-headline text-on-surface truncate">${escapeHtml(name)}</p>
+                ${unread > 0 ? `<span class="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-white">${unread > 99 ? "99+" : unread}</span>` : ""}
+              </div>
+              <p class="text-xs text-outline mt-0.5">${escapeHtml(formatTimeAgo(conversationTime(conv)))}</p>
+              <p class="text-sm text-on-surface-variant mt-1 line-clamp-2">${escapeHtml(text)}</p>
+            </div>
+          </a>
+        `;
+      })
+      .join("");
+  }
+
+  async function initStaffDashboard(user) {
+    setDashboardMode("staff");
+    try {
+      const [usersPayload, badgesPayload, conversationsPayload] = await Promise.all([
+        apiGet("/api/users").catch(() => ({ success: false, users: [] })),
+        apiGet("/api/lk/nav-badges").catch(() => null),
+        apiGet("/api/conversations").catch(() => []),
+      ]);
+      dashboardStaffUsers =
+        usersPayload && usersPayload.success && Array.isArray(usersPayload.users)
+          ? usersPayload.users
+          : [];
+      dashboardStaffBadges = badgesPayload || null;
+      dashboardConversations = Array.isArray(conversationsPayload)
+        ? conversationsPayload
+        : [];
+      renderStaffKpis();
+      renderStaffPriorityList();
+      renderStaffDeadlines();
+      renderStaffInbox();
+      if (window.LkI18n) {
+        window.LkI18n.applyDocument();
+      }
+    } catch (error) {
+      console.error("Staff dashboard load failed:", error);
+      dashboardStaffUsers = [];
+      dashboardStaffBadges = null;
+      dashboardConversations = [];
+      renderStaffKpis();
+      renderStaffPriorityList();
+      renderStaffDeadlines();
+      renderStaffInbox();
+    }
+  }
+
   function getQuickReplyNodes() {
     return {
       inputNode: document.getElementById("dashboard-quick-reply-input"),
@@ -486,6 +839,11 @@
       dashboardSessionUser = user;
       const userId = user?.id;
       if (!userId) return;
+      if (isStaffUser(user)) {
+        await initStaffDashboard(user);
+        return;
+      }
+      setDashboardMode("client");
       const caseLink = document.getElementById("dashboard-open-case-link");
       if (caseLink) {
         const did = String(user.display_id || "")
@@ -521,6 +879,16 @@
   }
 
   function refreshDashboardLocale() {
+    if (dashboardSessionUser && isStaffUser(dashboardSessionUser)) {
+      renderStaffKpis();
+      renderStaffPriorityList();
+      renderStaffDeadlines();
+      renderStaffInbox();
+      if (window.LkI18n) {
+        window.LkI18n.applyDocument();
+      }
+      return;
+    }
     renderTimelineFromCase(dashboardLastCaseData);
     renderArchiveDocument(dashboardLastCaseData);
     renderCountry(dashboardLastCaseData);
