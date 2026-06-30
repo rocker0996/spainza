@@ -6,6 +6,7 @@
   let dashboardSessionUser = null;
   let dashboardConversations = [];
   let dashboardLastCaseData = null;
+  let dashboardClientBadges = null;
   let dashboardStaffUsers = [];
   let dashboardStaffBadges = null;
   let quickReplyHandlersBound = false;
@@ -243,10 +244,13 @@
       "dashboard.clientStatusCompleted": "Кейс завершён",
       "dashboard.clientStatusActive": "В работе",
       "dashboard.clientStatusWaitingDocs": "Ожидаем документы",
+      "dashboard.clientStatusRejectedDocs": "Нужно заменить документ",
       "dashboard.clientNoStage": "Этап пока не указан",
       "dashboard.clientNoDate": "Дата не указана",
       "dashboard.clientDocsRequired": "Нужно загрузить документы",
       "dashboard.clientDocsRequiredMeta": "{n} в ожидании: {items}",
+      "dashboard.clientRejectedDocsRequired": "Нужно заменить документы",
+      "dashboard.clientRejectedDocsRequiredMeta": "{n} отклонено. Проверьте комментарий и загрузите новую версию.",
       "dashboard.clientDocsReady": "Документы на вашей стороне в порядке",
       "dashboard.clientDocsReadyMeta": "Новых запросов от команды сейчас нет.",
       "dashboard.clientNextStep": "Следующий шаг",
@@ -277,10 +281,13 @@
       "dashboard.clientStatusCompleted": "Case completed",
       "dashboard.clientStatusActive": "In progress",
       "dashboard.clientStatusWaitingDocs": "Waiting for documents",
+      "dashboard.clientStatusRejectedDocs": "Replace a document",
       "dashboard.clientNoStage": "No stage set yet",
       "dashboard.clientNoDate": "No date set",
       "dashboard.clientDocsRequired": "Upload requested documents",
       "dashboard.clientDocsRequiredMeta": "{n} pending: {items}",
+      "dashboard.clientRejectedDocsRequired": "Replace documents",
+      "dashboard.clientRejectedDocsRequiredMeta": "{n} rejected. Check the comment and upload a new version.",
       "dashboard.clientDocsReady": "Your document side is clear",
       "dashboard.clientDocsReadyMeta": "There are no new team requests right now.",
       "dashboard.clientNextStep": "Next step",
@@ -440,21 +447,24 @@
           <span class="text-[10px] font-label font-bold uppercase tracking-widest text-outline">${escapeHtml(t(labelKey))}</span>
           <span class="material-symbols-outlined ${toneClass} text-[20px]">${escapeHtml(icon)}</span>
         </div>
-        <p class="text-sm md:text-base font-headline font-extrabold text-on-surface truncate">${escapeHtml(value)}</p>
+        <p class="text-sm md:text-base font-headline font-extrabold text-on-surface leading-snug break-words">${escapeHtml(value)}</p>
       </div>
     `;
   }
 
-  function renderClientSummary(caseData, sessionUser) {
+  function renderClientSummary(caseData, sessionUser, badges = dashboardClientBadges) {
     const container = document.getElementById("client-case-summary");
     if (!container) return;
 
     const pendingDocs = openDocumentRequests(caseData);
+    const rejectedDocs = Number(badges?.document_rejected_count || 0);
     const completedAt = caseData?.completed_at || caseData?.case_completed_at || null;
     const currentStep = activeTimelineStep(caseData);
     const status = completedAt
       ? t("dashboard.clientStatusCompleted")
-      : pendingDocs.length
+      : rejectedDocs > 0
+        ? t("dashboard.clientStatusRejectedDocs")
+        : pendingDocs.length
         ? t("dashboard.clientStatusWaitingDocs")
         : t("dashboard.clientStatusActive");
     const country = String(caseData?.country || "").trim() || t("dashboard.countryNotSet");
@@ -464,10 +474,22 @@
 
     container.innerHTML = [
       clientSummaryTile(
-        completedAt ? "verified" : pendingDocs.length ? "pending_actions" : "auto_awesome_motion",
+        completedAt
+          ? "verified"
+          : rejectedDocs > 0
+            ? "assignment_late"
+            : pendingDocs.length
+              ? "pending_actions"
+              : "auto_awesome_motion",
         "dashboard.clientSummaryStatus",
         status,
-        completedAt ? "text-emerald-600" : pendingDocs.length ? "text-tertiary-container" : "text-primary-container"
+        completedAt
+          ? "text-emerald-600"
+          : rejectedDocs > 0
+            ? "text-red-600"
+            : pendingDocs.length
+              ? "text-tertiary-container"
+              : "text-primary-container"
       ),
       clientSummaryTile("flag", "dashboard.clientSummaryStage", stage, "text-secondary"),
       clientSummaryTile("event", "dashboard.clientSummaryDate", dateLabel, "text-primary"),
@@ -489,12 +511,25 @@
     `;
   }
 
-  function renderClientActions(caseData, conversations, sessionUser) {
+  function renderClientActions(caseData, conversations, sessionUser, badges = dashboardClientBadges) {
     const container = document.getElementById("client-action-list");
     if (!container) return;
 
     const rows = [];
     const pendingDocs = openDocumentRequests(caseData);
+    const rejectedDocs = Number(badges?.document_rejected_count || 0);
+    if (rejectedDocs > 0) {
+      rows.push(
+        clientActionRow(
+          "assignment_late",
+          t("dashboard.clientRejectedDocsRequired"),
+          t("dashboard.clientRejectedDocsRequiredMeta", { n: rejectedDocs }),
+          "./documents.html",
+          "text-red-600"
+        )
+      );
+    }
+
     if (pendingDocs.length) {
       const names = pendingDocs.slice(0, 2).map(documentRequestName);
       if (pendingDocs.length > 2) {
@@ -767,17 +802,6 @@
     }
 
     if (!archiveUrl || !archiveName) {
-      cards.push(`
-        <div class="flex items-center gap-4 p-4 bg-surface-container-low rounded-[12px]">
-          <div class="w-10 h-10 rounded-[8px] bg-surface-container-high text-outline flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined">folder_off</span>
-          </div>
-          <div class="min-w-0">
-            <p class="font-semibold text-sm font-headline text-on-surface truncate">${escapeHtml(t("dashboard.clientArchivePending"))}</p>
-            <p class="text-xs text-outline font-body mt-0.5">${escapeHtml(t("dashboard.archiveNotUploaded"))}</p>
-          </div>
-        </div>
-      `);
       container.innerHTML = cards.join("");
       return;
     }
@@ -1468,9 +1492,14 @@
       } catch (error) {
         casePayload = null;
       }
+      try {
+        dashboardClientBadges = await apiGet("/api/lk/nav-badges");
+      } catch (error) {
+        dashboardClientBadges = null;
+      }
       const caseData = casePayload?.case_data || null;
-      renderClientSummary(caseData, user);
-      renderClientActions(caseData, dashboardConversations, user);
+      renderClientSummary(caseData, user, dashboardClientBadges);
+      renderClientActions(caseData, dashboardConversations, user, dashboardClientBadges);
       renderTimelineFromCase(caseData);
       renderArchiveDocument(caseData);
       renderCountry(caseData);
@@ -1481,7 +1510,7 @@
       const conversations = await apiGet("/api/conversations");
       dashboardConversations = Array.isArray(conversations) ? conversations : [];
       renderLatestMessage(dashboardConversations, user);
-      renderClientActions(caseData, dashboardConversations, user);
+      renderClientActions(caseData, dashboardConversations, user, dashboardClientBadges);
     } catch (error) {
       console.error("Dashboard data load failed:", error);
     }
@@ -1502,8 +1531,8 @@
       return;
     }
     ensureClientDashboardI18n();
-    renderClientSummary(dashboardLastCaseData, dashboardSessionUser);
-    renderClientActions(dashboardLastCaseData, dashboardConversations, dashboardSessionUser);
+    renderClientSummary(dashboardLastCaseData, dashboardSessionUser, dashboardClientBadges);
+    renderClientActions(dashboardLastCaseData, dashboardConversations, dashboardSessionUser, dashboardClientBadges);
     renderTimelineFromCase(dashboardLastCaseData);
     renderArchiveDocument(dashboardLastCaseData);
     renderCountry(dashboardLastCaseData);
