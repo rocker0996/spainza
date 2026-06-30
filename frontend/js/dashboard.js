@@ -529,6 +529,198 @@
     if (kpiGrid) kpiGrid.setAttribute("aria-busy", "false");
   }
 
+  function staffStats() {
+    const users = staffClientUsers();
+    const activeUsers = users.filter((user) => !isCaseCompleted(user));
+    const completedUsers = users.filter(isCaseCompleted);
+    const pendingClients = activeUsers.filter((user) => pendingDocsCount(user) > 0);
+    const noDateClients = activeUsers.filter((user) => daysUntilTarget(user?.target_date) === null);
+    const overdueClients = activeUsers.filter((user) => {
+      const days = daysUntilTarget(user?.target_date);
+      return days !== null && days < 0;
+    });
+    const upcomingClients = activeUsers.filter((user) => {
+      const days = daysUntilTarget(user?.target_date);
+      return days !== null && days >= 0 && days <= 14;
+    });
+    const priorityUsers = sortPriorityUsers(activeUsers);
+    return {
+      users,
+      activeUsers,
+      completedUsers,
+      pendingClients,
+      noDateClients,
+      overdueClients,
+      upcomingClients,
+      priorityUsers,
+    };
+  }
+
+  function latestConversation() {
+    const items = Array.isArray(dashboardConversations) ? dashboardConversations : [];
+    if (!items.length) return null;
+    return [...items].sort((a, b) => {
+      const da = window.LkI18n?.parseInstant(conversationTime(a)) || new Date(conversationTime(a));
+      const db = window.LkI18n?.parseInstant(conversationTime(b)) || new Date(conversationTime(b));
+      return (db?.getTime?.() || 0) - (da?.getTime?.() || 0);
+    })[0] || null;
+  }
+
+  function focusTile(icon, labelKey, value, href, toneClass = "text-primary-container") {
+    return `
+      <a href="${escapeHtml(href || "./clients.html")}" class="rounded-[12px] border border-outline-variant/20 bg-white/70 p-3 no-underline hover:bg-white transition-colors">
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-[10px] font-label font-bold uppercase tracking-widest text-outline">${escapeHtml(t(labelKey))}</span>
+          <span class="material-symbols-outlined text-[18px] ${toneClass}">${escapeHtml(icon)}</span>
+        </div>
+        <p class="mt-2 text-sm font-headline font-extrabold text-on-surface leading-snug">${escapeHtml(value)}</p>
+      </a>
+    `;
+  }
+
+  function renderStaffFocus() {
+    const container = document.getElementById("staff-focus-list");
+    if (!container) return;
+    const stats = staffStats();
+    const nextDeadline = stats.upcomingClients
+      .map((user) => ({ user, days: daysUntilTarget(user?.target_date) }))
+      .sort((a, b) => a.days - b.days)[0];
+    const pendingUser = sortPriorityUsers(stats.pendingClients)[0];
+    const conv = latestConversation();
+    const convName =
+      conv &&
+      (String(conv.other_user_name || "").trim() ||
+        String(conv.other_user_email || "").trim() ||
+        t("dashboard.staffUnnamedClient"));
+    const convRef = conv ? conv.other_user_display_id || conv.other_user_id || "" : "";
+
+    const tiles = [
+      focusTile(
+        "event_upcoming",
+        "dashboard.staffFocusDeadline",
+        nextDeadline
+          ? `${clientDisplayName(nextDeadline.user)} · ${formatDeadlineMeta(nextDeadline.days)}`
+          : t("dashboard.staffNoDeadlines"),
+        nextDeadline ? `./case.html?${clientRef(nextDeadline.user)}` : "./clients.html",
+        "text-primary"
+      ),
+      focusTile(
+        "pending_actions",
+        "dashboard.staffFocusDocuments",
+        pendingUser
+          ? `${clientDisplayName(pendingUser)} · ${pendingDocsCount(pendingUser)}`
+          : t("dashboard.staffNoPriority"),
+        pendingUser ? `./documents.html?${clientRef(pendingUser)}` : "./clients.html",
+        "text-tertiary-container"
+      ),
+      focusTile(
+        "mark_chat_unread",
+        "dashboard.staffFocusDialog",
+        convName || t("dashboard.staffNoMessages"),
+        conv ? `./messages.html?openUserId=${encodeURIComponent(String(convRef))}` : "./messages.html",
+        "text-secondary"
+      ),
+      focusTile(
+        "workspaces",
+        "dashboard.staffFocusLoad",
+        t("dashboard.staffFocusLoadValue", { n: stats.activeUsers.length }),
+        "./clients.html",
+        "text-primary-container"
+      ),
+    ];
+    container.innerHTML = tiles.join("");
+  }
+
+  function crmSliceTile(labelKey, value, icon, href) {
+    return `
+      <a href="${escapeHtml(href || "./clients.html")}" class="rounded-[12px] bg-surface p-4 border border-outline-variant/20 no-underline hover:bg-surface-container-low transition-colors">
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <span class="text-[10px] font-label font-bold uppercase tracking-widest text-outline">${escapeHtml(t(labelKey))}</span>
+          <span class="material-symbols-outlined text-[18px] text-primary-container">${escapeHtml(icon)}</span>
+        </div>
+        <p class="text-2xl font-headline font-extrabold text-on-surface">${escapeHtml(value)}</p>
+      </a>
+    `;
+  }
+
+  function renderStaffCrmSlice() {
+    const container = document.getElementById("staff-crm-slice");
+    if (!container) return;
+    const stats = staffStats();
+    container.innerHTML = [
+      crmSliceTile("dashboard.staffCrmActive", String(stats.activeUsers.length), "folder_open", "./clients.html"),
+      crmSliceTile("dashboard.staffCrmDocs", String(stats.pendingClients.length), "pending_actions", "./clients.html"),
+      crmSliceTile("dashboard.staffCrmUpcoming", String(stats.upcomingClients.length), "event", "./clients.html"),
+      crmSliceTile("dashboard.staffCrmCompleted", String(stats.completedUsers.length), "verified", "./clients.html"),
+    ].join("");
+  }
+
+  function importantActionRow(icon, title, meta, href, toneClass = "text-primary-container") {
+    return `
+      <a href="${escapeHtml(href || "./clients.html")}" class="flex items-start gap-3 rounded-[12px] bg-surface p-4 border border-outline-variant/20 no-underline hover:bg-surface-container-low transition-colors">
+        <span class="material-symbols-outlined ${toneClass} text-[20px] mt-0.5">${escapeHtml(icon)}</span>
+        <span class="min-w-0">
+          <span class="block text-sm font-bold font-headline text-on-surface truncate">${escapeHtml(title)}</span>
+          <span class="block text-xs text-on-surface-variant mt-1">${escapeHtml(meta)}</span>
+        </span>
+      </a>
+    `;
+  }
+
+  function renderStaffImportantActions() {
+    const container = document.getElementById("staff-important-actions-list");
+    if (!container) return;
+    const stats = staffStats();
+    const rows = [];
+
+    if (stats.overdueClients.length) {
+      const user = stats.overdueClients
+        .map((item) => ({ user: item, days: daysUntilTarget(item?.target_date) }))
+        .sort((a, b) => a.days - b.days)[0].user;
+      rows.push(
+        importantActionRow(
+          "warning",
+          clientDisplayName(user),
+          t("dashboard.staffActionOverdue", { date: formatTargetDate(user?.target_date) }),
+          `./case.html?${clientRef(user)}`,
+          "text-red-600"
+        )
+      );
+    }
+
+    if (stats.noDateClients.length) {
+      const user = sortPriorityUsers(stats.noDateClients)[0];
+      rows.push(
+        importantActionRow(
+          "event_busy",
+          clientDisplayName(user),
+          t("dashboard.staffActionNoDate"),
+          `./case.html?${clientRef(user)}`,
+          "text-amber-600"
+        )
+      );
+    }
+
+    if (stats.pendingClients.length) {
+      const user = sortPriorityUsers(stats.pendingClients)[0];
+      rows.push(
+        importantActionRow(
+          "fact_check",
+          clientDisplayName(user),
+          t("dashboard.staffActionPendingDocs", { n: pendingDocsCount(user) }),
+          `./documents.html?${clientRef(user)}`,
+          "text-tertiary-container"
+        )
+      );
+    }
+
+    if (!rows.length) {
+      container.innerHTML = staffEmptyState("task_alt", "dashboard.staffNoImportantActions");
+      return;
+    }
+    container.innerHTML = rows.slice(0, 4).join("");
+  }
+
   function renderPriorityRow(user) {
     const ref = clientRef(user);
     const docs = pendingDocsCount(user);
@@ -680,9 +872,12 @@
         ? conversationsPayload
         : [];
       renderStaffKpis();
+      renderStaffFocus();
+      renderStaffCrmSlice();
       renderStaffPriorityList();
       renderStaffDeadlines();
       renderStaffInbox();
+      renderStaffImportantActions();
       if (window.LkI18n) {
         window.LkI18n.applyDocument();
       }
@@ -692,9 +887,12 @@
       dashboardStaffBadges = null;
       dashboardConversations = [];
       renderStaffKpis();
+      renderStaffFocus();
+      renderStaffCrmSlice();
       renderStaffPriorityList();
       renderStaffDeadlines();
       renderStaffInbox();
+      renderStaffImportantActions();
     }
   }
 
@@ -881,9 +1079,12 @@
   function refreshDashboardLocale() {
     if (dashboardSessionUser && isStaffUser(dashboardSessionUser)) {
       renderStaffKpis();
+      renderStaffFocus();
+      renderStaffCrmSlice();
       renderStaffPriorityList();
       renderStaffDeadlines();
       renderStaffInbox();
+      renderStaffImportantActions();
       if (window.LkI18n) {
         window.LkI18n.applyDocument();
       }
