@@ -680,31 +680,38 @@
     }
 
     const rows = timeline
-      .map((step) => {
+      .map((step, index) => {
         const status = String(step?.status || "pending");
         const title = escapeHtml(step?.title || t("dashboard.stepUntitled"));
         const description = escapeHtml(step?.description || "");
+        const isLast = index === timeline.length - 1;
 
         const icon =
           status === "completed"
-            ? `<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center z-10 shrink-0"><span class="material-symbols-outlined text-primary-container text-[16px]">check</span></div>`
+            ? `<div class="relative z-10 w-9 h-9 rounded-full bg-primary-fixed border border-primary-container/20 flex items-center justify-center shadow-[0_0_0_5px_rgba(235,239,255,0.9)]"><span class="material-symbols-outlined text-primary-container text-[18px]">check</span></div>`
             : status === "active"
-              ? `<div class="w-8 h-8 rounded-full bg-surface-container-lowest border-2 border-tertiary-container flex items-center justify-center z-10 shrink-0"><div class="w-2.5 h-2.5 rounded-full bg-tertiary-container animate-pulse"></div></div>`
-              : `<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center z-10 shrink-0"><span class="material-symbols-outlined text-outline text-[16px]">schedule</span></div>`;
+              ? `<div class="relative z-10 w-9 h-9 rounded-full bg-white border-2 border-tertiary-container flex items-center justify-center shadow-[0_0_0_5px_rgba(248,250,252,0.95)]"><div class="w-2.5 h-2.5 rounded-full bg-tertiary-container"></div></div>`
+              : `<div class="relative z-10 w-9 h-9 rounded-full bg-surface-container-low border border-outline-variant/40 flex items-center justify-center shadow-[0_0_0_5px_rgba(248,250,252,0.92)]"><span class="material-symbols-outlined text-outline text-[17px]">schedule</span></div>`;
 
         const body =
           status === "active"
-            ? `<div class="bg-surface-container-low p-5 rounded-[12px] flex-1"><div class="flex justify-between items-start mb-2"><h3 class="text-base font-semibold font-headline text-on-surface">${title}</h3><span class="bg-tertiary-container text-on-tertiary px-2 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider font-label">${escapeHtml(t("dashboard.currentStage"))}</span></div><p class="text-sm text-on-surface-variant font-body">${description || escapeHtml(t("dashboard.noDescription"))}</p></div>`
-            : `<div><h3 class="text-base font-semibold font-headline text-on-surface">${title}</h3><p class="text-sm text-on-surface-variant font-body mt-1">${description || escapeHtml(t("dashboard.noDescription"))}</p></div>`;
+            ? `<div class="bg-surface-container-low p-5 rounded-[12px] border border-primary-container/10 flex-1"><div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2"><h3 class="text-base font-semibold font-headline text-on-surface">${title}</h3><span class="inline-flex w-fit bg-tertiary-container text-on-tertiary px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider font-label">${escapeHtml(t("dashboard.currentStage"))}</span></div><p class="text-sm text-on-surface-variant font-body leading-relaxed">${description || escapeHtml(t("dashboard.noDescription"))}</p></div>`
+            : `<div class="pt-1.5"><h3 class="text-base font-semibold font-headline text-on-surface">${title}</h3><p class="text-sm text-on-surface-variant font-body mt-1 leading-relaxed">${description || escapeHtml(t("dashboard.noDescription"))}</p></div>`;
 
-        return `<div class="flex gap-6 relative ${status === "pending" ? "opacity-50" : ""}">${icon}${body}</div>`;
+        return `
+          <div class="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-5 relative ${status === "pending" ? "opacity-55" : ""}">
+            <div class="relative flex justify-center">
+              ${!isLast ? '<div class="absolute top-9 bottom-[-1.5rem] w-px bg-outline-variant/35"></div>' : ""}
+              ${icon}
+            </div>
+            ${body}
+          </div>
+        `;
       })
       .join("");
 
-    container.innerHTML = `
-      <div class="absolute left-[31px] top-4 bottom-8 w-[2px] bg-outline-variant/20"></div>
-      ${rows}
-    `;
+    container.className = "flex flex-col gap-6 min-h-[100px]";
+    container.innerHTML = rows;
   }
 
   function renderCountry(caseData) {

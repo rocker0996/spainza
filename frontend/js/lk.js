@@ -674,20 +674,53 @@
       return (response && response.status === 403) || window.isLkAccessDeniedPayload(data);
     };
 
-  function ensureUnifiedBadgeAnimationStyles() {
-    if (document.getElementById("unified-badge-animation-style")) {
+  function ensureUnifiedBadgeStyles() {
+    if (document.getElementById("unified-badge-style")) {
       return;
     }
     const style = document.createElement("style");
-    style.id = "unified-badge-animation-style";
+    style.id = "unified-badge-style";
     style.textContent = `
-      @keyframes badgePulse {
-        0% { opacity: 0; transform: scale(1); }
-        50% { opacity: 0.3; transform: scale(1.3); }
-        100% { opacity: 0; transform: scale(1.5); }
+      .lk-nav-badge {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        line-height: 1;
+        font-weight: 800;
+        font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14), 0 0 0 2px rgba(255, 255, 255, 0.95);
+        pointer-events: none;
+      }
+      .lk-nav-badge--compact {
+        min-width: 9px;
+        width: 9px;
+        height: 9px;
+        padding: 0;
+        right: 12px;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95);
+      }
+      .lk-nav-badge--stacked {
+        right: 34px;
       }
     `;
     document.head.appendChild(style);
+  }
+
+  function isNavBadgeLink(link) {
+    if (!link || isBackNavigationLink(link)) {
+      return false;
+    }
+    return Boolean(link.closest("aside, nav, [data-mobile-nav], [data-lk-mobile-nav], .mobile-nav"));
   }
 
   function createAnimatedBadge(className, count, colorHex, rightPx, textOverride) {
@@ -698,53 +731,19 @@
           ? "99+"
           : String(count);
     const badge = document.createElement("span");
-    badge.className = className;
-    badge.innerHTML = `
-      <span class="badge-ripple"></span>
-      <span class="badge-count">${label}</span>
-    `;
-    badge.style.cssText = `
-      position: absolute;
-      top: 8px;
-      right: ${rightPx}px;
-      background: ${colorHex};
-      color: white;
-      font-size: 10px;
-      font-weight: bold;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: visible;
-    `;
-
-    const ripple = badge.querySelector(".badge-ripple");
-    if (ripple) {
-      ripple.style.cssText = `
-        position: absolute;
-        inset: 0;
-        border-radius: 50%;
-        background: ${colorHex};
-        z-index: -1;
-        animation: badgePulse 1500ms cubic-bezier(0.9, 0.7, 0.5, 0.9) infinite;
-      `;
-    }
-
-    const text = badge.querySelector(".badge-count");
-    if (text) {
-      text.style.cssText =
-        textOverride != null && String(textOverride).length > 0
-          ? "position: relative; z-index: 1; font-size: 11px; font-weight: 800; line-height: 1;"
-          : "position: relative; z-index: 1;";
+    const compact = textOverride != null && String(textOverride).length > 0 && !String(textOverride).match(/\d/);
+    badge.className = `${className} lk-nav-badge${compact ? " lk-nav-badge--compact" : ""}${rightPx > 12 ? " lk-nav-badge--stacked" : ""}`;
+    badge.textContent = compact ? "" : label;
+    badge.style.backgroundColor = colorHex;
+    if (rightPx && rightPx !== 8 && rightPx <= 12) {
+      badge.style.right = `${rightPx}px`;
     }
     return badge;
   }
 
   function syncProfileNameRequiredMarkers(rawName) {
     const needs = !String(rawName ?? "").trim();
-    ensureUnifiedBadgeAnimationStyles();
+    ensureUnifiedBadgeStyles();
 
     const pairs = [
       ["profile-name-field-wrap", "profile-name-field-marker"],
@@ -808,10 +807,10 @@
   }
 
   function updateMessagesBadge(count) {
-    ensureUnifiedBadgeAnimationStyles();
+    ensureUnifiedBadgeStyles();
     // Find all messages links (desktop and mobile)
     const messagesLinks = Array.from(document.querySelectorAll('a[href*="messages.html"]'))
-      .filter((link) => !isBackNavigationLink(link));
+      .filter(isNavBadgeLink);
     
     messagesLinks.forEach(link => {
       // Remove existing badge if any
@@ -883,9 +882,9 @@
   }
 
   function updateDocumentsBadge(requestCount, rejectedCount = 0) {
-    ensureUnifiedBadgeAnimationStyles();
+    ensureUnifiedBadgeStyles();
     const documentsLinks = Array.from(document.querySelectorAll('a[href*="documents.html"]'))
-      .filter((link) => !isBackNavigationLink(link));
+      .filter(isNavBadgeLink);
 
     documentsLinks.forEach((link) => {
       const existingRequestBadge = link.querySelector(".document-request-badge");
@@ -919,9 +918,9 @@
   }
 
   function updateClientsBadge(count) {
-    ensureUnifiedBadgeAnimationStyles();
+    ensureUnifiedBadgeStyles();
     const clientsLinks = Array.from(document.querySelectorAll('a[href*="clients.html"]'))
-      .filter((link) => !isBackNavigationLink(link));
+      .filter(isNavBadgeLink);
 
     clientsLinks.forEach((link) => {
       const existingBadge = link.querySelector(".clients-pending-badge");
