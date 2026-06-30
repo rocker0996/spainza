@@ -386,6 +386,16 @@
 </header>
 <!-- Client Dashboard -->
 <div id="client-dashboard" class="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8">
+<section class="lg:col-span-12 bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
+<div class="flex flex-col xl:flex-row xl:items-stretch xl:justify-between gap-6">
+<div class="min-w-0">
+<p class="text-xs font-label font-semibold uppercase tracking-[0.08em] text-outline mb-2" data-i18n="dashboard.clientEyebrow">Личный кабинет</p>
+<h1 class="text-2xl md:text-3xl font-headline font-extrabold text-on-surface tracking-tight" data-i18n="dashboard.clientTitle">Ваш кейс Spainza</h1>
+<p class="text-sm md:text-base text-on-surface-variant font-body mt-2 max-w-2xl" data-i18n="dashboard.clientSubtitle">Ключевой статус, ближайшие действия и связь с командой в одном месте.</p>
+</div>
+<div id="client-case-summary" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2 w-full xl:max-w-3xl min-h-[5rem]"></div>
+</div>
+</section>
 <!-- Left Column: Progress & Overview -->
 <div class="lg:col-span-7 flex flex-col gap-8">
 <!-- Case Progress Tracker (Bento style card) -->
@@ -422,12 +432,22 @@
 </div>
 <!-- Right Column: Documents & Comms -->
 <div class="lg:col-span-5 flex flex-col gap-8">
+<section class="bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
+<div class="flex items-center justify-between gap-4 mb-5">
+<h2 class="text-lg md:text-xl font-headline font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-container">task_alt</span>
+                            <span data-i18n="dashboard.clientActionsTitle">Что нужно от вас</span>
+                        </h2>
+<a href="./documents.html" class="text-primary-container text-xs md:text-sm font-semibold font-headline hover:text-primary transition-colors no-underline" data-lk-gate="documents" data-i18n="dashboard.clientOpenDocuments">Открыть документы</a>
+</div>
+<div id="client-action-list" class="flex flex-col gap-3 min-h-[6rem]"></div>
+</section>
 <!-- Document Management -->
 <section class="bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
 <div class="flex justify-between items-center mb-6">
 <h2 class="text-lg md:text-xl font-headline font-bold text-on-surface flex items-center gap-2">
 <span class="material-symbols-outlined text-secondary">folder_open</span>
-                            <span data-i18n="dashboard.documentPack">Готовый пакет документов</span>
+                            <span data-i18n="dashboard.clientDocumentsTitle">Документы</span>
                         </h2>
 <button type="button" onclick="window.location.href='./documents.html'" class="text-primary-container text-xs md:text-sm font-semibold font-headline hover:text-primary transition-colors" data-lk-gate="documents" data-i18n="common.viewAll">Смотреть все</button>
 </div>
@@ -479,16 +499,6 @@
 <div id="staff-focus-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 min-h-[5rem]"></div>
 </div>
 </div>
-</section>
-
-<section class="bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-6 ambient-shadow">
-<div class="flex items-center justify-between gap-4 mb-4">
-<h2 class="text-lg font-headline font-bold text-on-surface flex items-center gap-2">
-<span class="material-symbols-outlined text-tertiary-container">monitoring</span>
-<span data-i18n="dashboard.staffCrmSlice">CRM-срез</span>
-</h2>
-</div>
-<div id="staff-crm-slice" class="grid grid-cols-2 lg:grid-cols-4 gap-3 min-h-[4rem]"></div>
 </section>
 
 <section class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-5" id="staff-kpi-grid" aria-busy="true">
@@ -566,9 +576,9 @@
 </section>
 </div>
 </main>
-<script src="../js/lk-i18n.js?v=10" defer></script>
+<script src="../js/lk-i18n.js?v=11" defer></script>
 <script src="../js/mobile-nav.js" defer></script>
 <script src="../js/lk.js?v=21" defer></script>
-<script src="../js/dashboard.js?v=11" defer></script>
+<script src="../js/dashboard.js?v=12" defer></script>
 <script src="../../shared/layout.js" defer></script>
 </body></html>

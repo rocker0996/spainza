@@ -178,11 +178,6 @@
       "dashboard.staffFocusDialog": "Диалог",
       "dashboard.staffFocusLoad": "Нагрузка",
       "dashboard.staffFocusLoadValue": "{n} активных кейсов",
-      "dashboard.staffCrmSlice": "CRM-срез",
-      "dashboard.staffCrmActive": "Активные",
-      "dashboard.staffCrmDocs": "На проверке",
-      "dashboard.staffCrmUpcoming": "Ближайшие даты",
-      "dashboard.staffCrmCompleted": "Завершены",
       "dashboard.staffImportantActions": "Важные действия",
       "dashboard.staffActionOverdue": "Дата уже прошла: {date}",
       "dashboard.staffActionNoDate": "Нужно указать дату консульства",
@@ -225,16 +220,82 @@
       "dashboard.staffFocusDialog": "Conversation",
       "dashboard.staffFocusLoad": "Workload",
       "dashboard.staffFocusLoadValue": "{n} active cases",
-      "dashboard.staffCrmSlice": "CRM snapshot",
-      "dashboard.staffCrmActive": "Active",
-      "dashboard.staffCrmDocs": "In review",
-      "dashboard.staffCrmUpcoming": "Upcoming dates",
-      "dashboard.staffCrmCompleted": "Completed",
       "dashboard.staffImportantActions": "Important actions",
       "dashboard.staffActionOverdue": "Date has passed: {date}",
       "dashboard.staffActionNoDate": "Set the consulate date",
       "dashboard.staffActionPendingDocs": "Documents to review: {n}",
       "dashboard.staffNoImportantActions": "No urgent actions right now",
+    },
+  };
+
+  const clientDashboardI18n = {
+    ru: {
+      "dashboard.clientEyebrow": "Личный кабинет",
+      "dashboard.clientTitle": "Ваш кейс Spainza",
+      "dashboard.clientSubtitle": "Ключевой статус, ближайшие действия и связь с командой в одном месте.",
+      "dashboard.clientActionsTitle": "Что нужно от вас",
+      "dashboard.clientOpenDocuments": "Открыть документы",
+      "dashboard.clientDocumentsTitle": "Документы",
+      "dashboard.clientSummaryStatus": "Статус",
+      "dashboard.clientSummaryStage": "Текущий этап",
+      "dashboard.clientSummaryDate": "Консульство",
+      "dashboard.clientSummaryCountry": "Страна",
+      "dashboard.clientStatusCompleted": "Кейс завершён",
+      "dashboard.clientStatusActive": "В работе",
+      "dashboard.clientStatusWaitingDocs": "Ожидаем документы",
+      "dashboard.clientNoStage": "Этап пока не указан",
+      "dashboard.clientNoDate": "Дата не указана",
+      "dashboard.clientDocsRequired": "Нужно загрузить документы",
+      "dashboard.clientDocsRequiredMeta": "{n} в ожидании: {items}",
+      "dashboard.clientDocsReady": "Документы на вашей стороне в порядке",
+      "dashboard.clientDocsReadyMeta": "Новых запросов от команды сейчас нет.",
+      "dashboard.clientNextStep": "Следующий шаг",
+      "dashboard.clientNextStepMeta": "Ознакомьтесь с текущим этапом кейса.",
+      "dashboard.clientUpcomingAppointment": "Ближайшая дата",
+      "dashboard.clientUpcomingAppointmentMeta": "Запись в консульство: {date}",
+      "dashboard.clientMessageAction": "Есть новое сообщение",
+      "dashboard.clientMessageActionMeta": "Ответьте команде в сообщениях.",
+      "dashboard.clientNoActions": "Сейчас действий от вас не требуется",
+      "dashboard.clientNoActionsMeta": "Мы обновим этот блок, когда появится новый запрос.",
+      "dashboard.clientRequestedDocuments": "Запрошенные документы",
+      "dashboard.clientRequestedDocumentsMeta": "Загрузите файлы в разделе документов.",
+      "dashboard.clientArchiveReady": "Готовый пакет",
+      "dashboard.clientArchivePending": "Готовый пакет ещё не загружен",
+      "dashboard.clientMoreItems": "ещё {n}",
+    },
+    en: {
+      "dashboard.clientEyebrow": "Client portal",
+      "dashboard.clientTitle": "Your Spainza case",
+      "dashboard.clientSubtitle": "Key status, next actions, and your team channel in one place.",
+      "dashboard.clientActionsTitle": "Needed from you",
+      "dashboard.clientOpenDocuments": "Open documents",
+      "dashboard.clientDocumentsTitle": "Documents",
+      "dashboard.clientSummaryStatus": "Status",
+      "dashboard.clientSummaryStage": "Current stage",
+      "dashboard.clientSummaryDate": "Consulate",
+      "dashboard.clientSummaryCountry": "Country",
+      "dashboard.clientStatusCompleted": "Case completed",
+      "dashboard.clientStatusActive": "In progress",
+      "dashboard.clientStatusWaitingDocs": "Waiting for documents",
+      "dashboard.clientNoStage": "No stage set yet",
+      "dashboard.clientNoDate": "No date set",
+      "dashboard.clientDocsRequired": "Upload requested documents",
+      "dashboard.clientDocsRequiredMeta": "{n} pending: {items}",
+      "dashboard.clientDocsReady": "Your document side is clear",
+      "dashboard.clientDocsReadyMeta": "There are no new team requests right now.",
+      "dashboard.clientNextStep": "Next step",
+      "dashboard.clientNextStepMeta": "Review the current case stage.",
+      "dashboard.clientUpcomingAppointment": "Upcoming date",
+      "dashboard.clientUpcomingAppointmentMeta": "Consulate appointment: {date}",
+      "dashboard.clientMessageAction": "New message",
+      "dashboard.clientMessageActionMeta": "Reply to the team in Messages.",
+      "dashboard.clientNoActions": "No action is needed from you right now",
+      "dashboard.clientNoActionsMeta": "We will update this block when a new request appears.",
+      "dashboard.clientRequestedDocuments": "Requested documents",
+      "dashboard.clientRequestedDocumentsMeta": "Upload the files in the documents section.",
+      "dashboard.clientArchiveReady": "Completed package",
+      "dashboard.clientArchivePending": "Completed package has not been uploaded yet",
+      "dashboard.clientMoreItems": "{n} more",
     },
   };
 
@@ -247,6 +308,21 @@
     window.LkI18n.STRINGS.en = {
       ...(window.LkI18n.STRINGS.en || {}),
       ...staffDashboardI18n.en,
+    };
+    if (typeof window.LkI18n.applyDocument === "function") {
+      window.LkI18n.applyDocument(document);
+    }
+  }
+
+  function ensureClientDashboardI18n() {
+    if (!window.LkI18n || !window.LkI18n.STRINGS) return;
+    window.LkI18n.STRINGS.ru = {
+      ...(window.LkI18n.STRINGS.ru || {}),
+      ...clientDashboardI18n.ru,
+    };
+    window.LkI18n.STRINGS.en = {
+      ...(window.LkI18n.STRINGS.en || {}),
+      ...clientDashboardI18n.en,
     };
     if (typeof window.LkI18n.applyDocument === "function") {
       window.LkI18n.applyDocument(document);
@@ -306,6 +382,197 @@
     if (days === 0) return t("dashboard.staffDeadlineToday");
     if (days === 1) return t("dashboard.staffDeadlineTomorrow");
     return t("dashboard.staffDeadlineInDays", { n: days });
+  }
+
+  function truthyFlag(value) {
+    return (
+      value === true ||
+      value === 1 ||
+      value === "1" ||
+      String(value || "").toLowerCase() === "true"
+    );
+  }
+
+  function caseTimeline(caseData) {
+    return Array.isArray(caseData?.timeline) ? caseData.timeline : [];
+  }
+
+  function openDocumentRequests(caseData) {
+    const requests = Array.isArray(caseData?.document_requests)
+      ? caseData.document_requests
+      : [];
+    return requests.filter(
+      (item) => truthyFlag(item?.sent) && !truthyFlag(item?.fulfilled)
+    );
+  }
+
+  function documentRequestName(item) {
+    return (
+      String(item?.name || "").trim() ||
+      String(item?.title || "").trim() ||
+      t("dashboard.clientDocumentsTitle")
+    );
+  }
+
+  function activeTimelineStep(caseData) {
+    const steps = caseTimeline(caseData);
+    return (
+      steps.find((step) => String(step?.status || "").toLowerCase() === "active") ||
+      steps.find((step) => String(step?.status || "").toLowerCase() === "pending") ||
+      [...steps].reverse().find((step) => String(step?.status || "").toLowerCase() === "completed") ||
+      null
+    );
+  }
+
+  function formatClientTargetDate(value) {
+    const date = parseTargetDate(value);
+    if (!date) return t("dashboard.clientNoDate");
+    const month = window.LkI18n
+      ? window.LkI18n.formatMonthShort(date.getMonth())
+      : String(date.getMonth() + 1);
+    return `${date.getDate()} ${month} ${date.getFullYear()}`;
+  }
+
+  function clientSummaryTile(icon, labelKey, value, toneClass = "text-primary-container") {
+    return `
+      <div class="rounded-[12px] bg-surface p-4 border border-outline-variant/20 min-w-0">
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <span class="text-[10px] font-label font-bold uppercase tracking-widest text-outline">${escapeHtml(t(labelKey))}</span>
+          <span class="material-symbols-outlined ${toneClass} text-[20px]">${escapeHtml(icon)}</span>
+        </div>
+        <p class="text-sm md:text-base font-headline font-extrabold text-on-surface truncate">${escapeHtml(value)}</p>
+      </div>
+    `;
+  }
+
+  function renderClientSummary(caseData, sessionUser) {
+    const container = document.getElementById("client-case-summary");
+    if (!container) return;
+
+    const pendingDocs = openDocumentRequests(caseData);
+    const completedAt = caseData?.completed_at || caseData?.case_completed_at || null;
+    const currentStep = activeTimelineStep(caseData);
+    const status = completedAt
+      ? t("dashboard.clientStatusCompleted")
+      : pendingDocs.length
+        ? t("dashboard.clientStatusWaitingDocs")
+        : t("dashboard.clientStatusActive");
+    const country = String(caseData?.country || "").trim() || t("dashboard.countryNotSet");
+    const stage =
+      String(currentStep?.title || "").trim() || t("dashboard.clientNoStage");
+    const dateLabel = formatClientTargetDate(caseData?.target_date);
+
+    container.innerHTML = [
+      clientSummaryTile(
+        completedAt ? "verified" : pendingDocs.length ? "pending_actions" : "auto_awesome_motion",
+        "dashboard.clientSummaryStatus",
+        status,
+        completedAt ? "text-emerald-600" : pendingDocs.length ? "text-tertiary-container" : "text-primary-container"
+      ),
+      clientSummaryTile("flag", "dashboard.clientSummaryStage", stage, "text-secondary"),
+      clientSummaryTile("event", "dashboard.clientSummaryDate", dateLabel, "text-primary"),
+      clientSummaryTile("public", "dashboard.clientSummaryCountry", country, "text-tertiary-container"),
+    ].join("");
+
+    void sessionUser;
+  }
+
+  function clientActionRow(icon, title, meta, href, toneClass = "text-primary-container") {
+    return `
+      <a href="${escapeHtml(href)}" class="flex items-start gap-3 rounded-[12px] bg-surface p-4 border border-outline-variant/20 no-underline hover:bg-surface-container-low transition-colors">
+        <span class="material-symbols-outlined ${toneClass} text-[21px] mt-0.5">${escapeHtml(icon)}</span>
+        <span class="min-w-0">
+          <span class="block text-sm font-bold font-headline text-on-surface truncate">${escapeHtml(title)}</span>
+          <span class="block text-xs text-on-surface-variant mt-1 line-clamp-2">${escapeHtml(meta)}</span>
+        </span>
+      </a>
+    `;
+  }
+
+  function renderClientActions(caseData, conversations, sessionUser) {
+    const container = document.getElementById("client-action-list");
+    if (!container) return;
+
+    const rows = [];
+    const pendingDocs = openDocumentRequests(caseData);
+    if (pendingDocs.length) {
+      const names = pendingDocs.slice(0, 2).map(documentRequestName);
+      if (pendingDocs.length > 2) {
+        names.push(t("dashboard.clientMoreItems", { n: pendingDocs.length - 2 }));
+      }
+      rows.push(
+        clientActionRow(
+          "upload_file",
+          t("dashboard.clientDocsRequired"),
+          t("dashboard.clientDocsRequiredMeta", {
+            n: pendingDocs.length,
+            items: names.join(", "),
+          }),
+          "./documents.html",
+          "text-tertiary-container"
+        )
+      );
+    }
+
+    const days = daysUntilTarget(caseData?.target_date);
+    if (days !== null && days >= 0 && days <= 14) {
+      rows.push(
+        clientActionRow(
+          "event_upcoming",
+          t("dashboard.clientUpcomingAppointment"),
+          t("dashboard.clientUpcomingAppointmentMeta", {
+            date: formatClientTargetDate(caseData?.target_date),
+          }),
+          "./documents.html",
+          "text-primary"
+        )
+      );
+    }
+
+    const target = resolveMessageDeskTarget(sessionUser);
+    const conv = findDeskConversation(conversations, target);
+    const hasInbound = Boolean(
+      conv && formatMessagePreviewForUi(conv.last_inbound_message)
+    );
+    if (hasInbound) {
+      rows.push(
+        clientActionRow(
+          "mark_chat_unread",
+          t("dashboard.clientMessageAction"),
+          t("dashboard.clientMessageActionMeta"),
+          "./messages.html",
+          "text-secondary"
+        )
+      );
+    }
+
+    const currentStep = activeTimelineStep(caseData);
+    if (!pendingDocs.length && currentStep) {
+      rows.push(
+        clientActionRow(
+          "route",
+          String(currentStep?.title || "").trim() || t("dashboard.clientNextStep"),
+          String(currentStep?.description || "").trim() || t("dashboard.clientNextStepMeta"),
+          "./dashboard.html#dashboard-timeline",
+          "text-primary-container"
+        )
+      );
+    }
+
+    if (!rows.length) {
+      container.innerHTML = `
+        <div class="flex items-start gap-3 rounded-[12px] bg-surface-container-low p-4 border border-outline-variant/20">
+          <span class="material-symbols-outlined text-emerald-600 text-[22px] mt-0.5">check_circle</span>
+          <span>
+            <span class="block text-sm font-bold font-headline text-on-surface">${escapeHtml(t("dashboard.clientNoActions"))}</span>
+            <span class="block text-xs text-on-surface-variant mt-1">${escapeHtml(t("dashboard.clientNoActionsMeta"))}</span>
+          </span>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = rows.join("");
   }
 
   function isCaseCompleted(user) {
@@ -453,18 +720,63 @@
 
     const archiveUrl = caseData?.archive_download_url;
     const archiveName = caseData?.archive_file_name;
+    const pendingDocs = openDocumentRequests(caseData);
+    const cards = [];
+
+    if (pendingDocs.length) {
+      const names = pendingDocs.slice(0, 3).map(documentRequestName);
+      if (pendingDocs.length > 3) {
+        names.push(t("dashboard.clientMoreItems", { n: pendingDocs.length - 3 }));
+      }
+      cards.push(`
+        <a href="./documents.html" class="flex items-center justify-between p-4 bg-surface-container-low rounded-[12px] group no-underline hover:bg-surface-container transition-colors">
+          <div class="flex items-center gap-4 min-w-0">
+            <div class="w-10 h-10 rounded-[8px] bg-tertiary-container/15 text-tertiary-container flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined">upload_file</span>
+            </div>
+            <div class="min-w-0">
+              <p class="font-semibold text-sm font-headline text-on-surface truncate">${escapeHtml(t("dashboard.clientRequestedDocuments"))}</p>
+              <p class="text-xs text-outline font-body mt-0.5 truncate">${escapeHtml(names.join(", "))}</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-outline group-hover:text-primary-container transition-colors text-[20px] shrink-0">arrow_forward</span>
+        </a>
+      `);
+    } else {
+      cards.push(`
+        <a href="./documents.html" class="flex items-center justify-between p-4 bg-surface-container-low rounded-[12px] group no-underline hover:bg-surface-container transition-colors">
+          <div class="flex items-center gap-4 min-w-0">
+            <div class="w-10 h-10 rounded-[8px] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined">task_alt</span>
+            </div>
+            <div class="min-w-0">
+              <p class="font-semibold text-sm font-headline text-on-surface truncate">${escapeHtml(t("dashboard.clientDocsReady"))}</p>
+              <p class="text-xs text-outline font-body mt-0.5 truncate">${escapeHtml(t("dashboard.clientDocsReadyMeta"))}</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-outline group-hover:text-primary-container transition-colors text-[20px] shrink-0">arrow_forward</span>
+        </a>
+      `);
+    }
 
     if (!archiveUrl || !archiveName) {
-      container.innerHTML = `
-        <div class="text-sm text-on-surface-variant font-body p-4 bg-surface-container-low rounded-[12px]">
-          ${t("dashboard.archiveNotUploaded")}
+      cards.push(`
+        <div class="flex items-center gap-4 p-4 bg-surface-container-low rounded-[12px]">
+          <div class="w-10 h-10 rounded-[8px] bg-surface-container-high text-outline flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined">folder_off</span>
+          </div>
+          <div class="min-w-0">
+            <p class="font-semibold text-sm font-headline text-on-surface truncate">${escapeHtml(t("dashboard.clientArchivePending"))}</p>
+            <p class="text-xs text-outline font-body mt-0.5">${escapeHtml(t("dashboard.archiveNotUploaded"))}</p>
+          </div>
         </div>
-      `;
+      `);
+      container.innerHTML = cards.join("");
       return;
     }
 
     const safeName = escapeHtml(archiveName);
-    container.innerHTML = `
+    cards.push(`
       <div class="flex items-center justify-between p-4 bg-surface-container-low rounded-[12px] group">
         <div class="flex items-center gap-4 min-w-0">
           <div class="w-10 h-10 rounded-[8px] bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
@@ -472,14 +784,15 @@
           </div>
           <div class="min-w-0">
             <p class="font-semibold text-sm font-headline text-on-surface truncate" title="${safeName}">${safeName}</p>
-            <p class="text-xs text-outline font-body mt-0.5">${escapeHtml(t("dashboard.archiveLabel"))}</p>
+            <p class="text-xs text-outline font-body mt-0.5">${escapeHtml(t("dashboard.clientArchiveReady"))}</p>
           </div>
         </div>
         <a href="${escapeHtml(buildProtectedApiUrl(archiveUrl))}" download class="text-outline hover:text-primary-container transition-colors p-2 shrink-0" title="${escapeHtml(t("dashboard.downloadArchive"))}">
           <span class="material-symbols-outlined text-[20px]">download</span>
         </a>
       </div>
-    `;
+    `);
+    container.innerHTML = cards.join("");
   }
 
   function formatMessagePreviewForUi(raw) {
@@ -743,30 +1056,6 @@
     container.innerHTML = tiles.join("");
   }
 
-  function crmSliceTile(labelKey, value, icon, href) {
-    return `
-      <a href="${escapeHtml(href || "./clients.html")}" class="rounded-[12px] bg-surface p-4 border border-outline-variant/20 no-underline hover:bg-surface-container-low transition-colors">
-        <div class="flex items-center justify-between gap-3 mb-2">
-          <span class="text-[10px] font-label font-bold uppercase tracking-widest text-outline">${escapeHtml(t(labelKey))}</span>
-          <span class="material-symbols-outlined text-[18px] text-primary-container">${escapeHtml(icon)}</span>
-        </div>
-        <p class="text-2xl font-headline font-extrabold text-on-surface">${escapeHtml(value)}</p>
-      </a>
-    `;
-  }
-
-  function renderStaffCrmSlice() {
-    const container = document.getElementById("staff-crm-slice");
-    if (!container) return;
-    const stats = staffStats();
-    container.innerHTML = [
-      crmSliceTile("dashboard.staffCrmActive", String(stats.activeUsers.length), "folder_open", "./clients.html"),
-      crmSliceTile("dashboard.staffCrmDocs", String(stats.pendingClients.length), "pending_actions", "./clients.html"),
-      crmSliceTile("dashboard.staffCrmUpcoming", String(stats.upcomingClients.length), "event", "./clients.html"),
-      crmSliceTile("dashboard.staffCrmCompleted", String(stats.completedUsers.length), "verified", "./clients.html"),
-    ].join("");
-  }
-
   function importantActionRow(icon, title, meta, href, toneClass = "text-primary-container") {
     return `
       <a href="${escapeHtml(href || "./clients.html")}" class="flex items-start gap-3 rounded-[12px] bg-surface p-4 border border-outline-variant/20 no-underline hover:bg-surface-container-low transition-colors">
@@ -986,7 +1275,6 @@
         : [];
       renderStaffKpis();
       renderStaffFocus();
-      renderStaffCrmSlice();
       renderStaffPriorityList();
       renderStaffDeadlines();
       renderStaffInbox();
@@ -1001,7 +1289,6 @@
       dashboardConversations = [];
       renderStaffKpis();
       renderStaffFocus();
-      renderStaffCrmSlice();
       renderStaffPriorityList();
       renderStaffDeadlines();
       renderStaffInbox();
@@ -1155,6 +1442,7 @@
         return;
       }
       setDashboardMode("client");
+      ensureClientDashboardI18n();
       const caseLink = document.getElementById("dashboard-open-case-link");
       if (caseLink) {
         const did = String(user.display_id || "")
@@ -1174,6 +1462,8 @@
         casePayload = null;
       }
       const caseData = casePayload?.case_data || null;
+      renderClientSummary(caseData, user);
+      renderClientActions(caseData, dashboardConversations, user);
       renderTimelineFromCase(caseData);
       renderArchiveDocument(caseData);
       renderCountry(caseData);
@@ -1184,6 +1474,7 @@
       const conversations = await apiGet("/api/conversations");
       dashboardConversations = Array.isArray(conversations) ? conversations : [];
       renderLatestMessage(dashboardConversations, user);
+      renderClientActions(caseData, dashboardConversations, user);
     } catch (error) {
       console.error("Dashboard data load failed:", error);
     }
@@ -1194,7 +1485,6 @@
       ensureStaffDashboardI18n();
       renderStaffKpis();
       renderStaffFocus();
-      renderStaffCrmSlice();
       renderStaffPriorityList();
       renderStaffDeadlines();
       renderStaffInbox();
@@ -1204,6 +1494,9 @@
       }
       return;
     }
+    ensureClientDashboardI18n();
+    renderClientSummary(dashboardLastCaseData, dashboardSessionUser);
+    renderClientActions(dashboardLastCaseData, dashboardConversations, dashboardSessionUser);
     renderTimelineFromCase(dashboardLastCaseData);
     renderArchiveDocument(dashboardLastCaseData);
     renderCountry(dashboardLastCaseData);
