@@ -248,6 +248,9 @@
       ...(window.LkI18n.STRINGS.en || {}),
       ...staffDashboardI18n.en,
     };
+    if (typeof window.LkI18n.applyDocument === "function") {
+      window.LkI18n.applyDocument(document);
+    }
   }
 
   function isStaffUser(user) {
