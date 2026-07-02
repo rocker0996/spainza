@@ -258,6 +258,10 @@
     if (homeLink) {
       homeLink.setAttribute("href", homeHref);
     }
+    var brandHomeLink = root.getElementById("login-brand-home");
+    if (brandHomeLink) {
+      brandHomeLink.setAttribute("href", homeHref);
+    }
     var forgotLink = root.getElementById("forgot-password-link");
     if (forgotLink) {
       forgotLink.setAttribute("href", homeHref);
@@ -271,7 +275,7 @@
     if (global.location.protocol === "file:") {
       return en ? "./en/index.html" : "./ru/index.html";
     }
-    return en ? "/frontend/en/index.html" : "/frontend/ru/index.html";
+    return en ? "/en/index.html" : "/ru/index.html";
   }
 
   function legalUrl(filename) {
@@ -279,7 +283,7 @@
     if (global.location.protocol === "file:") {
       return en ? "./en/" + filename : "./ru/" + filename;
     }
-    return en ? "/frontend/en/" + filename : "/frontend/ru/" + filename;
+    return en ? "/en/" + filename : "/ru/" + filename;
   }
 
   function applyTermsCheckbox() {

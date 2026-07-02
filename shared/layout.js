@@ -6,6 +6,12 @@
     "contact.html": true,
     "process.html": true,
     "services.html": true,
+    "nomad.html": true,
+    "gold.html": true,
+    "privacy-policy.html": true,
+    "cookie-policy.html": true,
+    "terms-of-service.html": true,
+    "login.html": true,
   };
 
   function normalizeLanguage(raw) {
@@ -58,25 +64,30 @@
   }
 
   function getLocalizedPageName(pathname) {
-    var match = pathname.match(/\/frontend\/(?:ru|en)\/([^/?#]+)$/i);
-    return match ? match[1].toLowerCase() : null;
+    var match = pathname.match(/\/(?:frontend\/)?(?:ru|en)\/([^/?#]+)$/i);
+    if (match) return match[1].toLowerCase();
+    if (/\/(?:frontend\/)?(?:ru|en)\/?$/i.test(pathname)) return "index.html";
+    return null;
   }
 
   function getLanguageFromPath(pathname) {
-    var match = pathname.match(/\/frontend\/(ru|en)(?:\/|$)/i);
+    var match = pathname.match(/\/(?:frontend\/)?(ru|en)(?:\/|$)/i);
     return match ? match[1].toLowerCase() : null;
   }
 
   function getLocalizedPath(pathname, targetLanguage) {
-    if (!/\/frontend\//i.test(pathname)) return null;
+    if (!/\/(?:frontend\/)?(?:ru|en)(?:\/|$)/i.test(pathname) && !/\/frontend\/?(?:index\.html)?$/i.test(pathname)) {
+      return null;
+    }
 
     var currentLanguage = getLanguageFromPath(pathname);
     if (currentLanguage) {
-      return pathname.replace(/\/frontend\/(?:ru|en)(?=\/|$)/i, "/frontend/" + targetLanguage);
+      var next = pathname.replace(/\/(?:frontend\/)?(?:ru|en)(?=\/|$)/i, "/" + targetLanguage);
+      return next.replace(/\/index\.html$/i, "/");
     }
 
     if (/\/frontend\/?(?:index\.html)?$/i.test(pathname)) {
-      return pathname.replace(/\/frontend\/?(?:index\.html)?$/i, "/frontend/" + targetLanguage + "/index.html");
+      return pathname.replace(/\/frontend\/?(?:index\.html)?$/i, "/" + targetLanguage + "/");
     }
 
     return null;
@@ -109,7 +120,7 @@
       }
     }
     if (!nextPath) {
-      nextPath = getLocalizedPath(pathname, targetLanguage) || "/frontend/" + targetLanguage + "/index.html";
+      nextPath = getLocalizedPath(pathname, targetLanguage) || "/" + targetLanguage + "/";
     }
     window.location.assign(nextPath + window.location.search + window.location.hash);
   }

@@ -43,7 +43,9 @@ ARCHIVE_TOP_LEVEL = (
     "nomad.html",
     "process.html",
     "privacy-policy.html",
-    "servces.html",
+    "services.html",
+    "robots.txt",
+    "sitemap.xml",
 )
 
 EDGE_COMPOSE_FILE = os.environ.get(

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /frontend/lk/
+Disallow: /frontend/login.html
+Disallow: /ru/login.html
+Disallow: /en/login.html
+
+Sitemap: https://spainza.com/sitemap.xml

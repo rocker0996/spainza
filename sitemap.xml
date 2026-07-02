@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://spainza.com/ru/</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/en/</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/ru/services.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/services.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/services.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/services.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/en/services.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/services.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/services.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/services.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/ru/process.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/process.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/process.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/process.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/en/process.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/process.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/process.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/process.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/ru/contact.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/contact.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/en/contact.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/contact.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/contact.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/ru/nomad.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/nomad.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/nomad.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/nomad.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/en/nomad.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/nomad.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/nomad.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/nomad.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/ru/gold.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/gold.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/gold.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/gold.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/en/gold.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/gold.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/gold.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/gold.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/ru/privacy-policy.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/privacy-policy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/privacy-policy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/privacy-policy.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/en/privacy-policy.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/privacy-policy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/privacy-policy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/privacy-policy.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/ru/cookie-policy.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/cookie-policy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/cookie-policy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/cookie-policy.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/en/cookie-policy.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/cookie-policy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/cookie-policy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/cookie-policy.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/ru/terms-of-service.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/terms-of-service.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/terms-of-service.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/terms-of-service.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/en/terms-of-service.html</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/terms-of-service.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/terms-of-service.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/terms-of-service.html"/>
+  </url>
+</urlset>
