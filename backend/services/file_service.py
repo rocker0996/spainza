@@ -4,6 +4,7 @@ import uuid
 import zipfile
 import mimetypes
 import unicodedata
+from pathlib import Path
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
@@ -65,6 +66,7 @@ class FileService:
         self.storage_path = os.path.join(os.getcwd(), 'storage')
         self.messages_path = os.path.join(self.storage_path, 'messages')
         self.documents_path = os.path.join(self.storage_path, 'documents')
+        self._storage_root = Path(self.storage_path).resolve()
         self._ensure_directories()
     
     def _ensure_directories(self):
@@ -294,8 +296,18 @@ class FileService:
         return f"documents/{user_id}/{document_type}/{filename}"
     
     def get_file_path(self, relative_path):
-        """Get absolute file path from relative path."""
-        return os.path.join(self.storage_path, relative_path)
+        """Get an absolute storage path, rejecting traversal and absolute paths."""
+        raw_path = str(relative_path or "").strip()
+        if not raw_path:
+            raise ValueError("Invalid file path")
+        if os.path.isabs(raw_path):
+            raise ValueError("Invalid file path")
+
+        normalized = raw_path.replace("\\", "/")
+        candidate = (self._storage_root / normalized).resolve()
+        if candidate != self._storage_root and self._storage_root not in candidate.parents:
+            raise ValueError("Invalid file path")
+        return str(candidate)
     
     def delete_file(self, relative_path):
         """Delete a file by its relative path."""
@@ -310,5 +322,8 @@ class FileService:
     
     def file_exists(self, relative_path):
         """Check if file exists."""
-        filepath = self.get_file_path(relative_path)
+        try:
+            filepath = self.get_file_path(relative_path)
+        except ValueError:
+            return False
         return os.path.exists(filepath)

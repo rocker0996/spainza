@@ -244,7 +244,12 @@ function buildUserRowHtml(user, { completed = false } = {}) {
                     ${roleLabel(user.role)}
                 </span>
             </td>
-            <td class="px-8 py-6 text-center text-sm text-slate-600">${completed ? statusCompletedBadge() : formatConsulateTargetDate(user.target_date)}</td>
+            <td class="px-8 py-6 text-center text-sm text-slate-600">
+                ${completed
+                    ? statusCompletedBadge()
+                    : formatConsulateTargetDate(user.target_date)
+                }
+            </td>
             <td class="px-8 py-6 text-center text-sm text-slate-600">${formatDate(user.created_at)}</td>
             <td class="px-8 py-6 text-right">
                 <div class="relative">

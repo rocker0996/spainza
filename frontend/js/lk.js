@@ -139,6 +139,109 @@
 
   let dashboardUserIdCopyAnimTimer = 0;
 
+  function ensureDashboardUserIdHintStyles() {
+    if (document.getElementById("dashboard-user-id-hint-style")) {
+      return;
+    }
+    const style = document.createElement("style");
+    style.id = "dashboard-user-id-hint-style";
+    style.textContent = `
+      .dashboard-user-id-hint-anchor {
+        position: relative;
+      }
+      .dashboard-user-id-hint {
+        position: absolute;
+        z-index: 30;
+        top: calc(100% + 12px);
+        right: 0;
+        width: min(17rem, calc(100vw - 2rem));
+        padding: 0.75rem 0.875rem;
+        border: 1px solid rgba(0, 62, 199, 0.2);
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+        color: #1f2937;
+        font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.8125rem;
+        line-height: 1.35;
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: 0;
+        pointer-events: none;
+      }
+      .dashboard-user-id-hint::before {
+        content: "";
+        position: absolute;
+        top: -7px;
+        right: 24px;
+        width: 12px;
+        height: 12px;
+        background: #ffffff;
+        border-left: 1px solid rgba(0, 62, 199, 0.2);
+        border-top: 1px solid rgba(0, 62, 199, 0.2);
+        transform: rotate(45deg);
+      }
+      @media (max-width: 767px) {
+        .dashboard-user-id-hint {
+          top: calc(100% + 10px);
+          right: 0.25rem;
+          width: min(15.5rem, calc(100vw - 1.5rem));
+          font-size: 0.75rem;
+        }
+        .dashboard-user-id-hint::before {
+          right: 18px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function syncDashboardUserIdHint(userData, idStr) {
+    const isDashboard =
+      document.body &&
+      document.body.getAttribute("data-lk-nav-active") === "dashboard";
+    const roleKey = String(
+      (userData && userData.role && (userData.role.key || userData.role.role_key)) || ""
+    ).toLowerCase();
+    const shouldShow = isDashboard && roleKey === "user" && idStr && idStr !== "вЂ”";
+
+    document.querySelectorAll(".dashboard-user-id-hint").forEach((node) => node.remove());
+    document
+      .querySelectorAll(".dashboard-user-id-hint-anchor")
+      .forEach((node) => node.classList.remove("dashboard-user-id-hint-anchor"));
+
+    if (!shouldShow) {
+      return;
+    }
+
+    ensureDashboardUserIdHintStyles();
+    const text =
+      window.LkI18n?.getLocale?.() === "en"
+        ? "Copy your ID and send it to your manager."
+        : "Скопируйте свой ID и отправьте его менеджеру.";
+
+    const desktopAnchor = document.getElementById("user-id-wrap");
+    if (desktopAnchor) {
+      desktopAnchor.classList.add("dashboard-user-id-hint-anchor");
+      const hint = document.createElement("div");
+      hint.className = "dashboard-user-id-hint hidden md:block";
+      hint.setAttribute("role", "note");
+      hint.textContent = text;
+      desktopAnchor.appendChild(hint);
+    }
+
+    const mobileButton = document.getElementById("user-id-mobile-copy");
+    const mobileAnchor = mobileButton ? mobileButton.parentElement : null;
+    if (mobileAnchor) {
+      mobileAnchor.classList.add("dashboard-user-id-hint-anchor");
+      const hint = document.createElement("div");
+      hint.className = "dashboard-user-id-hint md:hidden";
+      hint.setAttribute("role", "note");
+      hint.textContent = text;
+      mobileAnchor.appendChild(hint);
+    }
+  }
+
   function clearDashboardIdSlotLock(btn) {
     const wrap = document.getElementById("user-id-wrap");
     if (btn && btn instanceof HTMLElement) {
@@ -472,6 +575,8 @@
         }
       }
     }
+
+    syncDashboardUserIdHint(userData, idStr);
 
     const createdAt = document.getElementById("user-created-at");
     if (createdAt) {

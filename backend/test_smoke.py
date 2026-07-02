@@ -85,6 +85,53 @@ class AppSmokeTest(unittest.TestCase):
         self.assertEqual(display_name, "Отчёт ВНЖ.pdf")
         self.assertTrue(Path(service.get_file_path(relative_path)).exists())
 
+    def test_file_service_rejects_paths_outside_storage(self) -> None:
+        from services.file_service import FileService
+
+        service = FileService()
+        valid_path = Path(service.get_file_path("documents/1/general/file.pdf"))
+        storage_root = Path(service.storage_path).resolve()
+
+        self.assertIn(storage_root, valid_path.parents)
+        self.assertFalse(service.file_exists("../app.db"))
+        self.assertFalse(service.file_exists("documents\\..\\..\\app.db"))
+        with self.assertRaises(ValueError):
+            service.get_file_path("../app.db")
+        with self.assertRaises(ValueError):
+            service.get_file_path(str(Path(self.tmp.name) / "outside.pdf"))
+
+    def test_internal_api_errors_do_not_expose_exception_text(self) -> None:
+        from models.user import create_user
+        from routes.messages import Message
+        from utils.db import get_db_connection
+        from utils.security import generate_auth_token, hash_password
+
+        db = get_db_connection()
+        user_id, _display_id = create_user(
+            db,
+            "errors@example.test",
+            hash_password("Password1"),
+        )
+        db.close()
+
+        token = generate_auth_token(self.app.config["SECRET_KEY"], user_id)
+        self.client.set_cookie("access_token", token)
+
+        original_get_unread_count = Message.get_unread_count
+
+        def raise_secret_error(_user_id):
+            raise RuntimeError("SECRET_DATABASE_PATH")
+
+        Message.get_unread_count = staticmethod(raise_secret_error)
+        try:
+            response = self.client.get("/api/messages/unread-count")
+        finally:
+            Message.get_unread_count = original_get_unread_count
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.get_json()["error"], "internal server error")
+        self.assertNotIn("SECRET_DATABASE_PATH", response.get_data(as_text=True))
+
     def test_retention_cleanup_removes_expired_payload_files(self) -> None:
         from services.file_retention import cleanup_expired_files
         from services.file_service import FileService
@@ -180,6 +227,83 @@ class AppSmokeTest(unittest.TestCase):
         self.assertIsNone(document_row["file_path"])
         self.assertIsNone(case_row["archive_file_path"])
         self.assertTrue(case_row["retention_cleanup_at"])
+        db.close()
+
+    def test_document_request_recall_persists_after_send(self) -> None:
+        from models.case_data import (
+            get_case_data_by_user_id,
+            mark_document_request_recalled,
+            mark_document_requests_sent,
+            upsert_case_data,
+        )
+        from utils.db import get_db_connection
+
+        db = get_db_connection()
+        db.execute(
+            """
+            INSERT INTO users (id, email, password_hash, role_key, display_id)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (20, "client@example.test", "hash", "user", "AA0020"),
+        )
+        db.commit()
+
+        self.assertTrue(
+            upsert_case_data(
+                db,
+                20,
+                "user",
+                None,
+                "",
+                None,
+                None,
+                [],
+                [
+                    {
+                        "id": 1,
+                        "name": "Passport",
+                        "checked": True,
+                        "sent": False,
+                        "fulfilled": False,
+                    }
+                ],
+                document_requests_manual=True,
+            )
+        )
+
+        ok, requests, updated = mark_document_requests_sent(db, 20, [1])
+        self.assertTrue(ok)
+        self.assertEqual(updated, 1)
+        self.assertTrue(requests[0]["sent"])
+
+        case_after_upload = get_case_data_by_user_id(db, 20)
+        case_after_upload["document_requests"][0]["fulfilled"] = True
+        self.assertTrue(
+            upsert_case_data(
+                db,
+                20,
+                case_after_upload["visa_type"],
+                case_after_upload["target_date"],
+                case_after_upload["country"],
+                case_after_upload["archive_file_path"],
+                case_after_upload["archive_file_name"],
+                case_after_upload["timeline"],
+                case_after_upload["document_requests"],
+                document_requests_manual=True,
+            )
+        )
+
+        ok, requests, updated = mark_document_request_recalled(db, 20, 1)
+        self.assertTrue(ok)
+        self.assertTrue(updated)
+        self.assertFalse(requests[0]["sent"])
+        self.assertFalse(requests[0]["checked"])
+        self.assertFalse(requests[0]["fulfilled"])
+
+        reloaded = get_case_data_by_user_id(db, 20)
+        self.assertFalse(reloaded["document_requests"][0]["sent"])
+        self.assertFalse(reloaded["document_requests"][0]["fulfilled"])
+        self.assertTrue(reloaded["document_requests_manual"])
         db.close()
 
 

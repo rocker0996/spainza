@@ -39,6 +39,7 @@ from models.case_data import (
     case_data_flag_is_true,
     count_sent_document_requests,
     get_case_data_by_user_id,
+    mark_document_request_recalled,
     mark_document_requests_sent,
     merge_document_requests_preserve_sent,
     normalize_case_completed_at,
@@ -1468,6 +1469,47 @@ def send_case_document_requests(user_id: int):
     ), 200
 
 
+@lk_bp.post("/case-data/<int:user_id>/document-requests/recall")
+def recall_case_document_request(user_id: int):
+    """Recall one sent document request without going through stale full-case saves."""
+    current_user = get_user_by_id(g.db, g.current_user_id)
+    if not current_user:
+        return jsonify({"success": False, "error": "user not found"}), 404
+
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+
+    if not get_user_by_id(g.db, user_id):
+        return jsonify({"success": False, "error": "target user not found"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        request_id = int(payload.get("request_id"))
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "error": "request_id required"}), 400
+
+    ok, requests, updated = mark_document_request_recalled(g.db, user_id, request_id)
+    if not ok:
+        return jsonify({"success": False, "error": "failed to recall document request"}), 500
+
+    if updated:
+        add_history_entry(
+            g.db,
+            user_id,
+            g.current_user_id,
+            "Отозван запрос документа",
+            f"ID запроса: {request_id}",
+        )
+
+    return jsonify(
+        {
+            "success": True,
+            "document_requests": requests,
+            "updated": updated,
+        }
+    ), 200
+
+
 @lk_bp.get("/case-history/<int:user_id>")
 def get_case_history_endpoint(user_id: int):
     """Get case history for a specific user."""
@@ -1659,7 +1701,7 @@ def update_case_data(user_id: int):
                 g.db,
                 user_id,
                 g.current_user_id,
-                "Изменена дата записи в консульство",
+                "Изменена дата подачи",
                 f"{old_target_date or 'не указана'} → {target_date or 'не указана'}"
             )
 
@@ -1900,7 +1942,8 @@ def upload_case_archive(user_id: int):
     except ValueError as error:
         return jsonify({"success": False, "error": str(error)}), 400
     except Exception as error:
-        return jsonify({"success": False, "error": f"archive upload failed: {error}"}), 500
+        current_app.logger.exception("archive upload failed: %s", error)
+        return jsonify({"success": False, "error": "archive upload failed"}), 500
 
 
 @lk_bp.get("/case-data/<int:user_id>/archive/download")
@@ -1921,7 +1964,11 @@ def download_case_archive(user_id: int):
         return jsonify({"success": False, "error": "archive not found"}), 404
 
     file_service = FileService()
-    file_path = file_service.get_file_path(archive_file_path)
+    try:
+        file_path = file_service.get_file_path(archive_file_path)
+    except ValueError:
+        current_app.logger.warning("invalid stored case archive path: %s", archive_file_path)
+        return jsonify({"success": False, "error": "archive not found"}), 404
     if not os.path.exists(file_path):
         return jsonify({"success": False, "error": "archive not found"}), 404
 

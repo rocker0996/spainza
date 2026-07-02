@@ -175,13 +175,14 @@
       "dashboard.staffFocusTitle": "Фокус дня",
       "dashboard.staffFocusHint": "сводка",
       "dashboard.staffFocusDeadline": "Ближайшая дата",
+      "dashboard.staffFocusDeadlineGroup": "{n} клиента в один день",
       "dashboard.staffFocusDocuments": "Документы",
       "dashboard.staffFocusDialog": "Диалог",
       "dashboard.staffFocusLoad": "Нагрузка",
       "dashboard.staffFocusLoadValue": "{n} активных кейсов",
       "dashboard.staffImportantActions": "Важные действия",
       "dashboard.staffActionOverdue": "Дата уже прошла: {date}",
-      "dashboard.staffActionNoDate": "Нужно указать дату консульства",
+      "dashboard.staffActionNoDate": "Нужно указать дату подачи",
       "dashboard.staffActionPendingDocs": "Документы на проверке: {n}",
       "dashboard.staffNoImportantActions": "Срочных действий сейчас нет",
     },
@@ -217,13 +218,14 @@
       "dashboard.staffFocusTitle": "Daily focus",
       "dashboard.staffFocusHint": "summary",
       "dashboard.staffFocusDeadline": "Next date",
+      "dashboard.staffFocusDeadlineGroup": "{n} clients on one day",
       "dashboard.staffFocusDocuments": "Documents",
       "dashboard.staffFocusDialog": "Conversation",
       "dashboard.staffFocusLoad": "Workload",
       "dashboard.staffFocusLoadValue": "{n} active cases",
       "dashboard.staffImportantActions": "Important actions",
       "dashboard.staffActionOverdue": "Date has passed: {date}",
-      "dashboard.staffActionNoDate": "Set the consulate date",
+      "dashboard.staffActionNoDate": "Set the submission date",
       "dashboard.staffActionPendingDocs": "Documents to review: {n}",
       "dashboard.staffNoImportantActions": "No urgent actions right now",
     },
@@ -233,13 +235,13 @@
     ru: {
       "dashboard.clientEyebrow": "Личный кабинет",
       "dashboard.clientTitle": "Ваш кейс Spainza",
-      "dashboard.clientSubtitle": "Ключевой статус, ближайшие действия и связь с командой в одном месте.",
+      "dashboard.clientSubtitle": "Статус и связь с командой.",
       "dashboard.clientActionsTitle": "Что нужно от вас",
       "dashboard.clientOpenDocuments": "Открыть документы",
       "dashboard.clientDocumentsTitle": "Документы",
       "dashboard.clientSummaryStatus": "Статус",
       "dashboard.clientSummaryStage": "Текущий этап",
-      "dashboard.clientSummaryDate": "Консульство",
+      "dashboard.clientSummaryDate": "Дата подачи",
       "dashboard.clientSummaryCountry": "Страна",
       "dashboard.clientStatusCompleted": "Кейс завершён",
       "dashboard.clientStatusActive": "В работе",
@@ -256,7 +258,7 @@
       "dashboard.clientNextStep": "Следующий шаг",
       "dashboard.clientNextStepMeta": "Ознакомьтесь с текущим этапом кейса.",
       "dashboard.clientUpcomingAppointment": "Ближайшая дата",
-      "dashboard.clientUpcomingAppointmentMeta": "Запись в консульство: {date}",
+      "dashboard.clientUpcomingAppointmentMeta": "Дата подачи: {date}",
       "dashboard.clientMessageAction": "Есть новое сообщение",
       "dashboard.clientMessageActionMeta": "Ответьте команде в сообщениях.",
       "dashboard.clientNoActions": "Сейчас действий от вас не требуется",
@@ -270,13 +272,13 @@
     en: {
       "dashboard.clientEyebrow": "Client portal",
       "dashboard.clientTitle": "Your Spainza case",
-      "dashboard.clientSubtitle": "Key status, next actions, and your team channel in one place.",
+      "dashboard.clientSubtitle": "Status and team contact.",
       "dashboard.clientActionsTitle": "Needed from you",
       "dashboard.clientOpenDocuments": "Open documents",
       "dashboard.clientDocumentsTitle": "Documents",
       "dashboard.clientSummaryStatus": "Status",
       "dashboard.clientSummaryStage": "Current stage",
-      "dashboard.clientSummaryDate": "Consulate",
+      "dashboard.clientSummaryDate": "Submission",
       "dashboard.clientSummaryCountry": "Country",
       "dashboard.clientStatusCompleted": "Case completed",
       "dashboard.clientStatusActive": "In progress",
@@ -293,7 +295,7 @@
       "dashboard.clientNextStep": "Next step",
       "dashboard.clientNextStepMeta": "Review the current case stage.",
       "dashboard.clientUpcomingAppointment": "Upcoming date",
-      "dashboard.clientUpcomingAppointmentMeta": "Consulate appointment: {date}",
+      "dashboard.clientUpcomingAppointmentMeta": "Submission date: {date}",
       "dashboard.clientMessageAction": "New message",
       "dashboard.clientMessageActionMeta": "Reply to the team in Messages.",
       "dashboard.clientNoActions": "No action is needed from you right now",
@@ -756,16 +758,32 @@
     roleLevelNode.textContent = countryValue || t("dashboard.countryNotSet");
   }
 
-  function renderArchiveDocument(caseData) {
+  function renderArchiveDocument(caseData, badges = dashboardClientBadges) {
     const container = document.getElementById("dashboard-key-documents");
     if (!container) return;
 
     const archiveUrl = caseData?.archive_download_url;
     const archiveName = caseData?.archive_file_name;
     const pendingDocs = openDocumentRequests(caseData);
+    const rejectedDocs = Number(badges?.document_rejected_count || 0);
     const cards = [];
 
-    if (pendingDocs.length) {
+    if (rejectedDocs > 0) {
+      cards.push(`
+        <a href="./documents.html" class="flex items-center justify-between p-4 bg-tertiary-container/10 rounded-[12px] group no-underline hover:bg-tertiary-container/15 transition-colors border border-tertiary-container/15">
+          <div class="flex items-center gap-4 min-w-0">
+            <div class="w-10 h-10 rounded-[8px] bg-tertiary-container/15 text-tertiary-container flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined">assignment_late</span>
+            </div>
+            <div class="min-w-0">
+              <p class="font-semibold text-sm font-headline text-on-surface truncate">${escapeHtml(t("dashboard.clientRejectedDocsRequired"))}</p>
+              <p class="text-xs text-outline font-body mt-0.5 truncate">${escapeHtml(t("dashboard.clientRejectedDocsRequiredMeta", { n: rejectedDocs }))}</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-outline group-hover:text-tertiary-container transition-colors text-[20px] shrink-0">arrow_forward</span>
+        </a>
+      `);
+    } else if (pendingDocs.length) {
       const names = pendingDocs.slice(0, 3).map(documentRequestName);
       if (pendingDocs.length > 3) {
         names.push(t("dashboard.clientMoreItems", { n: pendingDocs.length - 3 }));
@@ -1038,9 +1056,32 @@
     const container = document.getElementById("staff-focus-list");
     if (!container) return;
     const stats = staffStats();
-    const nextDeadline = stats.upcomingClients
+    const upcomingByDate = stats.upcomingClients
       .map((user) => ({ user, days: daysUntilTarget(user?.target_date) }))
-      .sort((a, b) => a.days - b.days)[0];
+      .filter((item) => item.days !== null)
+      .sort(
+        (a, b) =>
+          a.days - b.days ||
+          clientDisplayName(a.user).localeCompare(clientDisplayName(b.user))
+      );
+    const nearestDays = upcomingByDate.length ? upcomingByDate[0].days : null;
+    const nearestDeadlines =
+      nearestDays === null ? [] : upcomingByDate.filter((item) => item.days === nearestDays);
+    const nextDeadline = nearestDeadlines[0] || null;
+    const deadlineValue =
+      nearestDeadlines.length > 1
+        ? `${formatDeadlineMeta(nearestDays)} · ${t("dashboard.staffFocusDeadlineGroup", {
+            n: nearestDeadlines.length,
+          })}`
+        : nextDeadline
+          ? `${clientDisplayName(nextDeadline.user)} · ${formatDeadlineMeta(nextDeadline.days)}`
+          : t("dashboard.staffNoDeadlines");
+    const deadlineHref =
+      nearestDeadlines.length > 1
+        ? "./clients.html"
+        : nextDeadline
+          ? `./case.html?${clientRef(nextDeadline.user)}`
+          : "./clients.html";
     const pendingUser = sortPriorityUsers(stats.pendingClients)[0];
     const conv = latestConversation();
     const convName =
@@ -1054,10 +1095,8 @@
       focusTile(
         "event_upcoming",
         "dashboard.staffFocusDeadline",
-        nextDeadline
-          ? `${clientDisplayName(nextDeadline.user)} · ${formatDeadlineMeta(nextDeadline.days)}`
-          : t("dashboard.staffNoDeadlines"),
-        nextDeadline ? `./case.html?${clientRef(nextDeadline.user)}` : "./clients.html",
+        deadlineValue,
+        deadlineHref,
         "text-primary"
       ),
       focusTile(
@@ -1161,10 +1200,10 @@
     const role = roleLabel(user?.role);
     return `
       <article class="rounded-[12px] border border-outline-variant/20 bg-surface p-4">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div class="flex items-center gap-3 min-w-0 flex-1">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-3 min-w-0">
             ${staffAvatarHtml(user)}
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-2">
                 <h3 class="font-headline text-sm font-extrabold text-on-surface truncate">${escapeHtml(clientDisplayName(user))}</h3>
                 ${docs > 0 ? `<span class="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">${docs}</span>` : ""}
@@ -1173,7 +1212,7 @@
               <p class="text-xs text-on-surface-variant mt-1">${escapeHtml(role)} · ${escapeHtml(dateLabel)} · ${escapeHtml(formatDeadlineMeta(days))}</p>
             </div>
           </div>
-          <div class="grid grid-cols-2 sm:flex gap-2 shrink-0">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
             <a href="./case.html?${ref}" class="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary-container text-on-primary px-3 py-2 text-xs font-bold no-underline hover:opacity-90">
               <span class="material-symbols-outlined text-[16px]">folder_managed</span>${escapeHtml(t("dashboard.staffCase"))}
             </a>
@@ -1259,7 +1298,7 @@
       return (db?.getTime?.() || 0) - (da?.getTime?.() || 0);
     });
     container.innerHTML = sorted
-      .slice(0, 5)
+      .slice(0, 3)
       .map((conv) => {
         const name =
           String(conv?.other_user_name || "").trim() ||
@@ -1501,7 +1540,7 @@
       renderClientSummary(caseData, user, dashboardClientBadges);
       renderClientActions(caseData, dashboardConversations, user, dashboardClientBadges);
       renderTimelineFromCase(caseData);
-      renderArchiveDocument(caseData);
+      renderArchiveDocument(caseData, dashboardClientBadges);
       renderCountry(caseData);
 
       bindQuickReplyHandlers();
@@ -1534,7 +1573,7 @@
     renderClientSummary(dashboardLastCaseData, dashboardSessionUser, dashboardClientBadges);
     renderClientActions(dashboardLastCaseData, dashboardConversations, dashboardSessionUser, dashboardClientBadges);
     renderTimelineFromCase(dashboardLastCaseData);
-    renderArchiveDocument(dashboardLastCaseData);
+    renderArchiveDocument(dashboardLastCaseData, dashboardClientBadges);
     renderCountry(dashboardLastCaseData);
     if (dashboardSessionUser) {
       updateQuickReplyUiForTarget(dashboardSessionUser);

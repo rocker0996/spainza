@@ -197,6 +197,140 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
     ]
   };
 
+  var GUIDE_EN = {
+    pageTitle: "Guides | Spainza",
+    back: "Back to support",
+    audience: "For users",
+    title: "Personal account guide",
+    lead: "Detailed instructions for each page you need while working on your case: status, documents, messages, profile, and support.",
+    searchLabel: "Search guides",
+    searchPlaceholder: "Find a page, action, or status...",
+    print: "Print",
+    tocLabel: "Guide sections",
+    empty: "Nothing found. Try another search.",
+    quickTitle: "Where to start",
+    quickLead: "A short route before the detailed sections.",
+    open: "Open",
+    important: "Important",
+    quick: [
+      "Open the dashboard and check the current case status.",
+      "Review documents: requests, corrections, and approved files.",
+      "Reply to new team messages if there are any.",
+      "Check your profile so contact details stay up to date."
+    ],
+    sections: [
+      {
+        id: "dashboard",
+        icon: "dashboard",
+        title: "Dashboard",
+        href: "./dashboard.html",
+        summary: "The main case overview: current stage, ready document package, and quick access to messages.",
+        rows: [
+          ["Case status", "Shows the support stages. The active item means where the work is now; completed items remain in the process history."],
+          ["Ready document package", "Key documents or the final case archive appear here. If the download button is unavailable, the package is not ready yet or does not apply to your current stage."],
+          ["Manager chat", "A quick block for the latest incoming message and a short reply. For the full conversation, open Messages."],
+          ["Your ID", "The code at the top of the page is useful if a manager asks for your identifier. Click it to copy."]
+        ],
+        tips: ["If the status looks outdated, ask a question in Messages.", "Sidebar badges show where new actions are waiting."]
+      },
+      {
+        id: "documents",
+        icon: "description",
+        title: "Documents",
+        href: "./documents.html",
+        summary: "Your working file list: what was requested, uploaded, approved, or needs correction.",
+        rows: [
+          ["Requested", "The team is waiting for a file in this category. Open the card and upload the right document."],
+          ["Under review", "The file has been sent to the team. Wait for the review result and avoid duplicate uploads unless your manager asks."],
+          ["Approved", "The document was accepted. Usually no extra action is needed for this item."],
+          ["Rejected or corrections needed", "Read the comment, prepare a new version, and upload it to the same category if replacement is available."],
+          ["Filters", "Use status or priority filters when the list is long. Urgent items should usually be handled first."]
+        ],
+        tips: ["Photos and scans should be readable: no glare, cropped corners, or unnecessary archives.", "If you are unsure which file is needed, message your manager first."]
+      },
+      {
+        id: "messages",
+        icon: "chat_bubble",
+        title: "Messages",
+        href: "./messages.html",
+        summary: "The main communication channel for your case. It stores questions, answers, and clarifications.",
+        rows: [
+          ["Conversation list", "Choose the needed chat on the left or at the top on mobile. New messages are marked with a counter."],
+          ["Sending text", "Be specific: mention the document, stage, or question that needs an answer so the team understands the context faster."],
+          ["Files in chat", "Attach files only when they clarify a message. Core case documents are better uploaded in Documents."],
+          ["History", "Keep important clarifications: the conversation helps restore decisions and agreements about the case."]
+        ],
+        tips: ["Urgent changes in family composition, passport, address, or appointment details are best reported in Messages immediately.", "Use Support for general questions, but write case-specific questions here."]
+      },
+      {
+        id: "profile",
+        icon: "tune",
+        title: "Profile",
+        href: "./profile.html",
+        summary: "Your data, account settings, security, and profile service information.",
+        rows: [
+          ["Name and contacts", "Make sure your name, email, and phone are current. This affects communication speed."],
+          ["Avatar", "Optional, but it helps the team recognize the account in lists and conversations."],
+          ["Password and security", "Change your password if there is any risk that someone else gained access. Sign out after using a shared device."],
+          ["Security history", "Helps notice important account actions: sign-ins, profile changes, and password operations."]
+        ],
+        tips: ["Do not share your password with third parties.", "If your email changed, report it in Messages."]
+      },
+      {
+        id: "support",
+        icon: "help_center",
+        title: "Support and guides",
+        href: "./support.html",
+        summary: "FAQ, support contacts, call request, and this page with instructions.",
+        rows: [
+          ["Knowledge base search", "Enter a word or topic to find an answer in frequently asked questions."],
+          ["Live chat", "Go to Messages if the question is related to your case."],
+          ["Support email", "Useful for general technical questions that do not require case context."],
+          ["Request a call", "The form creates an email in your mail client. The request is sent only after you send that email."]
+        ],
+        tips: ["If a question contains personal data or documents, use Messages inside the account.", "Guides can be printed with the button at the top of the page."]
+      }
+    ]
+  };
+
+  var GUIDE_COPY = { ru: GUIDE, en: GUIDE_EN };
+
+  function getLocale() {
+    return window.LkI18n && window.LkI18n.getLocale && window.LkI18n.getLocale() === "en" ? "en" : "ru";
+  }
+
+  function getGuide() {
+    return GUIDE_COPY[getLocale()] || GUIDE_COPY.ru;
+  }
+
+  function textOrFallback(guide, key, fallback) {
+    return guide && guide[key] ? guide[key] : fallback;
+  }
+
+  function applyGuideChrome() {
+    var guide = getGuide();
+    document.title = textOrFallback(guide, "pageTitle", document.title);
+    document.documentElement.setAttribute("lang", getLocale());
+    var back = document.querySelector(".print-hidden.mb-6 a");
+    if (back) back.innerHTML = '<span class="material-symbols-outlined text-[18px]">arrow_back</span>' + textOrFallback(guide, "back", "К поддержке");
+    var badge = document.querySelector("section.mb-8 .inline-flex");
+    if (badge) badge.innerHTML = '<span class="material-symbols-outlined text-[16px]">menu_book</span>' + textOrFallback(guide, "audience", "Для пользователя");
+    var heading = document.querySelector("section.mb-8 h1");
+    if (heading) heading.textContent = textOrFallback(guide, "title", heading.textContent);
+    var lead = document.querySelector("section.mb-8 h1 + p");
+    if (lead) lead.textContent = textOrFallback(guide, "lead", lead.textContent);
+    var label = document.querySelector('label[for="guides-search"]');
+    if (label) label.textContent = textOrFallback(guide, "searchLabel", label.textContent);
+    var search = document.getElementById("guides-search");
+    if (search) search.setAttribute("placeholder", textOrFallback(guide, "searchPlaceholder", search.getAttribute("placeholder") || ""));
+    var print = document.getElementById("guides-print");
+    if (print) print.innerHTML = '<span class="material-symbols-outlined text-[20px]">print</span>' + textOrFallback(guide, "print", "Распечатать");
+    var toc = document.getElementById("guides-toc");
+    if (toc) toc.setAttribute("aria-label", textOrFallback(guide, "tocLabel", toc.getAttribute("aria-label") || ""));
+    var empty = document.getElementById("guides-empty");
+    if (empty) empty.textContent = textOrFallback(guide, "empty", empty.textContent);
+  }
+
   function roleKey(user) {
     return String((user && user.role && (user.role.key || user.role.role_key)) || user.role_key || "").toLowerCase();
   }
@@ -224,26 +358,28 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
   }
 
   function renderGuide() {
+    var guide = getGuide();
+    applyGuideChrome();
     var quick = document.getElementById("guides-quick-start");
     quick.innerHTML =
       '<section class="rounded-xl bg-surface-container-lowest p-6 md:p-8 ambient-shadow border border-outline-variant/10">' +
       '<div class="flex items-start gap-4 mb-5">' +
       '<div class="w-11 h-11 rounded-xl bg-primary-fixed/40 text-primary-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined">flag</span></div>' +
-      '<div><h2 class="font-headline text-2xl font-bold text-on-surface">' + escapeHtml(GUIDE.quickTitle) + '</h2>' +
-      '<p class="text-sm text-on-surface-variant mt-1">Короткий маршрут перед подробными разделами.</p></div>' +
+      '<div><h2 class="font-headline text-2xl font-bold text-on-surface">' + escapeHtml(guide.quickTitle) + '</h2>' +
+      '<p class="text-sm text-on-surface-variant mt-1">' + escapeHtml(textOrFallback(guide, "quickLead", "Короткий маршрут перед подробными разделами.")) + '</p></div>' +
       '</div><div class="grid gap-3 md:grid-cols-2">' +
-      GUIDE.quick.map(function (item, index) {
+      guide.quick.map(function (item, index) {
         return '<div class="flex gap-3 rounded-xl bg-surface p-4 border border-outline-variant/15">' +
           '<span class="w-7 h-7 rounded-full bg-primary-container text-on-primary text-sm font-bold flex items-center justify-center shrink-0">' + (index + 1) + '</span>' +
           '<p class="text-sm text-on-surface-variant leading-relaxed">' + escapeHtml(item) + '</p></div>';
       }).join("") + '</div></section>';
 
-    document.getElementById("guides-toc").innerHTML = GUIDE.sections.map(function (section, index) {
+    document.getElementById("guides-toc").innerHTML = guide.sections.map(function (section, index) {
       return '<a class="guide-anchor flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low ' + (index === 0 ? 'is-active' : '') + '" href="#' + section.id + '">' +
         '<span class="material-symbols-outlined text-[20px]">' + escapeHtml(section.icon) + '</span>' + escapeHtml(section.title) + '</a>';
     }).join("");
 
-    document.getElementById("guides-content").innerHTML = GUIDE.sections.map(function (section) {
+    document.getElementById("guides-content").innerHTML = guide.sections.map(function (section) {
       var rows = section.rows.map(function (row) {
         return '<div class="guide-row grid gap-2 md:grid-cols-[210px_1fr] py-4">' +
           '<h3 class="font-headline font-bold text-on-surface">' + escapeHtml(row[0]) + '</h3>' +
@@ -258,9 +394,9 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
         '<h2 class="font-headline text-2xl md:text-3xl font-bold text-on-surface">' + escapeHtml(section.title) + '</h2></div>' +
         '<p class="text-on-surface-variant leading-relaxed max-w-3xl">' + escapeHtml(section.summary) + '</p></div>' +
         '<a href="' + escapeHtml(section.href) + '" class="print-hidden inline-flex items-center justify-center gap-2 rounded-xl bg-surface-container-low px-4 py-3 text-sm font-semibold text-primary-container hover:bg-surface-container transition-colors shrink-0">' +
-        '<span class="material-symbols-outlined text-[19px]">open_in_new</span>Открыть</a></div>' +
+        '<span class="material-symbols-outlined text-[19px]">open_in_new</span>' + escapeHtml(textOrFallback(guide, "open", "Открыть")) + '</a></div>' +
         '<div class="rounded-xl bg-surface border border-outline-variant/15 px-4 md:px-5">' + rows + '</div>' +
-        '<div class="mt-5 rounded-xl bg-surface-container-low p-4"><h3 class="font-headline font-bold text-sm uppercase tracking-widest text-on-surface-variant mb-3">Важно</h3><ul class="space-y-2 text-sm text-on-surface-variant leading-relaxed">' + tips + '</ul></div></section>';
+        '<div class="mt-5 rounded-xl bg-surface-container-low p-4"><h3 class="font-headline font-bold text-sm uppercase tracking-widest text-on-surface-variant mb-3">' + escapeHtml(textOrFallback(guide, "important", "Важно")) + '</h3><ul class="space-y-2 text-sm text-on-surface-variant leading-relaxed">' + tips + '</ul></div></section>';
     }).join("");
 
     document.getElementById("guides-loading").classList.add("hidden");
@@ -274,7 +410,7 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
     var empty = document.getElementById("guides-empty");
     var anchors = Array.prototype.slice.call(document.querySelectorAll(".guide-anchor"));
 
-    search.addEventListener("input", function () {
+    search.oninput = function () {
       var query = String(search.value || "").trim().toLowerCase();
       var visible = 0;
       cards.forEach(function (card) {
@@ -284,7 +420,7 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
         if (match) visible += 1;
       });
       empty.classList.toggle("hidden", visible > 0);
-    });
+    };
 
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -298,7 +434,12 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
   }
 
   document.addEventListener("DOMContentLoaded", function () {
+    applyGuideChrome();
     document.getElementById("guides-print").addEventListener("click", function () { window.print(); });
+    window.addEventListener("lk-locale-change", function () {
+      if (!document.getElementById("guides-layout").classList.contains("hidden")) renderGuide();
+      else applyGuideChrome();
+    });
     var decided = false;
     function decide(user) {
       if (decided || !user || (!user.role && !user.role_key)) return;

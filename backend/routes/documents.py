@@ -1,6 +1,6 @@
 """Documents routes for personal account."""
 
-from flask import Blueprint, g, jsonify, request, send_file
+from flask import Blueprint, current_app, g, jsonify, request, send_file
 from models.document import (
     get_documents_for_user, create_document, get_document_by_id,
     approve_document, reject_document, revoke_approval, delete_document,
@@ -36,6 +36,10 @@ from utils.time import normalize_storage_datetime
 
 documents_bp = Blueprint("documents", __name__)
 file_service = FileService()
+
+
+def _internal_error(message: str):
+    return jsonify({"success": False, "error": message}), 500
 
 
 @documents_bp.get("/documents")
@@ -276,7 +280,8 @@ def upload_document():
     except ValueError as e:
         return jsonify({"success": False, "error": str(e)}), 400
     except Exception as e:
-        return jsonify({"success": False, "error": f"Upload failed: {str(e)}"}), 500
+        current_app.logger.exception("document upload failed: %s", e)
+        return _internal_error("upload failed")
 
 
 @documents_bp.get("/documents/<int:document_id>/download")
@@ -313,7 +318,11 @@ def download_document(document_id):
     if not document["file_path"]:
         return jsonify({"success": False, "error": "no file associated with this document"}), 404
     
-    file_path = file_service.get_file_path(document["file_path"])
+    try:
+        file_path = file_service.get_file_path(document["file_path"])
+    except ValueError:
+        current_app.logger.warning("invalid stored document file path: %s", document["file_path"])
+        return jsonify({"success": False, "error": "file not found on server"}), 404
     if not os.path.exists(file_path):
         return jsonify({"success": False, "error": "file not found on server"}), 404
     
@@ -623,7 +632,8 @@ def replace_document_endpoint(document_id):
     except ValueError as e:
         return jsonify({"success": False, "error": str(e)}), 400
     except Exception as e:
-        return jsonify({"success": False, "error": f"Replace failed: {str(e)}"}), 500
+        current_app.logger.exception("document replace failed: %s", e)
+        return _internal_error("replace failed")
 
 
 @documents_bp.get("/document-history/<int:user_id>")

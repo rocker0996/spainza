@@ -1358,7 +1358,7 @@ function deleteDocumentRequest(docId) {
 /**
  * Recall document request
  */
-function recallDocumentRequest(docId) {
+async function recallDocumentRequest(docId) {
     if (!isEditMode) {
         showEnableEditModeToast();
         return;
@@ -1366,22 +1366,52 @@ function recallDocumentRequest(docId) {
     const doc = caseData.documentRequests.find(d => d.id === docId);
     if (!doc) return;
 
-    showCaseConfirm({
+    const ok = await showCaseConfirm({
         title: t("case.recallRequestTitle"),
         message: t("case.recallRequestMessage", { name: doc.name }),
         confirmText: t("case.recallRequest"),
         danger: true,
-    }).then((ok) => {
-        if (!ok) {
-            return;
-        }
-        doc.sent = false;
-        doc.checked = false;
-        doc.fulfilled = false;
-        markDocumentRequestsManual();
-        renderDocumentRequests();
-        showSaveNotification();
     });
+    if (!ok) {
+        return;
+    }
+
+    if (window.saveTimeout) {
+        clearTimeout(window.saveTimeout);
+        window.saveTimeout = null;
+    }
+    caseSaveSeq += 1;
+
+    try {
+        const response = await fetch(
+            `${API_BASE}/case-data/${currentUserId}/document-requests/recall`,
+            {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ request_id: docId }),
+            }
+        );
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        if (Array.isArray(data.document_requests)) {
+            caseData.documentRequests = data.document_requests;
+        } else {
+            doc.sent = false;
+            doc.checked = false;
+            doc.fulfilled = false;
+        }
+        caseData.documentRequestsManual = true;
+        renderDocumentRequests();
+        showCaseToast(t("case.recallRequest"), "success");
+    } catch (error) {
+        console.error("Failed to recall document request:", error);
+        renderDocumentRequests();
+        showCaseToast(t("case.toast.saveFailed", { error: error.message }), "error");
+    }
 }
 
 /**

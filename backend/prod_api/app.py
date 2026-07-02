@@ -1,4 +1,9 @@
-"""Production-ready minimal API for frontend contract."""
+"""Legacy minimal API prototype.
+
+The active production deployment uses ``wsgi:application`` from the main Flask app.
+This module is kept only for reference and must not be started accidentally because
+it has a separate auth/data model from the supported backend.
+"""
 
 from __future__ import annotations
 
@@ -12,6 +17,10 @@ from backend.prod_api.auth import decode_token, issue_token, read_token_from_req
 from backend.prod_api.bootstrap import ensure_bootstrap_admin
 from backend.prod_api.db import get_connection
 from backend.prod_api.migrate import run_migrations
+
+
+if os.getenv("ENABLE_LEGACY_PROD_API", "").strip().lower() not in {"1", "true", "yes"}:
+    raise RuntimeError("backend.prod_api is disabled; use wsgi:application")
 
 
 ROLE_LEVELS = {

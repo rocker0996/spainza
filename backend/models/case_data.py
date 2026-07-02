@@ -223,6 +223,62 @@ def mark_document_requests_sent(
     return ok, requests, updated
 
 
+def mark_document_request_recalled(
+    connection: sqlite3.Connection,
+    user_id: int,
+    request_id: int,
+) -> tuple[bool, list[dict[str, Any]], bool]:
+    """Atomically recall one document request from the client-visible list."""
+    case_data = get_case_data_by_user_id(connection, user_id)
+    if not case_data:
+        return False, [], False
+
+    requests = case_data.get("document_requests")
+    if not isinstance(requests, list):
+        return False, [], False
+
+    updated = False
+    matched = False
+    for req in requests:
+        if not isinstance(req, dict):
+            continue
+        try:
+            rid = int(req.get("id"))
+        except (TypeError, ValueError):
+            continue
+        if rid != int(request_id):
+            continue
+        matched = True
+        if case_data_flag_is_true(req.get("sent")) or case_data_flag_is_true(
+            req.get("fulfilled")
+        ):
+            updated = True
+        req["sent"] = False
+        req["checked"] = False
+        req["fulfilled"] = False
+        break
+
+    if not matched:
+        return False, requests, False
+
+    ok = upsert_case_data(
+        connection,
+        user_id,
+        case_data.get("visa_type") or "digital_nomad",
+        case_data.get("target_date"),
+        case_data.get("country") or "",
+        case_data.get("archive_file_path"),
+        case_data.get("archive_file_name"),
+        case_data.get("timeline") or [],
+        requests,
+        referral_id=case_data.get("referral_id"),
+        manager_id=case_data.get("manager_id"),
+        timeline_manual=bool(case_data.get("timeline_manual")),
+        document_requests_manual=True,
+    )
+    return ok, requests, updated
+
+
 def _parse_case_document_request_id(request_id_raw: str | None) -> int | None:
     """Parse ``req_3`` or ``3`` into a numeric case document-request id."""
     if request_id_raw is None:

@@ -42,12 +42,18 @@ npm.cmd run build:css
 npm.cmd test
 ```
 
+Проверить production npm-зависимости:
+
+```powershell
+npm.cmd audit --omit=dev
+```
+
 ## Важные файлы
 
 - `.env.example` - пример настроек для локального запуска.
 - `.env.production.example` - пример настроек для сервера.
 - `docker-compose.production.yml` - запуск на сервере.
-- `backend/app.py` - главный Flask-сервер.
+- `backend/app.py` - основной Flask-сервер.
 - `frontend/lk/` - страницы личного кабинета.
 
 ## Что не нужно добавлять в git

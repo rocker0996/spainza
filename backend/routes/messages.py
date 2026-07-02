@@ -1,5 +1,5 @@
 """Messaging routes."""
-from flask import Blueprint, request, jsonify, g, send_file
+from flask import Blueprint, current_app, request, jsonify, g, send_file
 from models.message import Message
 from models.user import (
     User,
@@ -18,6 +18,10 @@ from functools import wraps
 import os
 
 messages_bp = Blueprint('messages', __name__)
+
+
+def _internal_error():
+    return jsonify({'error': 'internal server error'}), 500
 
 
 def _notify_message_received(
@@ -135,7 +139,8 @@ def get_conversations():
         
         return jsonify(conversations), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("get conversations failed: %s", e)
+        return _internal_error()
 
 @messages_bp.route('/api/conversations/<conversation_id>/messages', methods=['GET'])
 @login_required
@@ -162,7 +167,8 @@ def get_conversation_messages(conversation_id):
         
         return jsonify(_serialize_messages_for_api(messages)), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("get conversation messages failed: %s", e)
+        return _internal_error()
 
 @messages_bp.route('/api/conversations/create', methods=['POST'])
 @login_required
@@ -238,7 +244,8 @@ def create_conversation():
             'messages': _serialize_messages_for_api(messages)
         }), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("create conversation failed: %s", e)
+        return _internal_error()
 
 @messages_bp.route('/api/conversations/<conversation_id>/messages', methods=['POST'])
 @login_required
@@ -376,7 +383,8 @@ def send_message(conversation_id):
             'success': True
         }), 201
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("send message failed: %s", e)
+        return _internal_error()
 
 @messages_bp.route('/api/messages/unread-count', methods=['GET'])
 @login_required
@@ -387,7 +395,8 @@ def get_unread_count():
         count = Message.get_unread_count(user_id)
         return jsonify({'unread_count': count}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("get unread count failed: %s", e)
+        return _internal_error()
 
 
 @messages_bp.route('/api/messages/<int:message_id>/image', methods=['GET'])
@@ -405,7 +414,11 @@ def download_message_image(message_id):
     if not image_path:
         return jsonify({'error': 'Image not found'}), 404
 
-    file_path = FileService().get_file_path(image_path)
+    try:
+        file_path = FileService().get_file_path(image_path)
+    except ValueError:
+        current_app.logger.warning("invalid stored message image path: %s", image_path)
+        return jsonify({'error': 'Image not found'}), 404
     if not os.path.exists(file_path):
         return jsonify({'error': 'Image not found'}), 404
     return send_file(file_path, as_attachment=False)
@@ -426,7 +439,11 @@ def download_message_file(message_id):
     if not relative_path:
         return jsonify({'error': 'File not found'}), 404
 
-    file_path = FileService().get_file_path(relative_path)
+    try:
+        file_path = FileService().get_file_path(relative_path)
+    except ValueError:
+        current_app.logger.warning("invalid stored message file path: %s", relative_path)
+        return jsonify({'error': 'File not found'}), 404
     if not os.path.exists(file_path):
         return jsonify({'error': 'File not found'}), 404
 
@@ -456,8 +473,8 @@ def delete_conversation(conversation_id):
         )
         return jsonify({'success': True}), 200
     except Exception as e:
-        print(f"Error deleting conversation: {e}")
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("delete conversation failed: %s", e)
+        return _internal_error()
 
 def _verify_conversation_participant(conversation_id, user_id):
     parts = conversation_id.split('_')
@@ -499,8 +516,8 @@ def delete_message_in_conversation(conversation_id, message_id):
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        print(f"Error deleting message in conversation: {e}")
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("delete message in conversation failed: %s", e)
+        return _internal_error()
 
 
 @messages_bp.route('/api/messages/<int:message_id>', methods=['DELETE'])
@@ -512,8 +529,8 @@ def delete_single_message(message_id):
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        print(f"Error deleting message: {e}")
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("delete message failed: %s", e)
+        return _internal_error()
 
 
 @messages_bp.route('/api/messages/<int:message_id>/delete', methods=['POST'])
@@ -525,8 +542,8 @@ def delete_single_message_post(message_id):
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        print(f"Error deleting message: {e}")
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("delete message fallback failed: %s", e)
+        return _internal_error()
 
 
 @messages_bp.route('/api/conversations/<conversation_id>/clear', methods=['POST'])
@@ -552,8 +569,8 @@ def clear_conversation_history(conversation_id):
         )
         return jsonify({'success': True}), 200
     except Exception as e:
-        print(f"Error clearing conversation history: {e}")
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("clear conversation history failed: %s", e)
+        return _internal_error()
 
 @messages_bp.route('/api/users/search', methods=['GET'])
 @login_required
@@ -586,4 +603,5 @@ def search_users():
 
         return jsonify([_public_user_search_payload(row)]), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception("search users failed: %s", e)
+        return _internal_error()
