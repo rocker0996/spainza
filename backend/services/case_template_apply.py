@@ -82,7 +82,7 @@ def _map_template_docs_to_case(items: list[dict[str, Any]]) -> list[dict[str, An
                 "id": i + 1,
                 "name": it.get("name") or "Документ",
                 "description": str(it.get("description") or ""),
-                "checked": required,
+                "checked": False,
                 "priority": it.get("priority") or "normal",
                 "sent": required,
                 "isDefault": True,

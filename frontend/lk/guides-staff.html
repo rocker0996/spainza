@@ -204,6 +204,7 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
   var STAFF_GUIDE = {
     audience: "Для персонала",
     title: "Рабочие руководства для команды",
+    badge: "BETA",
     lead: "Подробные инструкции по страницам личного кабинета для сопровождения клиентов, обработки документов, коммуникаций и настройки шаблонов.",
     quickTitle: "Рабочий порядок",
     quick: [
@@ -398,7 +399,7 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
 
     document.title = guide.audience + " | Spainza";
     document.getElementById("guide-audience-pill").lastChild.textContent = guide.audience;
-    document.getElementById("guide-title").textContent = guide.title;
+    document.getElementById("guide-title").innerHTML = escapeHtml(guide.title) + ' <span class="inline-flex align-middle ml-2 rounded-full bg-secondary-container px-3 py-1 text-xs md:text-sm font-bold uppercase tracking-widest text-on-secondary-container">' + escapeHtml(guide.badge) + '</span>';
     document.getElementById("guide-lead").textContent = guide.lead;
 
     var quick = document.getElementById("guides-quick-start");

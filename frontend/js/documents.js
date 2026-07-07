@@ -14,6 +14,8 @@
   let currentUserId = null;
   let targetUserId = null;
   let targetClientDisplayId = null;
+  let loadedDocumentsUserId = null;
+  let hasEmptyClientParam = false;
   let isManagementDocumentsView = false;
   let caseCompletion = null;
   
@@ -126,7 +128,12 @@
     if (clientParam !== null) {
       const clientRaw = clientParam.trim().toUpperCase();
       if (!clientRaw) {
-        stripClientParamFromUrl();
+        hasEmptyClientParam = true;
+        if (legacy && /^\d+$/.test(String(legacy).trim())) {
+          hasEmptyClientParam = false;
+          stripClientParamFromUrl();
+          return parseInt(String(legacy).trim(), 10);
+        }
         return null;
       }
       if (!/^[A-Z]{2}\d{4}$/.test(clientRaw)) {
@@ -428,6 +435,7 @@
       };
     }
     
+    const showPriorityBadge = !documentData.hide_priority_badge;
     const priorityLabel = documentData.is_priority
       ? t("documents.card.priorityUrgent")
       : t("documents.card.priorityStandard");
@@ -436,6 +444,11 @@
       : "bg-primary-fixed text-primary-container";
     const priorityIconHtml = documentData.is_priority
       ? '<span class="material-symbols-outlined doc-card-badge-icon" aria-hidden="true">priority_high</span>'
+      : "";
+    const priorityBadgeHtml = showPriorityBadge
+      ? `<span class="${badgeClasses} text-[9px] sm:text-[10px] font-bold uppercase tracking-normal sm:tracking-wide px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full inline-flex items-center gap-0.5 max-w-[40%] sm:max-w-none min-w-0 leading-tight">
+            ${priorityIconHtml}<span class="truncate">${priorityLabel}</span>
+          </span>`
       : "";
 
     const canModerateDocuments =
@@ -555,9 +568,7 @@
       <article id="document-card-${documentData.id}" class="${cardBg} p-3 sm:p-5 md:p-6 rounded-lg sm:rounded-xl shadow-[0px_20px_40px_rgba(117,118,130,0.06)] group relative overflow-hidden flex flex-col h-full border-t-4 ${borderColor}">
         <div class="flex flex-wrap items-start justify-between gap-1 sm:gap-2 mb-2 sm:mb-4">
           <span class="${statusBadge.color} text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wide sm:tracking-widest px-2 py-0.5 sm:px-3 sm:py-1 rounded-full max-w-[58%] sm:max-w-none leading-tight">${statusBadge.text}</span>
-          <span class="${badgeClasses} text-[9px] sm:text-[10px] font-bold uppercase tracking-normal sm:tracking-wide px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full inline-flex items-center gap-0.5 max-w-[40%] sm:max-w-none min-w-0 leading-tight">
-            ${priorityIconHtml}<span class="truncate">${priorityLabel}</span>
-          </span>
+          ${priorityBadgeHtml}
         </div>
         <div class="mb-2 sm:mb-6">
           <h3 class="text-sm sm:text-lg md:text-xl font-bold text-slate-800 leading-snug sm:leading-tight mb-1 line-clamp-3 sm:line-clamp-none break-words">${escapeHtml(documentData.title)}</h3>
@@ -760,7 +771,9 @@
     
     historyList.innerHTML = `<div class="p-8 text-center text-slate-500">${t("documents.historyLoading")}</div>`;
     
-    const historyUserId = targetUserId || currentUserId;
+    const historyUserId = hasEmptyClientParam
+      ? null
+      : targetUserId || loadedDocumentsUserId || currentUserId;
     if (!historyUserId) {
       historyList.innerHTML = `<div class="p-8 text-center text-slate-500">${t("documents.historyClientOnly")}</div>`;
       return;
@@ -1044,6 +1057,7 @@
   }
 
   async function initDocumentsPage() {
+    hasEmptyClientParam = false;
     targetUserId = await resolveTargetUserIdFromUrl();
 
     const userPayload = await fetchFromApi("/user");
@@ -1066,6 +1080,7 @@
       currentUserPermissions.includes("view_assigned_clients");
 
     const canAccessDocuments =
+      hasEmptyClientParam ||
       canViewAssignedClientDocuments ||
       (!(isPortalStaff && !targetUserId) &&
         (currentUserPermissions.includes("full_access") ||
@@ -1088,36 +1103,53 @@
 
     await applyDocumentsHeaderActions();
 
-    // Fetch documents with optional userId parameter
-    const documentsUrl =
-      targetUserId && !viewingOwnDocuments
-        ? `/documents?userId=${targetUserId}`
-        : "/documents";
-    
-    const documentsPayload = await fetchFromApi(documentsUrl);
-    
-    if (!documentsPayload) {
-      showDocumentsToast(t("documents.toast.loadFailed"), "error");
-    }
-
-    if (documentsPayload) {
-      allDocuments = documentsPayload.documents || [];
-      currentUserName = documentsPayload.user_name || t("common.user");
-      if (!targetClientDisplayId && documentsPayload.client_display_id) {
-        targetClientDisplayId = normalizeClientDisplayId(documentsPayload.client_display_id);
-        if (targetClientDisplayId) {
-          syncClientParamInUrl(targetClientDisplayId);
-        }
+    if (hasEmptyClientParam) {
+      const backBtn = document.getElementById("back-btn");
+      const historyBtn = document.getElementById("history-btn");
+      const pageSubtitle = document.getElementById("page-subtitle");
+      showHeaderToolbarButton(backBtn, true, "./clients.html");
+      showHeaderToolbarButton(historyBtn, true);
+      if (pageSubtitle) {
+        pageSubtitle.style.display = "none";
       }
-      
-    } else {
       allDocuments = [];
-      console.error('❌ No documents payload received');
-    }
+      loadedDocumentsUserId = null;
+      renderCaseCompletionBanner();
+      renderDocuments();
+      showDocumentsToast(t("documents.historyClientOnly"), "error");
+    } else {
+      // Fetch documents with optional userId parameter
+      const documentsUrl =
+        targetUserId && !viewingOwnDocuments
+          ? `/documents?userId=${targetUserId}`
+          : "/documents";
 
-    await loadCaseCompletionForDocuments(targetUserId || currentUserId);
-    renderCaseCompletionBanner();
-    renderDocuments();
+      const documentsPayload = await fetchFromApi(documentsUrl);
+
+      if (!documentsPayload) {
+        showDocumentsToast(t("documents.toast.loadFailed"), "error");
+      }
+
+      if (documentsPayload) {
+        allDocuments = documentsPayload.documents || [];
+        loadedDocumentsUserId = documentsPayload.user_id || null;
+        currentUserName = documentsPayload.user_name || t("common.user");
+        if (!targetClientDisplayId && documentsPayload.client_display_id) {
+          targetClientDisplayId = normalizeClientDisplayId(documentsPayload.client_display_id);
+          if (targetClientDisplayId) {
+            syncClientParamInUrl(targetClientDisplayId);
+          }
+        }
+
+      } else {
+        allDocuments = [];
+        console.error('❌ No documents payload received');
+      }
+
+      await loadCaseCompletionForDocuments(targetUserId || currentUserId);
+      renderCaseCompletionBanner();
+      renderDocuments();
+    }
 
     const prevButton = document.getElementById("documents-prev-btn");
     const nextButton = document.getElementById("documents-next-btn");

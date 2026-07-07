@@ -1,10 +1,14 @@
 """Authentication routes."""
 
+import json
+import secrets
 from sqlite3 import IntegrityError
 
 from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 from flask import Blueprint, current_app, g, jsonify, redirect, request, make_response
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
 from models.security_log import add_security_log
 from models.user import (
@@ -12,8 +16,10 @@ from models.user import (
     get_user_by_email,
     get_user_by_id,
     is_account_deletion_pending,
+    mark_user_email_verified,
     post_login_redirect_path,
     revoke_user_auth_tokens,
+    update_user_identity_profile,
 )
 from services.auth_service import (
     confirm_pending_email_change,
@@ -55,6 +61,10 @@ from utils.security import (
 
 auth_bp = Blueprint("auth", __name__)
 AUTH_COOKIE_NAME = "access_token"
+GOOGLE_OAUTH_STATE_COOKIE = "google_oauth_state"
+GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 
 
 def _error_response(error_code: str, message_ru: str, message_en: str, status_code: int):
@@ -141,6 +151,227 @@ def _clear_auth_cookie(response):
         expires=0,
         max_age=0,
     )
+
+
+def _public_base_url() -> str:
+    configured = str(current_app.config.get("PUBLIC_BASE_URL") or "").rstrip("/")
+    if configured:
+        return configured
+    return request.url_root.rstrip("/")
+
+
+def _google_redirect_uri() -> str:
+    configured = str(current_app.config.get("GOOGLE_OAUTH_REDIRECT_URI") or "").strip()
+    if configured:
+        return configured
+    return f"{_public_base_url()}/api/auth/google/callback"
+
+
+def _google_oauth_serializer() -> URLSafeTimedSerializer:
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="google-oauth-state")
+
+
+def _google_oauth_configured() -> bool:
+    return bool(
+        current_app.config.get("GOOGLE_CLIENT_ID")
+        and current_app.config.get("GOOGLE_CLIENT_SECRET")
+    )
+
+
+def _post_form_json(url: str, data: dict, timeout: int = 15) -> dict:
+    encoded = urlencode(data).encode("utf-8")
+    req = Request(
+        url,
+        data=encoded,
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+        },
+        method="POST",
+    )
+    with urlopen(req, timeout=timeout) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def _get_json(url: str, token: str, timeout: int = 15) -> dict:
+    req = Request(url, headers={"Authorization": f"Bearer {token}", "Accept": "application/json"})
+    with urlopen(req, timeout=timeout) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def _clear_google_state_cookie(response):
+    secure_cookie, same_site = _auth_cookie_attrs()
+    response.set_cookie(
+        GOOGLE_OAUTH_STATE_COOKIE,
+        "",
+        httponly=True,
+        secure=secure_cookie,
+        samesite=same_site,
+        path="/",
+        expires=0,
+        max_age=0,
+    )
+
+
+def _create_google_user_session(user_info: dict, manager_invite_token: str = ""):
+    email = str(user_info.get("email") or "").strip().lower()
+    if not email or not user_info.get("email_verified"):
+        return None, None, False, "email_not_verified"
+
+    user = get_user_by_email(g.db, email)
+    created = False
+    if user and is_account_deletion_pending(user):
+        return None, None, False, "account_deleted"
+
+    if user:
+        user_id = int(user["id"])
+        if is_email_verification_pending(user):
+            mark_user_email_verified(g.db, user_id, to_storage_datetime(utc_now()))
+    else:
+        password_seed = secrets.token_urlsafe(48)
+        user_id, _display_id = create_user(g.db, email, hash_password(password_seed))
+        created = True
+        mark_user_email_verified(g.db, user_id, to_storage_datetime(utc_now()))
+
+    update_user_identity_profile(
+        g.db,
+        user_id,
+        name=str(user_info.get("name") or "").strip(),
+        avatar=str(user_info.get("picture") or "").strip(),
+    )
+
+    if created:
+        try:
+            materialize_case_from_template_if_needed(g.db, user_id, fallback_viewer_id=None)
+        except Exception as exc:
+            current_app.logger.exception("case template materialize after google login: %s", exc)
+
+        if manager_invite_token:
+            mgr_id = resolve_manager_id_from_invite_token(g.db, manager_invite_token)
+            if mgr_id:
+                try:
+                    ok, code = try_assign_client_to_manager(g.db, mgr_id, user_id)
+                    if not ok and code != "personal_manager_taken":
+                        current_app.logger.warning(
+                            "google invite assign: user_id=%s manager_id=%s code=%s",
+                            user_id,
+                            mgr_id,
+                            code,
+                        )
+                except Exception as exc:
+                    current_app.logger.exception("google invite assign failed: %s", exc)
+
+        try:
+            send_support_welcome_to_new_user(g.db, user_id)
+        except Exception as exc:
+            current_app.logger.exception("welcome support message after google login: %s", exc)
+
+    user_row = get_user_by_id(g.db, user_id)
+    return user_id, user_row, created, ""
+
+
+@auth_bp.get("/auth/google/start")
+def google_oauth_start():
+    if not _google_oauth_configured():
+        return redirect(_login_page_url(google_error="config"))
+
+    nonce = secrets.token_urlsafe(24)
+    manager_invite_token = str(request.args.get("invite") or "").strip()
+    state = _google_oauth_serializer().dumps(
+        {"nonce": nonce, "manager_invite_token": manager_invite_token}
+    )
+    params = {
+        "client_id": current_app.config["GOOGLE_CLIENT_ID"],
+        "redirect_uri": _google_redirect_uri(),
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": state,
+        "access_type": "online",
+        "prompt": "select_account",
+    }
+    response = make_response(redirect(f"{GOOGLE_AUTH_URL}?{urlencode(params)}"))
+    secure_cookie, same_site = _auth_cookie_attrs()
+    response.set_cookie(
+        GOOGLE_OAUTH_STATE_COOKIE,
+        nonce,
+        httponly=True,
+        secure=secure_cookie,
+        samesite=same_site,
+        path="/",
+        max_age=10 * 60,
+    )
+    return response
+
+
+@auth_bp.get("/auth/google/callback")
+def google_oauth_callback():
+    if not _google_oauth_configured():
+        return redirect(_login_page_url(google_error="config"))
+
+    error = str(request.args.get("error") or "").strip()
+    if error:
+        return redirect(_login_page_url(google_error=error[:40]))
+
+    code = str(request.args.get("code") or "").strip()
+    state = str(request.args.get("state") or "").strip()
+    if not code or not state:
+        return redirect(_login_page_url(google_error="invalid"))
+
+    try:
+        state_payload = _google_oauth_serializer().loads(state, max_age=10 * 60)
+    except (BadSignature, SignatureExpired):
+        return redirect(_login_page_url(google_error="state"))
+
+    state_cookie = str(request.cookies.get(GOOGLE_OAUTH_STATE_COOKIE) or "")
+    if not state_cookie or state_cookie != str(state_payload.get("nonce") or ""):
+        return redirect(_login_page_url(google_error="state"))
+
+    try:
+        token_payload = _post_form_json(
+            GOOGLE_TOKEN_URL,
+            {
+                "client_id": current_app.config["GOOGLE_CLIENT_ID"],
+                "client_secret": current_app.config["GOOGLE_CLIENT_SECRET"],
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": _google_redirect_uri(),
+            },
+        )
+        access_token = str(token_payload.get("access_token") or "")
+        if not access_token:
+            current_app.logger.warning("google oauth token payload missing access_token")
+            return redirect(_login_page_url(google_error="token"))
+        user_info = _get_json(GOOGLE_USERINFO_URL, access_token)
+    except Exception as exc:
+        current_app.logger.exception("google oauth callback failed: %s", exc)
+        return redirect(_login_page_url(google_error="callback"))
+
+    user_id, user_row, created, code = _create_google_user_session(
+        user_info,
+        manager_invite_token=str(state_payload.get("manager_invite_token") or "").strip(),
+    )
+    if code == "account_deleted":
+        return redirect(_login_page_url(google_error="account_deleted"))
+    if code == "email_not_verified" or not user_id or not user_row:
+        return redirect(_login_page_url(google_error="email"))
+
+    try:
+        add_security_log(
+            g.db,
+            int(user_id),
+            "google_login",
+            "Google login",
+            details="Created new account" if created else "Signed in with existing account",
+            ip_address=_request_ip(),
+        )
+    except Exception as exc:
+        current_app.logger.exception("google login security log failed: %s", exc)
+
+    token = generate_auth_token(current_app.config["SECRET_KEY"], int(user_id))
+    response = make_response(redirect(post_login_redirect_path(user_row)))
+    _set_auth_cookie(response, token)
+    _clear_google_state_cookie(response)
+    return response
 
 
 @auth_bp.post("/register")

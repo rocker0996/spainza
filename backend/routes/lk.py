@@ -2113,6 +2113,45 @@ def put_case_template(visa_type: str):
     if not isinstance(document_items, list):
         return jsonify({"success": False, "error": "document_items must be a list"}), 400
 
+    valid_priorities = {"normal", "urgent", "optional"}
+    normalized_timeline = []
+    for i, step in enumerate(timeline):
+        if not isinstance(step, dict):
+            return jsonify({"success": False, "error": "timeline items must be objects"}), 400
+        title_value = str(step.get("title") or "").strip()
+        description_value = str(step.get("description") or "").strip()
+        duration_value = str(step.get("duration_label") or "").strip()
+        if not title_value:
+            return jsonify({"success": False, "error": "timeline item title is required"}), 400
+        normalized_timeline.append(
+            {
+                "order": i + 1,
+                "title": title_value[:160],
+                "duration_label": duration_value[:80],
+                "description": description_value[:2000],
+            }
+        )
+
+    normalized_document_items = []
+    for item in document_items:
+        if not isinstance(item, dict):
+            return jsonify({"success": False, "error": "document_items must contain objects"}), 400
+        name_value = str(item.get("name") or "").strip()
+        description_value = str(item.get("description") or "").strip()
+        priority_value = str(item.get("priority") or "normal").strip()
+        if priority_value not in valid_priorities:
+            return jsonify({"success": False, "error": "invalid document priority"}), 400
+        if not name_value:
+            return jsonify({"success": False, "error": "document item name is required"}), 400
+        normalized_document_items.append(
+            {
+                "name": name_value[:200],
+                "description": description_value[:2000],
+                "required": bool(item.get("required")),
+                "priority": priority_value,
+            }
+        )
+
     fee_val = None
     if processing_fee is not None and str(processing_fee).strip() != "":
         try:
@@ -2135,8 +2174,8 @@ def put_case_template(visa_type: str):
         public_description,
         fee_val,
         dur_val,
-        timeline,
-        document_items,
+        normalized_timeline,
+        normalized_document_items,
     )
 
     add_security_log(
@@ -2144,7 +2183,7 @@ def put_case_template(visa_type: str):
         g.current_user_id,
         "case_template_updated",
         f"Обновлён шаблон кейса: {visa_type}",
-        details=f"Этапов: {len(timeline)}, позиций документов: {len(document_items)}",
+        details=f"Этапов: {len(normalized_timeline)}, позиций документов: {len(normalized_document_items)}",
         ip_address=_request_ip(),
     )
 

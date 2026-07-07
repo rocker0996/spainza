@@ -343,6 +343,28 @@ def create_user(connection: sqlite3.Connection, email: str, password_hash: str) 
     raise RuntimeError("Could not allocate a unique display_id for new user")
 
 
+def update_user_identity_profile(
+    connection: sqlite3.Connection,
+    user_id: int,
+    *,
+    name: str | None = None,
+    avatar: str | None = None,
+) -> bool:
+    """Update basic identity fields from a trusted social provider."""
+    cursor = connection.execute(
+        """
+        UPDATE users
+        SET
+            name = COALESCE(NULLIF(?, ''), name),
+            avatar = COALESCE(NULLIF(?, ''), avatar)
+        WHERE id = ?
+        """,
+        ((name or "").strip(), (avatar or "").strip(), user_id),
+    )
+    connection.commit()
+    return cursor.rowcount > 0
+
+
 def ensure_users_columns(connection: sqlite3.Connection) -> None:
     """Add missing profile columns for existing databases."""
     cursor = connection.execute("PRAGMA table_info(users)")

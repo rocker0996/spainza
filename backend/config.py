@@ -96,6 +96,9 @@ class Config:
     """Аккаунт поддержки в ЛК (числовой id в БД). Для чата по умолчанию используется его публичный display_id из профиля."""
     PORTAL_SUPPORT_USER_ID = int(os.getenv("PORTAL_SUPPORT_USER_ID", "3"))
     PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "")
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
+    GOOGLE_OAUTH_REDIRECT_URI = os.getenv("GOOGLE_OAUTH_REDIRECT_URI", "").strip()
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "").strip().lstrip("@")
 
@@ -126,4 +129,3 @@ class Config:
     MESSAGE_RATE_LIMIT_USER_WINDOW_SECONDS = _parse_int_env("MESSAGE_RATE_LIMIT_USER_WINDOW_SECONDS", 60)
     # Must be >= largest upload limit in file_service (documents: 50 MB).
     MAX_CONTENT_LENGTH = _parse_int_env("MAX_UPLOAD_BYTES", 55 * 1024 * 1024)
-

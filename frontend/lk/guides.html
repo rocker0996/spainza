@@ -117,10 +117,10 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
   var GUIDE = {
     quickTitle: "С чего начать",
     quick: [
-      "Откройте главную и посмотрите текущий статус дела.",
-      "Проверьте документы: запросы, правки и принятые файлы.",
-      "Ответьте на новые сообщения команды, если они есть.",
-      "Проверьте профиль, чтобы контактные данные были актуальны."
+      "Скопируйте и отправьте ваш ID менеджеру.",
+      "Ожидайте, пока менеджер закрепит вас в системе и отправит рекомендации.",
+      "Следуйте появившимся указаниям на главной странице.",
+      "Рекомендуется подключить Телеграм к своему аккаунту, чтобы не упустить апдейты по кейсу."
     ],
     sections: [
       {
@@ -128,10 +128,9 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
         icon: "dashboard",
         title: "Главная",
         href: "./dashboard.html",
-        summary: "Страница общего статуса: текущий этап дела, готовый пакет документов и быстрый переход к переписке.",
+        summary: "Страница общего статуса: текущий этап дела, ваш ID и быстрый переход к переписке.",
         rows: [
           ["Статус кейса", "Показывает этапы сопровождения. Активный пункт означает, где сейчас находится работа; завершённые пункты остаются в истории процесса."],
-          ["Готовый пакет документов", "Здесь отображаются ключевые документы или архив по завершённому кейсу. Если кнопка скачивания недоступна, пакет ещё не готов или не относится к вашему текущему этапу."],
           ["Чат с менеджером", "Быстрый блок для последнего входящего сообщения и короткого ответа. Для подробной переписки лучше перейти в раздел “Сообщения”."],
           ["Ваш ID", "Код в верхней части страницы нужен, если менеджер просит назвать идентификатор. Нажмите на него, чтобы скопировать."]
         ],
@@ -159,12 +158,11 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
         href: "./messages.html",
         summary: "Основной канал связи по делу. Здесь сохраняется история вопросов, ответов и уточнений.",
         rows: [
-          ["Список диалогов", "Выберите нужный чат слева или сверху на мобильном. Новые сообщения отмечаются счётчиком."],
-          ["Отправка текста", "Пишите конкретно: какой документ, какой этап или какой вопрос требует ответа. Так команда быстрее поймёт контекст."],
-          ["Файлы в переписке", "Если нужно приложить файл к пояснению, проверьте, что он относится к вопросу. Основные документы по делу лучше загружать в “Документы”."],
+          ["Список диалогов", "Выберите нужный чат справа или сверху на мобильном. Новые сообщения отмечаются счётчиком."],
+          ["Файлы в переписке", "Если хотите загрузить файл для кейса, воспользуйтесь функцией “+ свой документ” на странице Документы."],
           ["История", "Не удаляйте важные пояснения: переписка помогает восстановить договорённости и решения по делу."]
         ],
-        tips: ["Срочные изменения в семейном составе, паспорте, адресе или записи лучше сразу описывать в сообщениях.", "Для общих вопросов можно использовать поддержку, но вопросы по делу пишите сюда."]
+        tips: ["Файлы в чате хранятся не более 60 дней.", "Служба поддержки поможет решить любой вопрос. Если менеджер предлагает перейти в другой мессенджер, для сохранения безопасности этого делать не стоит."]
       },
       {
         id: "profile",
@@ -213,10 +211,10 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
     open: "Open",
     important: "Important",
     quick: [
-      "Open the dashboard and check the current case status.",
-      "Review documents: requests, corrections, and approved files.",
-      "Reply to new team messages if there are any.",
-      "Check your profile so contact details stay up to date."
+      "Copy your ID and send it to your manager.",
+      "Wait until the manager links you in the system and sends recommendations.",
+      "Follow the instructions that appear on the dashboard.",
+      "We recommend connecting Telegram to your account so you do not miss case updates."
     ],
     sections: [
       {
@@ -224,10 +222,9 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
         icon: "dashboard",
         title: "Dashboard",
         href: "./dashboard.html",
-        summary: "The main case overview: current stage, ready document package, and quick access to messages.",
+        summary: "The main case overview: current stage, your ID, and quick access to messages.",
         rows: [
           ["Case status", "Shows the support stages. The active item means where the work is now; completed items remain in the process history."],
-          ["Ready document package", "Key documents or the final case archive appear here. If the download button is unavailable, the package is not ready yet or does not apply to your current stage."],
           ["Manager chat", "A quick block for the latest incoming message and a short reply. For the full conversation, open Messages."],
           ["Your ID", "The code at the top of the page is useful if a manager asks for your identifier. Click it to copy."]
         ],
@@ -255,12 +252,11 @@ h1, h2, h3, .font-manrope { font-family: 'Manrope', sans-serif; }
         href: "./messages.html",
         summary: "The main communication channel for your case. It stores questions, answers, and clarifications.",
         rows: [
-          ["Conversation list", "Choose the needed chat on the left or at the top on mobile. New messages are marked with a counter."],
-          ["Sending text", "Be specific: mention the document, stage, or question that needs an answer so the team understands the context faster."],
-          ["Files in chat", "Attach files only when they clarify a message. Core case documents are better uploaded in Documents."],
+          ["Conversation list", "Choose the needed chat on the right or at the top on mobile. New messages are marked with a counter."],
+          ["Files in chat", "If you want to upload a case file, use the “+ own document” function on the Documents page."],
           ["History", "Keep important clarifications: the conversation helps restore decisions and agreements about the case."]
         ],
-        tips: ["Urgent changes in family composition, passport, address, or appointment details are best reported in Messages immediately.", "Use Support for general questions, but write case-specific questions here."]
+        tips: ["Files in chat are stored for no more than 60 days.", "Support can help resolve any issue. If a manager suggests moving to another messenger, it is safer not to do that."]
       },
       {
         id: "profile",

@@ -116,10 +116,19 @@ def list_documents():
     # Fetch document requests from case_data
     case_data = get_case_data_by_user_id(g.db, user_id_to_fetch)
     document_requests = []
+    fulfilled_normal_request_titles = set()
     
     if case_data and case_data.get("document_requests"):
         # Convert document requests to document format
         for idx, req in enumerate(case_data["document_requests"]):
+            request_title = (req.get("name") or "").strip()
+            if (
+                request_title
+                and case_data_flag_is_true(req.get("fulfilled"))
+                and req.get("priority", "normal") != "urgent"
+            ):
+                fulfilled_normal_request_titles.add(request_title.lower())
+
             # Only include sent requests still waiting for client upload
             if case_data_flag_is_true(req.get("sent")) and not case_data_flag_is_true(
                 req.get("fulfilled")
@@ -147,6 +156,9 @@ def list_documents():
     uploaded_by_title = {}
     for doc in documents:
         key = normalize_title(doc.get("title"))
+        doc["hide_priority_badge"] = bool(
+            key and not doc.get("is_priority") and key in fulfilled_normal_request_titles
+        )
         if key and key not in uploaded_by_title:
             # documents are already sorted by latest action, so keep first.
             uploaded_by_title[key] = doc

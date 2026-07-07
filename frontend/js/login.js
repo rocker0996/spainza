@@ -332,13 +332,18 @@
       showAuthNotice(t("login.accountDeletedSuccess"), "info");
       mode = "login";
       renderTabs();
+    } else if (params.get("google_error")) {
+      showAuthNotice(t("login.googleError"), "error");
+      mode = "login";
+      renderTabs();
     }
-    if (params.has("verified") || params.has("verify_error") || params.has("account_deleted")) {
+    if (params.has("verified") || params.has("verify_error") || params.has("account_deleted") || params.has("google_error")) {
       try {
         const clean = new URL(window.location.href);
         clean.searchParams.delete("verified");
         clean.searchParams.delete("verify_error");
         clean.searchParams.delete("account_deleted");
+        clean.searchParams.delete("google_error");
         clean.searchParams.delete("token");
         window.history.replaceState({}, "", clean.pathname + clean.search + clean.hash);
       } catch (_e) {
@@ -824,7 +829,22 @@
     googleLoginBtn.addEventListener("click", function () {
       errorBox.textContent = "";
       successBox.textContent = "";
-      successBox.textContent = t("login.googleSoon");
+      const googleApiBase =
+        apiBases[0] === "/api" && apiBases.length > 1 ? apiBases[1] : apiBases[0];
+      let startUrl = googleApiBase + "/auth/google/start";
+      try {
+        const inviteToken = (
+          sessionStorage.getItem("manager_invite_token") ||
+          new URLSearchParams(window.location.search).get("invite") ||
+          ""
+        ).trim();
+        if (inviteToken) {
+          startUrl += "?invite=" + encodeURIComponent(inviteToken);
+        }
+      } catch (_e) {
+        /* ignore */
+      }
+      window.location.href = startUrl;
     });
   }
 

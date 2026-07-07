@@ -21,6 +21,29 @@ let selectedVisaType = null;
 /** @type {object | null} */
 let serverTemplate = null;
 let draftDirty = false;
+let isSavingTemplate = false;
+const VALID_PRIORITIES = new Set(['normal', 'urgent', 'optional']);
+
+function setDraftDirty(value) {
+    draftDirty = !!value;
+}
+
+function setSavingState(value) {
+    isSavingTemplate = !!value;
+    const saveBtn = document.getElementById('btn-save-template');
+    if (!saveBtn) return;
+    saveBtn.disabled = isSavingTemplate;
+    saveBtn.classList.toggle('opacity-60', isSavingTemplate);
+    saveBtn.classList.toggle('cursor-wait', isSavingTemplate);
+}
+
+function markDirtyOnEdit(root) {
+    if (!root) return;
+    root.querySelectorAll('input, textarea, select').forEach((el) => {
+        el.addEventListener('change', () => setDraftDirty(true));
+        el.addEventListener('input', () => setDraftDirty(true));
+    });
+}
 
 function defaultTimeline() {
     return [
@@ -227,7 +250,7 @@ async function selectVisaType(visaType) {
         if (!ok) return;
     }
     selectedVisaType = visaType;
-    draftDirty = false;
+    setDraftDirty(false);
     await loadTemplateIndex();
     await loadTemplate(visaType);
     const base = serverTemplate && serverTemplate.visa_type ? serverTemplate : { visa_type: visaType };
@@ -248,6 +271,7 @@ function fillEditorForm(draft) {
     if (monthsEl) monthsEl.value = draft.duration_months === '' || draft.duration_months == null ? '' : draft.duration_months;
     renderTimelineEditor(draft.timeline);
     renderDocumentsEditor(draft.document_items);
+    markDirtyOnEdit(document.getElementById('editor-root'));
 }
 
 function updateEditorHeader(visaType) {
@@ -273,7 +297,7 @@ function collectDraftFromForm() {
         timeline.push({
             order: i + 1,
             title: row.querySelector('[data-field="title"]')?.value?.trim() || '',
-            duration_label: '',
+            duration_label: row.querySelector('[data-field="duration_label"]')?.value?.trim() || '',
             description: row.querySelector('[data-field="description"]')?.value?.trim() || '',
         });
     });
@@ -284,15 +308,20 @@ function collectDraftFromForm() {
             name: row.querySelector('[data-field="name"]')?.value?.trim() || '',
             description: row.querySelector('[data-field="description"]')?.value?.trim() || '',
             required: row.querySelector('[data-field="required"]')?.checked || false,
-            priority: row.querySelector('[data-field="priority"]')?.value || 'normal',
+            priority: VALID_PRIORITIES.has(row.querySelector('[data-field="priority"]')?.value)
+                ? row.querySelector('[data-field="priority"]')?.value
+                : 'normal',
         });
     });
 
     return {
-        title: document.getElementById('tpl-title')?.value?.trim() || '',
-        public_description: document.getElementById('tpl-public-description')?.value?.trim() || '',
-        processing_fee_eur: document.getElementById('tpl-fee')?.value,
-        duration_months: document.getElementById('tpl-months')?.value,
+        title: document.getElementById('tpl-title')?.value?.trim() || serverTemplate?.title || '',
+        public_description:
+            document.getElementById('tpl-public-description')?.value?.trim() ||
+            serverTemplate?.public_description ||
+            '',
+        processing_fee_eur: document.getElementById('tpl-fee')?.value ?? serverTemplate?.processing_fee_eur ?? '',
+        duration_months: document.getElementById('tpl-months')?.value ?? serverTemplate?.duration_months ?? '',
         timeline,
         document_items,
     };
@@ -321,10 +350,17 @@ function renderTimelineEditor(timeline) {
                 </div>
             </div>
             <div class="space-y-3">
-                <div>
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_10rem] gap-3">
+                  <div>
                     <label class="block text-[10px] font-semibold text-on-surface-variant uppercase mb-1">${t('configurator.fieldTitle')}</label>
                     <input data-field="title" type="text" value="${escapeAttr(step.title)}"
                         class="w-full bg-surface-container-lowest rounded-lg px-3 py-2 text-sm border-0 focus:ring-1 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-semibold text-on-surface-variant uppercase mb-1">${t('configurator.fieldDuration')}</label>
+                    <input data-field="duration_label" type="text" value="${escapeAttr(step.duration_label || '')}"
+                        class="w-full bg-surface-container-lowest rounded-lg px-3 py-2 text-sm border-0 focus:ring-1 focus:ring-primary" placeholder="${t('configurator.durationPlaceholder')}" />
+                  </div>
                 </div>
                 <div>
                     <label class="block text-[10px] font-semibold text-on-surface-variant uppercase mb-1">${t('configurator.fieldDescription')}</label>
@@ -353,7 +389,7 @@ function renderTimelineEditor(timeline) {
     });
     container.querySelectorAll('input, textarea').forEach((el) => {
         el.addEventListener('input', () => {
-            draftDirty = true;
+            setDraftDirty(true);
         });
     });
 }
@@ -369,7 +405,7 @@ function moveTimelineRow(index, delta) {
     arr.forEach((row, i) => {
         row.order = i + 1;
     });
-    draftDirty = true;
+    setDraftDirty(true);
     renderTimelineEditor(arr);
 }
 
@@ -384,7 +420,7 @@ function deleteTimelineRow(index) {
     arr.forEach((row, i) => {
         row.order = i + 1;
     });
-    draftDirty = true;
+    setDraftDirty(true);
     renderTimelineEditor(arr);
 }
 
@@ -398,7 +434,7 @@ function addTimelineStep() {
         description: '',
     });
     d.timeline.sort((a, b) => a.order - b.order);
-    draftDirty = true;
+    setDraftDirty(true);
     renderTimelineEditor(d.timeline);
 }
 
@@ -439,16 +475,16 @@ function renderDocumentsEditor(items) {
             const idx = parseInt(btn.getAttribute('data-del-doc'), 10);
             const d = collectDraftFromForm();
             d.document_items.splice(idx, 1);
-            draftDirty = true;
+            setDraftDirty(true);
             renderDocumentsEditor(d.document_items);
         });
     });
     container.querySelectorAll('input, textarea, select').forEach((el) => {
         el.addEventListener('change', () => {
-            draftDirty = true;
+            setDraftDirty(true);
         });
         el.addEventListener('input', () => {
-            draftDirty = true;
+            setDraftDirty(true);
         });
     });
 }
@@ -461,12 +497,12 @@ function addDocumentRow() {
         required: true,
         priority: 'normal',
     });
-    draftDirty = true;
+    setDraftDirty(true);
     renderDocumentsEditor(d.document_items);
 }
 
 async function saveTemplate() {
-    if (!selectedVisaType) return;
+    if (!selectedVisaType || isSavingTemplate) return;
     const body = collectDraftFromForm();
     const payload = {
         title: body.title,
@@ -481,36 +517,56 @@ async function saveTemplate() {
         alert(t('configurator.needTimeline'));
         return;
     }
-
-    const response = await fetch(`${API_BASE}/case-templates/${encodeURIComponent(selectedVisaType)}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.success) {
-        alert(data.error || t('configurator.saveFailed'));
+    if (payload.timeline.some((step) => !step.title.trim())) {
+        alert(t('configurator.needStepTitle'));
         return;
     }
-    serverTemplate = data.template;
-    draftDirty = false;
-    await loadTemplateIndex();
-    renderVisaList();
-    updateEditorHeader(selectedVisaType);
-    const toast = document.getElementById('cfg-toast');
-    if (toast) {
-        toast.textContent = t('configurator.saveOk');
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 3200);
+    if (payload.document_items.some((doc) => !doc.name.trim())) {
+        alert(t('configurator.needDocName'));
+        return;
+    }
+    if (payload.document_items.some((doc) => !VALID_PRIORITIES.has(doc.priority))) {
+        alert(t('configurator.invalidPriority'));
+        return;
+    }
+
+    setSavingState(true);
+    try {
+        const response = await fetch(`${API_BASE}/case-templates/${encodeURIComponent(selectedVisaType)}`, {
+            method: 'PUT',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+            alert(data.error || t('configurator.saveFailed'));
+            return;
+        }
+        serverTemplate = data.template;
+        setDraftDirty(false);
+        await loadTemplateIndex();
+        renderVisaList();
+        updateEditorHeader(selectedVisaType);
+        const toast = document.getElementById('cfg-toast');
+        if (toast) {
+            toast.textContent = t('configurator.saveOk');
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3200);
+        }
+    } catch (error) {
+        console.error('saveTemplate failed', error);
+        alert(t('configurator.saveFailed'));
+    } finally {
+        setSavingState(false);
     }
 }
 
 async function discardDraft() {
     if (!selectedVisaType) return;
-    draftDirty = false;
+    setDraftDirty(false);
     await loadTemplate(selectedVisaType);
     const base = serverTemplate && serverTemplate.visa_type ? serverTemplate : { visa_type: selectedVisaType };
     fillEditorForm(normalizeDraftFromServer(base));
@@ -540,6 +596,7 @@ async function initConfigurator() {
     document.getElementById('btn-discard-template')?.addEventListener('click', discardDraft);
     document.getElementById('btn-add-timeline')?.addEventListener('click', addTimelineStep);
     document.getElementById('btn-add-document')?.addEventListener('click', addDocumentRow);
+    markDirtyOnEdit(document.getElementById('editor-root'));
 
     const helpModal = document.getElementById('cfg-help-modal');
     const openHelp = () => helpModal?.classList.remove('hidden');
@@ -562,6 +619,12 @@ window.addEventListener('lk-locale-change', () => {
         renderDocumentsEditor(draft.document_items);
         updateEditorHeader(selectedVisaType);
     }
+});
+
+window.addEventListener('beforeunload', (e) => {
+    if (!draftDirty) return;
+    e.preventDefault();
+    e.returnValue = '';
 });
 
 document.addEventListener('DOMContentLoaded', initConfigurator);

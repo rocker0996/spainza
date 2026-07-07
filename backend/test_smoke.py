@@ -57,6 +57,23 @@ class AppSmokeTest(unittest.TestCase):
                 self.assertEqual(response.status_code, 401)
                 self.assertEqual(response.get_json()["error"], "missing token")
 
+    def test_document_history_table_is_initialized(self) -> None:
+        from utils.db import get_db_connection
+
+        db = get_db_connection()
+        try:
+            row = db.execute(
+                """
+                SELECT name
+                FROM sqlite_master
+                WHERE type = 'table' AND name = 'document_history'
+                """
+            ).fetchone()
+        finally:
+            db.close()
+
+        self.assertIsNotNone(row)
+
     def test_private_project_files_are_not_served(self) -> None:
         private_paths = (
             "/.env",
@@ -305,6 +322,69 @@ class AppSmokeTest(unittest.TestCase):
         self.assertFalse(reloaded["document_requests"][0]["fulfilled"])
         self.assertTrue(reloaded["document_requests_manual"])
         db.close()
+
+    def test_case_template_preserves_duration_and_validates_priority(self) -> None:
+        from utils.db import get_db_connection
+        from utils.security import generate_auth_token
+
+        db = get_db_connection()
+        db.execute(
+            """
+            INSERT INTO users (id, email, password_hash, role_key, display_id)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (30, "manager@example.test", "hash", "manager", "AA0030"),
+        )
+        db.commit()
+        db.close()
+
+        token = generate_auth_token(self.app.config["SECRET_KEY"], 30)
+        self.client.set_cookie("access_token", token)
+
+        good_payload = {
+            "title": "Standard",
+            "public_description": "Team note",
+            "processing_fee_eur": "1200.50",
+            "duration_months": "3",
+            "timeline": [
+                {
+                    "order": 99,
+                    "title": "Collect documents",
+                    "duration_label": "2 weeks",
+                    "description": "Prepare package",
+                }
+            ],
+            "document_items": [
+                {
+                    "name": "Passport",
+                    "description": "Valid passport",
+                    "required": True,
+                    "priority": "urgent",
+                }
+            ],
+        }
+
+        response = self.client.put("/api/case-templates/digital_nomad", json=good_payload)
+        self.assertEqual(response.status_code, 200)
+        saved = response.get_json()["template"]
+        self.assertEqual(saved["timeline"][0]["duration_label"], "2 weeks")
+        self.assertEqual(saved["timeline"][0]["order"], 1)
+        self.assertEqual(saved["document_items"][0]["priority"], "urgent")
+        self.assertEqual(saved["processing_fee_eur"], 1200.50)
+        self.assertEqual(saved["duration_months"], 3)
+
+        bad_payload = dict(good_payload)
+        bad_payload["document_items"] = [
+            {
+                "name": "Passport",
+                "description": "",
+                "required": True,
+                "priority": "critical",
+            }
+        ]
+        response = self.client.put("/api/case-templates/digital_nomad", json=bad_payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "invalid document priority")
 
 
 if __name__ == "__main__":

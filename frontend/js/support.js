@@ -119,7 +119,11 @@
           },
           {
             q: "Зачем раздел «Сообщения»?",
-            a: "Это основной защищённый канал переписки с менеджером: уточнения по документам, срокам, шагам. Им удобнее пользоваться, чем разрозненным мессенджером — история остаётся привязанной к делу.",
+            a: "Это основной защищённый канал переписки с менеджером: уточнения по документам, срокам, шагам. Им безопаснее пользоваться, чем разрозненными мессенджерами — история остаётся привязанной к делу.",
+          },
+          {
+            q: "С чего начать после входа в личный кабинет?",
+            a: "Скопируйте ваш ID на главной странице и отправьте его менеджеру. После закрепления аккаунта в системе менеджер пришлёт рекомендации, а на главной появятся дальнейшие указания по кейсу.",
           },
           {
             q: "Как работает раздел «Документы»?",
@@ -130,20 +134,24 @@
             a: "Прочитайте пояснение к статусу, внесите правки и загрузите новую версию в ту же категорию, если это доступно. Если кнопки замены нет или неясно, как исправить — напишите в «Сообщениях», приложив скрин при необходимости.",
           },
           {
+            q: "Можно ли загружать файлы прямо в чат?",
+            a: "Чат подходит для пояснений и временных вложений, но файлы в переписке хранятся не более 60 дней. Документы по кейсу загружайте через раздел «Документы» с помощью функции «+ свой документ», чтобы они были привязаны к делу.",
+          },
+          {
+            q: "Зачем подключать Телеграм к аккаунту?",
+            a: "Телеграм помогает быстрее получать уведомления об апдейтах по кейсу. Он не заменяет личный кабинет: документы и важные действия всё равно выполняются внутри защищённого контура ЛК.",
+          },
+          {
             q: "Где смотреть общую картину по делу?",
-            a: "На главной (дашборд) и в карточке кейса: этапы, напоминания и ссылки на связанные разделы. Набор блоков может отличаться в зависимости от роли и прав доступа.",
-          },
-          {
-            q: "Почему у меня нет пункта меню «Клиенты» или «Документы»?",
-            a: "Меню строится по роли и правам: часть разделов только для сотрудников, часть — для клиентов. Если кажется, что чего-то не хватает по делу, уточните у менеджера — возможно, нужно расширить доступ или это не предусмотрено вашим типом учётной записи.",
-          },
-          {
-            q: "Переключатель «Русский / English» — что меняет?",
-            a: "Сохраняет предпочтение языка интерфейса в браузере для страниц ЛК, где эта опция подключена (в т.ч. блоки поддержки). Юридические тексты на внешнем сайте открываются по ссылкам в выбранной локали.",
+            a: "На главной (дашборд) и в карточке кейса: этапы, напоминания и ссылки на связанные разделы.",
           },
           {
             q: "Безопасно ли загружать документы через ЛК?",
             a: "Файлы передаются по защищённому соединению и хранятся в рамках инфраструктуры проекта. Не передавайте пароль третьим лицам; при смене устройства выходите из сессии. Подробности обработки данных — в политике конфиденциальности на сайте.",
+          },
+          {
+            q: "Можно ли продолжить общение с менеджером в другом мессенджере?",
+            a: "Для безопасности и сохранения истории по делу лучше оставаться в личном кабинете. Если кто-то предлагает перенести переписку в другой мессенджер, не переходите туда и обратитесь в поддержку.",
           },
           {
             q: "Чем «Поддержка» отличается от переписки в «Сообщениях»?",
@@ -208,6 +216,10 @@
             a: "It is the main secure channel with your manager: clarifications on documents, timing, and next steps. Prefer it over scattered chat apps so the history stays tied to the case.",
           },
           {
+            q: "Where should I start after signing in?",
+            a: "Copy your ID from the dashboard and send it to your manager. After the account is linked in the system, the manager will send recommendations and further case instructions will appear on the dashboard.",
+          },
+          {
             q: "How does Documents work?",
             a: "You see requested categories and your uploads, with statuses (pending review, accepted, changes needed). Status notes explain what to fix. File formats and size limits follow portal settings; very large archives should be agreed in thread.",
           },
@@ -216,20 +228,24 @@
             a: "Read the status explanation, apply the fix, and upload a new version in the same category when available. If there is no replace action or anything is unclear, write in Messages and attach a screenshot if helpful.",
           },
           {
+            q: "Can I upload files directly to chat?",
+            a: "Chat is suitable for explanations and temporary attachments, but chat files are stored for no more than 60 days. Case documents should be uploaded through Documents with the “+ own document” function so they stay tied to the file.",
+          },
+          {
+            q: "Why connect Telegram to my account?",
+            a: "Telegram helps you receive case update notifications faster. It does not replace the portal: documents and important actions still happen inside the secure account area.",
+          },
+          {
             q: "Where is the big-picture view of my case?",
-            a: "On the dashboard and the case page: stages, reminders, and links to related areas. Blocks may differ by role and permissions.",
-          },
-          {
-            q: "Why don’t I see Clients or Documents in the menu?",
-            a: "Navigation is driven by role and permissions: some areas are staff-only, others client-only. If something seems missing for your workstream, ask your manager — access may need to be expanded or may not apply to your account type.",
-          },
-          {
-            q: "What does the Russian / English switch do?",
-            a: "It stores your UI language preference in the browser for LK pages that support it (including support copy). Legal pages on the public site open in the linked locale.",
+            a: "On the dashboard and the case page: stages, reminders, and links to related areas.",
           },
           {
             q: "Is it safe to upload documents here?",
             a: "Files are sent over TLS and stored within the project’s infrastructure. Do not share your password; sign out on shared devices. Details on data handling are in the site privacy policy.",
+          },
+          {
+            q: "Can I continue with my manager in another messenger?",
+            a: "For security and to preserve the case history, stay in the personal account. If someone suggests moving the conversation to another messenger, do not move there and contact support.",
           },
           {
             q: "How is Support different from Messages?",

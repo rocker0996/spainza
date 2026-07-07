@@ -27,6 +27,7 @@ def initialize_database_schema(connection: sqlite3.Connection) -> None:
     from models.case_history import create_case_history_table
     from models.case_notes import create_case_notes_table
     from models.case_template import create_manager_case_templates_table
+    from models.document_history import create_document_history_table
     from models.manager_moderator import create_manager_moderators_table
     from models.message import Message
     from models.notifications import create_notification_tables
@@ -34,6 +35,7 @@ def initialize_database_schema(connection: sqlite3.Connection) -> None:
     create_users_table(connection)
     create_documents_table(connection)
     ensure_documents_columns(connection)
+    create_document_history_table(connection)
     create_security_logs_table(connection)
     create_manager_clients_table(connection)
     create_manager_moderators_table(connection)
