@@ -355,8 +355,8 @@ def update_user_identity_profile(
         """
         UPDATE users
         SET
-            name = COALESCE(NULLIF(?, ''), name),
-            avatar = COALESCE(NULLIF(?, ''), avatar)
+            name = COALESCE(NULLIF(name, ''), NULLIF(?, ''), name),
+            avatar = COALESCE(NULLIF(avatar, ''), NULLIF(?, ''), avatar)
         WHERE id = ?
         """,
         ((name or "").strip(), (avatar or "").strip(), user_id),
