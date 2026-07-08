@@ -1,14 +1,18 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 
 <html class="light" lang="ru"><head>
 <meta charset="utf-8"/>
 <style id="lk-gate-nav-css">[data-lk-gate]:not(.lk-gate-visible){display:none!important}</style>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta name="theme-color" content="#003ec7" />
 <link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
 <link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
 <link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
-<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<meta name="apple-mobile-web-app-title" content="Spainza" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="manifest" href="/frontend/app.webmanifest" />
 <title data-i18n="dashboard.title">Spainza - Client Portal Dashboard</title>
 <link rel="stylesheet" href="/frontend/css/portal.css?v=4"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
@@ -457,27 +461,39 @@
 </div>
 <div id="dashboard-key-documents" class="flex flex-col gap-4 mb-6 min-h-[4rem]"></div>
 </section>
-<!-- РџРѕСЃР»РµРґРЅРµРµ РІС…РѕРґСЏС‰РµРµ: РјРµРЅРµРґР¶РµСЂ РёР»Рё РїРѕРґРґРµСЂР¶РєР° -->
 <section class="bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
 <h2 class="text-lg md:text-xl font-headline font-bold text-on-surface mb-6 flex items-center gap-2">
-<span class="material-symbols-outlined text-secondary">forum</span>
-                        <span data-i18n="dashboard.managerChat">Чат с менеджером</span>
+<span class="material-symbols-outlined text-primary-container">group_add</span>
+                        <span>Пригласите знакомых</span>
                     </h2>
-<div class="bg-surface p-5 rounded-[12px] border border-outline-variant/20 mb-4" id="dashboard-concierge-card">
-<div class="flex items-center gap-3 mb-3">
-<img alt="Аватар" class="w-8 h-8 rounded-full object-cover" id="dashboard-last-message-avatar" src="../img/Avatar.jpg"/>
-<div>
-<p class="text-sm font-semibold font-headline text-on-surface leading-tight" id="dashboard-last-message-name">—</p>
-<p class="text-xs text-outline font-label" id="dashboard-last-message-meta" data-i18n="common.noMessages">Нет сообщений</p>
-</div>
-</div>
-<p class="text-sm text-on-surface-variant font-body leading-relaxed min-h-[3rem]" id="dashboard-last-message-text"></p>
-</div>
-<div class="flex gap-2 md:gap-3">
-<input class="flex-1 bg-surface-container-low border-none rounded-[12px] text-sm font-body px-4 py-3 placeholder:text-outline focus:ring-1 focus:ring-primary-container focus:outline-none transition-shadow" id="dashboard-quick-reply-input" data-i18n-placeholder="dashboard.quickReplyPlaceholder" placeholder="Быстрый ответ..." type="text"/>
-<button type="button" id="dashboard-quick-reply-send" class="w-12 h-12 bg-secondary text-on-secondary rounded-[12px] flex items-center justify-center hover:bg-secondary-container hover:text-on-secondary-container transition-colors shrink-0" data-i18n-title="dashboard.sendMessage" title="Отправить сообщение">
-<span class="material-symbols-outlined text-[20px]">send</span>
+<div id="client-referral-widget" class="space-y-4">
+<p class="text-sm text-on-surface-variant">За каждого клиента вы получаете 100 евро после его полной оплаты.</p>
+<div class="flex min-w-0 flex-col gap-2 sm:flex-row">
+<input id="client-referral-url" type="text" readonly class="min-w-0 flex-1 rounded-[12px] border border-outline-variant/30 bg-surface px-4 py-3 text-xs font-mono text-on-surface-variant"/>
+<button type="button" id="client-referral-copy" class="inline-flex items-center justify-center gap-2 rounded-[12px] bg-primary-container px-4 py-3 text-sm font-bold text-white transition-colors hover:opacity-90">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+<span>Копировать</span>
 </button>
+</div>
+<p id="client-referral-hint" class="text-xs text-outline">Ссылка загружается...</p>
+<div class="grid grid-cols-2 gap-2">
+<div class="rounded-[12px] border border-outline-variant/20 bg-surface p-4">
+<p class="text-[10px] font-label font-bold uppercase tracking-widest text-outline">Зарегистрировано</p>
+<p id="client-referral-registered" class="mt-2 text-2xl font-headline font-extrabold text-on-surface">—</p>
+</div>
+<div class="rounded-[12px] border border-outline-variant/20 bg-surface p-4">
+<p class="text-[10px] font-label font-bold uppercase tracking-widest text-outline">Клиентов</p>
+<p id="client-referral-clients" class="mt-2 text-2xl font-headline font-extrabold text-on-surface">—</p>
+</div>
+<div class="rounded-[12px] border border-outline-variant/20 bg-surface p-4">
+<p class="text-[10px] font-label font-bold uppercase tracking-widest text-outline">На удержании</p>
+<p id="client-referral-hold" class="mt-2 text-2xl font-headline font-extrabold text-on-surface">—</p>
+</div>
+<div class="rounded-[12px] border border-primary/20 bg-primary-fixed p-4">
+<p class="text-[10px] font-label font-bold uppercase tracking-widest text-primary-container">Заработано</p>
+<p id="client-referral-earned" class="mt-2 text-2xl font-headline font-extrabold text-primary-container">—</p>
+</div>
+</div>
 </div>
 </section>
 </div>
@@ -564,12 +580,30 @@
 <section class="xl:col-span-7 bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
 <div class="flex items-center justify-between gap-4 mb-5">
 <h2 class="text-lg md:text-xl font-headline font-bold text-on-surface flex items-center gap-2">
-<span class="material-symbols-outlined text-secondary">forum</span>
-<span data-i18n="dashboard.staffInbox">Последние сообщения</span>
+<span class="material-symbols-outlined text-primary-container">group_add</span>
+<span>Пригласить клиента</span>
 </h2>
-<a href="./messages.html" class="text-primary-container text-xs md:text-sm font-semibold font-headline hover:text-primary transition-colors no-underline" data-lk-gate="messages" data-i18n="common.viewAll">Смотреть все</a>
 </div>
-<div id="staff-inbox-list" class="flex flex-col gap-3 min-h-[8rem]"></div>
+<div id="staff-referral-widget" class="space-y-4">
+<div class="flex min-w-0 flex-col gap-2 sm:flex-row">
+<input id="staff-referral-url" type="text" readonly class="min-w-0 flex-1 rounded-[12px] border border-outline-variant/30 bg-surface px-4 py-3 text-xs font-mono text-on-surface-variant"/>
+<button type="button" id="staff-referral-copy" class="inline-flex items-center justify-center gap-2 rounded-[12px] bg-primary-container px-4 py-3 text-sm font-bold text-white transition-colors hover:opacity-90">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+<span>Копировать</span>
+</button>
+</div>
+<p id="staff-referral-hint" class="text-xs text-outline">Ссылка загружается...</p>
+<div class="grid grid-cols-2 gap-2">
+<div class="rounded-[12px] border border-outline-variant/20 bg-surface p-4">
+<p class="text-[10px] font-label font-bold uppercase tracking-widest text-outline">Зарегистрировано</p>
+<p id="staff-referral-registered" class="mt-2 text-2xl font-headline font-extrabold text-on-surface">—</p>
+</div>
+<div class="rounded-[12px] border border-outline-variant/20 bg-surface p-4">
+<p class="text-[10px] font-label font-bold uppercase tracking-widest text-outline">Клиентов</p>
+<p id="staff-referral-clients" class="mt-2 text-2xl font-headline font-extrabold text-on-surface">—</p>
+</div>
+</div>
+</div>
 </section>
 <section class="xl:col-span-5 bg-surface-container-lowest rounded-2xl md:rounded-[12px] p-5 md:p-8 ambient-shadow">
 <h2 class="text-lg md:text-xl font-headline font-bold text-on-surface mb-5 flex items-center gap-2">
@@ -583,6 +617,7 @@
 <script src="../js/lk-i18n.js?v=12" defer></script>
 <script src="../js/mobile-nav.js" defer></script>
 <script src="../js/lk.js?v=24" defer></script>
-<script src="../js/dashboard.js?v=14" defer></script>
+<script src="../js/dashboard.js?v=17" defer></script>
 <script src="../../shared/layout.js" defer></script>
+<script src="/frontend/js/pwa.js" defer></script>
 </body></html>

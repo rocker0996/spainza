@@ -129,3 +129,7 @@ class Config:
     MESSAGE_RATE_LIMIT_USER_WINDOW_SECONDS = _parse_int_env("MESSAGE_RATE_LIMIT_USER_WINDOW_SECONDS", 60)
     # Must be >= largest upload limit in file_service (documents: 50 MB).
     MAX_CONTENT_LENGTH = _parse_int_env("MAX_UPLOAD_BYTES", 55 * 1024 * 1024)
+    TRUST_PROXY = _parse_bool_env("TRUST_PROXY", default=False)
+    PROXY_FIX_X_FOR = _parse_int_env("PROXY_FIX_X_FOR", 1)
+    PROXY_FIX_X_PROTO = _parse_int_env("PROXY_FIX_X_PROTO", 1)
+    PROXY_FIX_X_HOST = _parse_int_env("PROXY_FIX_X_HOST", 1)

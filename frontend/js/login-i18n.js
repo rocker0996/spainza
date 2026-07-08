@@ -255,18 +255,13 @@
       titleEl.textContent = t(titleEl.getAttribute("data-i18n"));
     }
 
-    var homeHref = homeUrl();
-    var homeLink = root.getElementById("login-back-home");
-    if (homeLink) {
-      homeLink.setAttribute("href", homeHref);
+    var forgotLink = root.getElementById("forgot-password-link");
+    if (forgotLink) {
+      forgotLink.setAttribute("href", homeUrl());
     }
     var brandHomeLink = root.getElementById("login-brand-home");
     if (brandHomeLink) {
-      brandHomeLink.setAttribute("href", homeHref);
-    }
-    var forgotLink = root.getElementById("forgot-password-link");
-    if (forgotLink) {
-      forgotLink.setAttribute("href", homeHref);
+      brandHomeLink.setAttribute("href", homeUrl());
     }
 
     applyTermsCheckbox();
@@ -351,9 +346,9 @@
   }
 
   var localeActiveClass =
-    "flex-1 py-2 rounded-lg text-xs font-bold bg-white shadow-sm text-primary transition-colors";
+    "inline-flex h-7 w-full items-center justify-center rounded-lg bg-white shadow-sm text-primary-container font-bold transition-colors";
   var localeInactiveClass =
-    "flex-1 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-primary transition-colors";
+    "inline-flex h-7 w-full items-center justify-center rounded-lg font-bold text-slate-500 hover:text-primary-container transition-colors";
 
   function paintLocaleButtons() {
     var root = global.document.getElementById("login-locale-switcher");

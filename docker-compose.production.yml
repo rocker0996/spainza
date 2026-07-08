@@ -10,6 +10,7 @@ services:
       APP_ENV: production
       FLASK_ENV: production
       SECRET_KEY: ${JWT_SECRET}
+      TRUST_PROXY: "1"
     volumes:
       - spainza-app-data:/app/database
       - spainza-storage:/app/storage
@@ -60,6 +61,7 @@ services:
       APP_ENV: production
       FLASK_ENV: production
       SECRET_KEY: ${JWT_SECRET}
+      TRUST_PROXY: "1"
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://spainza.com}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-spainza_bot}

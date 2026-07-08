@@ -9,7 +9,6 @@
   let dashboardClientBadges = null;
   let dashboardStaffUsers = [];
   let dashboardStaffBadges = null;
-  let quickReplyHandlersBound = false;
 
   /**
    * Кому показывать превью: персональный менеджер из сессии, иначе поддержка.
@@ -130,6 +129,106 @@
       .replaceAll("'", "&#39;");
   }
 
+  async function copyDashboardText(text) {
+    const value = String(text || "");
+    if (!value) return false;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+    } catch {
+      // fall back to a temporary input below
+    }
+    const input = document.createElement("input");
+    input.value = value;
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.appendChild(input);
+    input.focus();
+    input.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch {
+      ok = false;
+    }
+    input.remove();
+    return ok;
+  }
+
+  function absoluteInviteUrl(pathOrUrl) {
+    const raw = String(pathOrUrl || "").trim();
+    if (!raw) return "";
+    try {
+      return new URL(raw, window.location.origin).toString();
+    } catch {
+      return raw;
+    }
+  }
+
+  function setReferralWidget(prefix, linkPayload, statsPayload, options = {}) {
+    const urlInput = document.getElementById(`${prefix}-referral-url`);
+    const copyBtn = document.getElementById(`${prefix}-referral-copy`);
+    const hint = document.getElementById(`${prefix}-referral-hint`);
+    const registered = document.getElementById(`${prefix}-referral-registered`);
+    const clients = document.getElementById(`${prefix}-referral-clients`);
+    const hold = document.getElementById(`${prefix}-referral-hold`);
+    const earned = document.getElementById(`${prefix}-referral-earned`);
+    const stats = statsPayload?.stats || {};
+    const inviteUrl = absoluteInviteUrl(linkPayload?.invite_url || linkPayload?.invite_path || "");
+
+    if (urlInput) urlInput.value = inviteUrl;
+    if (registered) registered.textContent = String(Number(stats.registered_count || 0));
+    if (clients) clients.textContent = String(Number(stats.client_count || 0));
+    if (hold) hold.textContent = `${Number(stats.hold_eur || 0)} EUR`;
+    if (earned) earned.textContent = `${Number(stats.earned_eur || 0)} EUR`;
+    if (hint) hint.textContent = inviteUrl ? "Ссылка готова" : "Не удалось загрузить ссылку";
+    if (copyBtn && urlInput && !copyBtn.dataset.boundReferralCopy) {
+      copyBtn.dataset.boundReferralCopy = "1";
+      copyBtn.addEventListener("click", async () => {
+        const ok = await copyDashboardText(urlInput.value);
+        if (hint) hint.textContent = ok ? "Ссылка скопирована" : "Скопируйте ссылку вручную";
+      });
+    }
+    if (options.hideEarned && earned) {
+      const card = earned.closest("div");
+      if (card) card.classList.add("hidden");
+    }
+  }
+
+  async function loadClientReferralWidget() {
+    const widget = document.getElementById("client-referral-widget");
+    if (!widget) return;
+    try {
+      const [linkPayload, statsPayload] = await Promise.all([
+        apiGet("/api/lk/client-referral"),
+        apiGet("/api/lk/referrals/stats"),
+      ]);
+      setReferralWidget("client", linkPayload, statsPayload);
+    } catch (error) {
+      console.error("Client referral widget failed:", error);
+      const hint = document.getElementById("client-referral-hint");
+      if (hint) hint.textContent = "Не удалось загрузить реферальный блок";
+    }
+  }
+
+  async function loadStaffReferralWidget() {
+    const widget = document.getElementById("staff-referral-widget");
+    if (!widget) return;
+    try {
+      const [linkPayload, statsPayload] = await Promise.all([
+        apiGet("/api/lk/manager-invite"),
+        apiGet("/api/lk/referrals/stats"),
+      ]);
+      setReferralWidget("staff", linkPayload, statsPayload, { hideEarned: true });
+    } catch (error) {
+      console.error("Staff referral widget failed:", error);
+      const hint = document.getElementById("staff-referral-hint");
+      if (hint) hint.textContent = "Не удалось загрузить блок приглашений";
+    }
+  }
+
   function buildProtectedApiUrl(relativeUrl) {
     const normalized = String(relativeUrl || "").trim();
     if (!normalized) {
@@ -158,7 +257,6 @@
       "dashboard.staffKpiDeadlinesHint": "в ближайшие 14 дней",
       "dashboard.staffPriorityQueue": "Очередь приоритетов",
       "dashboard.staffUpcomingDates": "Ближайшие даты",
-      "dashboard.staffInbox": "Последние сообщения",
       "dashboard.staffCase": "Кейс",
       "dashboard.staffDocs": "Документы",
       "dashboard.staffMessages": "Сообщения",
@@ -201,7 +299,6 @@
       "dashboard.staffKpiDeadlinesHint": "next 14 days",
       "dashboard.staffPriorityQueue": "Priority queue",
       "dashboard.staffUpcomingDates": "Upcoming dates",
-      "dashboard.staffInbox": "Recent messages",
       "dashboard.staffCase": "Case",
       "dashboard.staffDocs": "Documents",
       "dashboard.staffMessages": "Messages",
@@ -858,83 +955,6 @@
     return s;
   }
 
-  function renderLatestMessage(conversations, sessionUser) {
-    const avatarNode = document.getElementById("dashboard-last-message-avatar");
-    const nameNode = document.getElementById("dashboard-last-message-name");
-    const metaNode = document.getElementById("dashboard-last-message-meta");
-    const textNode = document.getElementById("dashboard-last-message-text");
-
-    if (!avatarNode || !nameNode || !metaNode || !textNode) return;
-
-    const items = Array.isArray(conversations) ? conversations : [];
-    const target = resolveMessageDeskTarget(sessionUser);
-    const conv = findDeskConversation(items, target);
-    const mgr = target.manager && typeof target.manager === "object" ? target.manager : null;
-    const managerRoleRu =
-      mgr && mgr.role && typeof mgr.role === "object" ? String(mgr.role.name_ru || "").trim() : "";
-    const managerTitle =
-      (mgr && mgr.role && mgr.role.key && window.LkI18n
-        ? window.LkI18n.roleLabel(mgr.role.key)
-        : "") ||
-      managerRoleRu ||
-      t("dashboard.managerDefaultTitle");
-
-    if (!conv) {
-      if (target.mode === "manager" && mgr) {
-        avatarNode.src = mgr.avatar || defaultAvatar;
-        nameNode.textContent = String(mgr.name || "").trim() || managerTitle;
-        metaNode.textContent = t("dashboard.noConversationMeta", { title: managerTitle });
-        textNode.textContent = t("dashboard.chatAfterFirstMessage");
-        return;
-      }
-      nameNode.textContent = t("dashboard.supportName");
-      metaNode.textContent = t("common.noMessages");
-      textNode.textContent = t("dashboard.supportEmptyHint");
-      avatarNode.src = defaultAvatar;
-      return;
-    }
-
-    const displayName =
-      String(conv.other_user_name || "").trim() ||
-      String(conv.other_user_email || "").trim() ||
-      (target.mode === "manager"
-        ? String(mgr?.name || "").trim() || managerTitle
-        : t("dashboard.supportName"));
-    avatarNode.src =
-      conv.other_user_avatar ||
-      (target.mode === "manager" ? mgr?.avatar || "" : "") ||
-      defaultAvatar;
-    nameNode.textContent = displayName;
-
-    const inboundRaw =
-      conv.last_inbound_message != null && conv.last_inbound_message !== ""
-        ? conv.last_inbound_message
-        : null;
-    const preview = formatMessagePreviewForUi(inboundRaw);
-    const inboundTime = conv.last_inbound_message_time || conv.last_message_at;
-
-    if (!preview) {
-      const who =
-        target.mode === "manager"
-          ? t("dashboard.whoManager")
-          : t("dashboard.whoSupport");
-      const roleBit =
-        target.mode === "manager"
-          ? String(conv.other_user_role || "").trim() || managerTitle
-          : String(conv.other_user_role || "").trim() || t("dashboard.supportName");
-      metaNode.textContent = t("dashboard.noInboundMeta", { role: roleBit });
-      textNode.textContent = t("dashboard.noInboundFrom", { who });
-      return;
-    }
-
-    const metaRole =
-      target.mode === "manager"
-        ? String(conv.other_user_role || "").trim() || managerTitle
-        : String(conv.other_user_role || "").trim() || t("dashboard.supportName");
-    metaNode.textContent = `${metaRole} • ${formatTimeAgo(inboundTime)}`;
-    textNode.textContent = preview;
-  }
-
   function staffClientUsers() {
     return (Array.isArray(dashboardStaffUsers) ? dashboardStaffUsers : []).filter(
       isClientLikeUser
@@ -1275,80 +1295,25 @@
       .join("");
   }
 
-  function conversationTime(conversation) {
-    return (
-      conversation?.last_message_at ||
-      conversation?.last_inbound_message_time ||
-      conversation?.updated_at ||
-      ""
-    );
-  }
-
-  function renderStaffInbox() {
-    const container = document.getElementById("staff-inbox-list");
-    if (!container) return;
-    const items = Array.isArray(dashboardConversations) ? dashboardConversations : [];
-    if (!items.length) {
-      container.innerHTML = staffEmptyState("mark_chat_read", "dashboard.staffNoMessages");
-      return;
-    }
-    const sorted = [...items].sort((a, b) => {
-      const da = window.LkI18n?.parseInstant(conversationTime(a)) || new Date(conversationTime(a));
-      const db = window.LkI18n?.parseInstant(conversationTime(b)) || new Date(conversationTime(b));
-      return (db?.getTime?.() || 0) - (da?.getTime?.() || 0);
-    });
-    container.innerHTML = sorted
-      .slice(0, 3)
-      .map((conv) => {
-        const name =
-          String(conv?.other_user_name || "").trim() ||
-          String(conv?.other_user_email || "").trim() ||
-          t("dashboard.staffUnnamedClient");
-        const text =
-          formatMessagePreviewForUi(conv?.last_inbound_message || conv?.last_message || "") ||
-          t("common.noMessages");
-        const openRef = conv?.other_user_display_id || conv?.other_user_id || "";
-        const unread = Number(conv?.unread_count || conv?.unread || 0);
-        return `
-          <a href="./messages.html?openUserId=${encodeURIComponent(String(openRef))}" class="flex items-start gap-3 rounded-[12px] bg-surface p-4 border border-outline-variant/20 no-underline hover:bg-surface-container-low transition-colors">
-            <img class="w-9 h-9 rounded-full object-cover shrink-0" src="${escapeHtml(conv?.other_user_avatar || defaultAvatar)}" alt="${escapeHtml(name)}"/>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <p class="text-sm font-bold font-headline text-on-surface truncate">${escapeHtml(name)}</p>
-                ${unread > 0 ? `<span class="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-white">${unread > 99 ? "99+" : unread}</span>` : ""}
-              </div>
-              <p class="text-xs text-outline mt-0.5">${escapeHtml(formatTimeAgo(conversationTime(conv)))}</p>
-              <p class="text-sm text-on-surface-variant mt-1 line-clamp-2">${escapeHtml(text)}</p>
-            </div>
-          </a>
-        `;
-      })
-      .join("");
-  }
-
   async function initStaffDashboard(user) {
     setDashboardMode("staff");
     ensureStaffDashboardI18n();
     try {
-      const [usersPayload, badgesPayload, conversationsPayload] = await Promise.all([
+      const [usersPayload, badgesPayload] = await Promise.all([
         apiGet("/api/users").catch(() => ({ success: false, users: [] })),
         apiGet("/api/lk/nav-badges").catch(() => null),
-        apiGet("/api/conversations").catch(() => []),
       ]);
       dashboardStaffUsers =
         usersPayload && usersPayload.success && Array.isArray(usersPayload.users)
           ? usersPayload.users
           : [];
       dashboardStaffBadges = badgesPayload || null;
-      dashboardConversations = Array.isArray(conversationsPayload)
-        ? conversationsPayload
-        : [];
       renderStaffKpis();
       renderStaffFocus();
       renderStaffPriorityList();
       renderStaffDeadlines();
-      renderStaffInbox();
       renderStaffImportantActions();
+      await loadStaffReferralWidget();
       if (window.LkI18n) {
         window.LkI18n.applyDocument();
       }
@@ -1356,123 +1321,12 @@
       console.error("Staff dashboard load failed:", error);
       dashboardStaffUsers = [];
       dashboardStaffBadges = null;
-      dashboardConversations = [];
       renderStaffKpis();
       renderStaffFocus();
       renderStaffPriorityList();
       renderStaffDeadlines();
-      renderStaffInbox();
       renderStaffImportantActions();
     }
-  }
-
-  function getQuickReplyNodes() {
-    return {
-      inputNode: document.getElementById("dashboard-quick-reply-input"),
-      sendNode: document.getElementById("dashboard-quick-reply-send"),
-    };
-  }
-
-  function updateQuickReplyUiForTarget(sessionUser) {
-    const { inputNode, sendNode } = getQuickReplyNodes();
-    if (!inputNode || !sendNode) return;
-    const target = resolveMessageDeskTarget(sessionUser);
-    if (target.mode === "manager") {
-      inputNode.placeholder = t("dashboard.quickReplyManager");
-      sendNode.title = t("dashboard.sendToManager");
-      return;
-    }
-    inputNode.placeholder = t("dashboard.quickReplySupport");
-    sendNode.title = t("dashboard.sendToSupport");
-  }
-
-  async function ensureConversationWithUser(target) {
-    const displayId = target && target.displayId ? String(target.displayId).trim().toUpperCase() : "";
-    if (displayId) {
-      const existing = dashboardConversations.find(
-        (item) => String(item?.other_user_display_id || "").toUpperCase() === displayId
-      );
-      if (existing?.id) {
-        return existing.id;
-      }
-      const created = await apiRequest("/api/conversations/create", {
-        method: "POST",
-        body: JSON.stringify({ display_id: displayId, restore: true }),
-      });
-      if (!created?.conversation_id) {
-        throw new Error(t("dashboard.chatCreateFailed"));
-      }
-      return created.conversation_id;
-    }
-    const targetId = Number(target?.userId);
-    if (!Number.isFinite(targetId) || targetId < 1) {
-      throw new Error(t("dashboard.chatCreateFailed"));
-    }
-    const existing = dashboardConversations.find(
-      (item) => Number(item?.other_user_id) === targetId
-    );
-    if (existing?.id) {
-      return existing.id;
-    }
-    const created = await apiRequest("/api/conversations/create", {
-      method: "POST",
-      body: JSON.stringify({ user_id: targetId, restore: true }),
-    });
-    if (!created?.conversation_id) {
-      throw new Error(t("dashboard.chatCreateFailed"));
-    }
-    return created.conversation_id;
-  }
-
-  async function sendQuickReplyFromDashboard() {
-    const { inputNode, sendNode } = getQuickReplyNodes();
-    if (!inputNode || !sendNode) return;
-    const messageText = String(inputNode.value || "").trim();
-    if (!messageText) {
-      inputNode.focus();
-      return;
-    }
-    if (!dashboardSessionUser) {
-      window.alert(t("dashboard.profileNotLoaded"));
-      return;
-    }
-    const target = resolveMessageDeskTarget(dashboardSessionUser);
-    inputNode.disabled = true;
-    sendNode.disabled = true;
-    try {
-      const conversationId = await ensureConversationWithUser(target);
-      await apiRequest(`/api/conversations/${conversationId}/messages`, {
-        method: "POST",
-        body: JSON.stringify({ message_text: messageText }),
-      });
-      inputNode.value = "";
-      const openRef = target.displayId || String(target.userId || "");
-      const openId = encodeURIComponent(String(openRef).trim());
-      window.location.href = `./messages.html?openUserId=${openId}`;
-    } catch (error) {
-      console.error("Dashboard quick reply failed:", error);
-      window.alert(t("dashboard.sendFailed"));
-    } finally {
-      inputNode.disabled = false;
-      sendNode.disabled = false;
-      inputNode.focus();
-    }
-  }
-
-  function bindQuickReplyHandlers() {
-    if (quickReplyHandlersBound) return;
-    const { inputNode, sendNode } = getQuickReplyNodes();
-    if (!inputNode || !sendNode) return;
-    quickReplyHandlersBound = true;
-    sendNode.addEventListener("click", (event) => {
-      event.preventDefault();
-      sendQuickReplyFromDashboard();
-    });
-    inputNode.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter") return;
-      event.preventDefault();
-      sendQuickReplyFromDashboard();
-    });
   }
 
   function resolveSessionUser() {
@@ -1538,18 +1392,13 @@
       }
       const caseData = casePayload?.case_data || null;
       renderClientSummary(caseData, user, dashboardClientBadges);
-      renderClientActions(caseData, dashboardConversations, user, dashboardClientBadges);
+      renderClientActions(caseData, [], user, dashboardClientBadges);
       renderTimelineFromCase(caseData);
       renderArchiveDocument(caseData, dashboardClientBadges);
       renderCountry(caseData);
+      await loadClientReferralWidget();
 
-      bindQuickReplyHandlers();
-      updateQuickReplyUiForTarget(user);
-
-      const conversations = await apiGet("/api/conversations");
-      dashboardConversations = Array.isArray(conversations) ? conversations : [];
-      renderLatestMessage(dashboardConversations, user);
-      renderClientActions(caseData, dashboardConversations, user, dashboardClientBadges);
+      renderClientActions(caseData, [], user, dashboardClientBadges);
     } catch (error) {
       console.error("Dashboard data load failed:", error);
     }
@@ -1562,7 +1411,6 @@
       renderStaffFocus();
       renderStaffPriorityList();
       renderStaffDeadlines();
-      renderStaffInbox();
       renderStaffImportantActions();
       if (window.LkI18n) {
         window.LkI18n.applyDocument();
@@ -1571,14 +1419,10 @@
     }
     ensureClientDashboardI18n();
     renderClientSummary(dashboardLastCaseData, dashboardSessionUser, dashboardClientBadges);
-    renderClientActions(dashboardLastCaseData, dashboardConversations, dashboardSessionUser, dashboardClientBadges);
+    renderClientActions(dashboardLastCaseData, [], dashboardSessionUser, dashboardClientBadges);
     renderTimelineFromCase(dashboardLastCaseData);
     renderArchiveDocument(dashboardLastCaseData, dashboardClientBadges);
     renderCountry(dashboardLastCaseData);
-    if (dashboardSessionUser) {
-      updateQuickReplyUiForTarget(dashboardSessionUser);
-      renderLatestMessage(dashboardConversations, dashboardSessionUser);
-    }
     if (window.LkI18n) {
       window.LkI18n.applyDocument();
     }

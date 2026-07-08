@@ -34,6 +34,7 @@ class AppSmokeTest(unittest.TestCase):
         app_module = importlib.import_module("app")
         self.app = app_module.create_app()
         self.client = self.app.test_client()
+        self.ajax_headers = {"X-Requested-With": "XMLHttpRequest"}
 
     def tearDown(self) -> None:
         os.chdir(self.old_cwd)
@@ -56,6 +57,42 @@ class AppSmokeTest(unittest.TestCase):
                 response = self.client.get(path)
                 self.assertEqual(response.status_code, 401)
                 self.assertEqual(response.get_json()["error"], "missing token")
+
+    def test_cross_site_state_changing_request_is_rejected(self) -> None:
+        from models.user import create_user
+        from utils.db import get_db_connection
+        from utils.security import generate_auth_token, hash_password
+
+        db = get_db_connection()
+        user_id, _display_id = create_user(
+            db,
+            "csrf@example.test",
+            hash_password("Password1"),
+        )
+        db.close()
+
+        token = generate_auth_token(self.app.config["SECRET_KEY"], user_id)
+        self.client.set_cookie("access_token", token)
+
+        response = self.client.post(
+            "/api/logout",
+            headers={
+                "Origin": "https://evil.example",
+                "Sec-Fetch-Site": "cross-site",
+            },
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.get_json()["error"], "csrf rejected")
+
+    def test_untrusted_forwarded_proto_does_not_enable_hsts(self) -> None:
+        response = self.client.get(
+            "/api/health",
+            headers={"X-Forwarded-Proto": "https"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("Strict-Transport-Security", response.headers)
 
     def test_document_history_table_is_initialized(self) -> None:
         from utils.db import get_db_connection
@@ -364,7 +401,11 @@ class AppSmokeTest(unittest.TestCase):
             ],
         }
 
-        response = self.client.put("/api/case-templates/digital_nomad", json=good_payload)
+        response = self.client.put(
+            "/api/case-templates/digital_nomad",
+            json=good_payload,
+            headers=self.ajax_headers,
+        )
         self.assertEqual(response.status_code, 200)
         saved = response.get_json()["template"]
         self.assertEqual(saved["timeline"][0]["duration_label"], "2 weeks")
@@ -382,7 +423,11 @@ class AppSmokeTest(unittest.TestCase):
                 "priority": "critical",
             }
         ]
-        response = self.client.put("/api/case-templates/digital_nomad", json=bad_payload)
+        response = self.client.put(
+            "/api/case-templates/digital_nomad",
+            json=bad_payload,
+            headers=self.ajax_headers,
+        )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.get_json()["error"], "invalid document priority")
 

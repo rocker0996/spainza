@@ -23,6 +23,8 @@ def _ensure_case_data_columns(connection: sqlite3.Connection) -> None:
         "document_requests_manual": "INTEGER DEFAULT 0",
         "completed_at": "TEXT",
         "retention_cleanup_at": "TEXT",
+        "referral_hold_eur": "INTEGER DEFAULT 0",
+        "referral_paid_eur": "INTEGER DEFAULT 0",
     }
 
     for column_name, column_type in required_columns.items():
@@ -49,6 +51,8 @@ def create_case_data_table(connection: sqlite3.Connection) -> None:
             updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             completed_at TEXT,
             retention_cleanup_at TEXT,
+            referral_hold_eur INTEGER DEFAULT 0,
+            referral_paid_eur INTEGER DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY (referral_id) REFERENCES users(id) ON DELETE SET NULL,
             FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE SET NULL
@@ -66,7 +70,8 @@ def get_case_data_by_user_id(connection: sqlite3.Connection, user_id: int) -> Op
         SELECT id, user_id, visa_type, target_date, country, archive_file_path,
                archive_file_name, timeline_data, document_requests, referral_id,
                manager_id, created_at, updated_at,
-               timeline_manual, document_requests_manual, completed_at, retention_cleanup_at
+               timeline_manual, document_requests_manual, completed_at, retention_cleanup_at,
+               referral_hold_eur, referral_paid_eur
         FROM case_data
         WHERE user_id = ?
         """,
@@ -100,6 +105,8 @@ def get_case_data_by_user_id(connection: sqlite3.Connection, user_id: int) -> Op
         "document_requests_manual": _bool_col(14),
         "completed_at": normalize_storage_datetime(row[15]),
         "retention_cleanup_at": normalize_storage_datetime(row[16]),
+        "referral_hold_eur": int(row[17] or 0),
+        "referral_paid_eur": int(row[18] or 0),
     }
 
 
@@ -400,6 +407,8 @@ def upsert_case_data(
     document_requests_manual: bool = False,
     completed_at: Optional[str] | object = _PRESERVE_VALUE,
     retention_cleanup_at: Optional[str] | object = _PRESERVE_VALUE,
+    referral_hold_eur: Optional[int] | object = _PRESERVE_VALUE,
+    referral_paid_eur: Optional[int] | object = _PRESERVE_VALUE,
 ) -> bool:
     """Insert or update case data for a user."""
     try:
@@ -416,11 +425,29 @@ def upsert_case_data(
                 completed_at = existing.get("completed_at")
             if retention_cleanup_at is _PRESERVE_VALUE:
                 retention_cleanup_at = existing.get("retention_cleanup_at")
+            if referral_hold_eur is _PRESERVE_VALUE:
+                referral_hold_eur = existing.get("referral_hold_eur", 0)
+            if referral_paid_eur is _PRESERVE_VALUE:
+                referral_paid_eur = existing.get("referral_paid_eur", 0)
         else:
             if completed_at is _PRESERVE_VALUE:
                 completed_at = None
             if retention_cleanup_at is _PRESERVE_VALUE:
                 retention_cleanup_at = None
+            if referral_hold_eur is _PRESERVE_VALUE:
+                referral_hold_eur = 100 if referral_id else 0
+            if referral_paid_eur is _PRESERVE_VALUE:
+                referral_paid_eur = 0
+
+        def _money(value: Any) -> int:
+            try:
+                parsed = int(value or 0)
+            except (TypeError, ValueError):
+                return 0
+            return max(0, parsed)
+
+        referral_hold_eur = _money(referral_hold_eur)
+        referral_paid_eur = _money(referral_paid_eur)
         
         if existing:
             # Update existing record
@@ -440,6 +467,8 @@ def upsert_case_data(
                     document_requests_manual = ?,
                     completed_at = ?,
                     retention_cleanup_at = ?,
+                    referral_hold_eur = ?,
+                    referral_paid_eur = ?,
                     updated_at = ?
                 WHERE user_id = ?
                 """,
@@ -457,6 +486,8 @@ def upsert_case_data(
                     1 if document_requests_manual else 0,
                     completed_at,
                     retention_cleanup_at,
+                    referral_hold_eur,
+                    referral_paid_eur,
                     now_text,
                     user_id,
                 )
@@ -469,8 +500,9 @@ def upsert_case_data(
                                       archive_file_path, archive_file_name,
                                       timeline_data, document_requests, referral_id, manager_id,
                                       timeline_manual, document_requests_manual,
-                                      completed_at, retention_cleanup_at, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                      completed_at, retention_cleanup_at,
+                                      referral_hold_eur, referral_paid_eur, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     user_id,
@@ -487,6 +519,8 @@ def upsert_case_data(
                     1 if document_requests_manual else 0,
                     completed_at,
                     retention_cleanup_at,
+                    referral_hold_eur,
+                    referral_paid_eur,
                     now_text,
                     now_text,
                 )

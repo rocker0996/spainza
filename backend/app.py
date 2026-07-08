@@ -5,6 +5,7 @@ from pathlib import Path
 
 from flask import Flask, g, jsonify, redirect, request, send_from_directory
 from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import Config, is_production_env
 from models.user import (
@@ -101,6 +102,7 @@ RATE_LIMIT_DOCUMENT_REPLACE_PATH_RE = re.compile(r"^/api/documents/\d+/replace$"
 RATE_LIMIT_CASE_ARCHIVE_PATH_RE = re.compile(r"^/api/case-data/\d+/archive$")
 RATE_LIMIT_MESSAGE_POST_PATH_RE = re.compile(r"^/api/conversations/[^/]+/messages$")
 RATE_LIMITER = InMemoryRateLimiter()
+CSRF_PROTECTED_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 
 def _static_cache_policy(path: str) -> str | None:
@@ -137,10 +139,7 @@ def _append_vary_header(response, value: str) -> None:
 
 
 def _is_https_request() -> bool:
-    if request.is_secure:
-        return True
-    forwarded_proto = (request.headers.get("X-Forwarded-Proto") or "").split(",", 1)[0].strip().lower()
-    return forwarded_proto == "https"
+    return bool(request.is_secure)
 
 
 def _apply_security_headers(response):
@@ -231,6 +230,43 @@ def _is_allowed_cors_origin(app: Flask, origin: str | None) -> bool:
         ):
             return True
     return False
+
+
+def _is_same_origin_request() -> bool:
+    origin = (request.headers.get("Origin") or "").strip()
+    if not origin:
+        referer = (request.headers.get("Referer") or "").strip()
+        if referer:
+            origin = referer
+    if not origin:
+        return False
+    from urllib.parse import urlsplit
+
+    try:
+        parsed_origin = urlsplit(origin)
+        parsed_host = urlsplit(request.host_url)
+    except ValueError:
+        return False
+    return (
+        parsed_origin.scheme.lower() == parsed_host.scheme.lower()
+        and parsed_origin.netloc.lower() == parsed_host.netloc.lower()
+    )
+
+
+def _passes_csrf_request_check() -> bool:
+    if request.method not in CSRF_PROTECTED_METHODS:
+        return True
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return True
+
+    fetch_site = (request.headers.get("Sec-Fetch-Site") or "").strip().lower()
+    if fetch_site in {"same-origin", "same-site", "none"}:
+        return True
+    if fetch_site == "cross-site":
+        return False
+
+    return _is_same_origin_request()
 
 
 def _is_public_site_path(requested_path: str) -> bool:
@@ -332,6 +368,13 @@ def _is_allowed_storage_file_for_user(db, viewer_user_id: int, file_path: str) -
 def create_app() -> Flask:
     app = Flask(__name__)
     app.config.from_object(Config)
+    if app.config.get("TRUST_PROXY"):
+        app.wsgi_app = ProxyFix(
+            app.wsgi_app,
+            x_for=max(0, int(app.config.get("PROXY_FIX_X_FOR", 1))),
+            x_proto=max(0, int(app.config.get("PROXY_FIX_X_PROTO", 1))),
+            x_host=max(0, int(app.config.get("PROXY_FIX_X_HOST", 1))),
+        )
     app.config["ENV"] = "production" if is_production_env() else "development"
 
     app.register_blueprint(auth_bp, url_prefix="/api")
@@ -368,6 +411,9 @@ def create_app() -> Flask:
         protected_paths = ("/api/lk", "/api/user", "/api/users", "/api/roles", "/api/documents", "/api/document-history", "/api/application", "/api/case-data", "/api/case-history", "/api/case-notes", "/api/case-templates", "/api/conversations", "/api/messages", "/api/admin", "/api/logout")
         if not request.path.startswith(protected_paths):
             return None
+
+        if not _passes_csrf_request_check():
+            return jsonify({"success": False, "error": "csrf rejected"}), 403
 
         token = _extract_auth_cookie_token()
 
@@ -475,7 +521,7 @@ def create_app() -> Flask:
                 response.headers["Access-Control-Allow-Origin"] = origin
                 _append_vary_header(response, "Origin")
                 response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Requested-With"
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
             return _apply_security_headers(response)
 

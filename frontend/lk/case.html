@@ -1,16 +1,19 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 
 <html class="light" lang="ru"><head>
 <style id="lk-gate-nav-css">[data-lk-gate]:not(.lk-gate-visible){display:none!important}</style>
 <script src="../js/lk-access.js?v=1"></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta name="theme-color" content="#003ec7" />
 <link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
 <link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
 <link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-title" content="Spainza" />
-<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="manifest" href="/frontend/app.webmanifest" />
 <title data-i18n="case.pageTitleDefault">Управление кейсом | Spainza</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -357,6 +360,20 @@
 </div>
 </div>
 </div>
+<div id="case-referral-panel" class="bg-white rounded-[24px] p-5 sm:p-6 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100">
+<div class="mb-4 flex flex-col gap-1">
+<h4 class="font-manrope text-[11px] font-bold text-slate-400 uppercase tracking-widest">Реферальная система</h4>
+<p class="text-xs font-body text-slate-500">Кого привел этот клиент. Суммы попадают в виджет на его главной странице.</p>
+</div>
+<div id="case-referral-input-container" class="mb-3 flex min-w-0 flex-row items-stretch gap-2">
+<input id="case-referral-id-input" type="text" inputmode="text" maxlength="12" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="ID приведенного клиента" class="min-w-0 flex-1 bg-slate-50 border border-slate-200 text-slate-800 text-sm font-semibold rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-3 transition-colors font-mono uppercase"/>
+<button onclick="assignReferral()" type="button" class="flex shrink-0 items-center justify-center self-stretch bg-blue-600 px-4 py-2.5 text-white transition-colors hover:bg-blue-700 rounded-xl" title="Добавить реферала">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<div id="case-referrals-list" class="space-y-2"></div>
+<div id="case-referral-error" class="hidden text-xs text-red-500 mt-2 font-manrope"></div>
+</div>
 <!-- Document Requests -->
 <div class="bg-white rounded-[24px] p-5 sm:p-6 shadow-[0px_20px_40px_rgba(117,118,130,0.04)] border border-slate-100 flex flex-col">
 <div class="flex justify-between items-center mb-4">
@@ -485,5 +502,6 @@
 <script src="../js/lk-i18n.js?v=14" defer></script>
 <script src="../js/mobile-nav.js" defer></script>
 <script src="../js/lk.js?v=21" defer></script>
-<script src="../js/case.js?v=31" defer></script>
+<script src="../js/case.js?v=35" defer></script>
+<script src="/frontend/js/pwa.js" defer></script>
 </body></html>

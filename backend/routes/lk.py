@@ -49,6 +49,16 @@ from services.case_template_apply import (
     materialize_case_from_template_if_needed,
     resolve_template_owner_id,
 )
+from services.client_referral import (
+    ensure_client_referral_token,
+    get_referral_stats,
+    get_staff_invite_stats,
+    is_client_role_key,
+    list_referrals_for_referrer,
+    referral_user_payload,
+    set_case_referral_id,
+    update_referral_amounts,
+)
 from models.case_template import (
     get_template_for_manager,
     list_templates_for_manager,
@@ -914,6 +924,50 @@ def _json_user_detail_for_staff_view(target_user) -> dict:
     }
 
 
+def _public_referral_path(token: str) -> str:
+    return f"/frontend/login.html?invite={token}"
+
+
+@lk_bp.get("/lk/client-referral")
+def get_client_referral_link():
+    """Referral invite link for the current client."""
+    current_user = get_user_by_id(g.db, g.current_user_id)
+    if not current_user:
+        return jsonify({"success": False, "error": "user not found"}), 404
+    if not is_client_role_key(current_user["role_key"] or ""):
+        return jsonify({"success": False, "error": "access denied"}), 403
+
+    token = ensure_client_referral_token(g.db, g.current_user_id)
+    if not token:
+        return jsonify({"success": False, "error": "could not create referral token"}), 400
+
+    path = _public_referral_path(token)
+    base = (request.host_url or "").rstrip("/")
+    full_url = f"{base}{path}" if base else path
+    return jsonify(
+        {
+            "success": True,
+            "referral_token": token,
+            "invite_path": path,
+            "invite_url": full_url,
+        }
+    ), 200
+
+
+@lk_bp.get("/lk/referrals/stats")
+def get_current_referral_stats():
+    current_user = get_user_by_id(g.db, g.current_user_id)
+    if not current_user:
+        return jsonify({"success": False, "error": "user not found"}), 404
+    role_key = normalize_role_key(current_user["role_key"] or "")
+    if is_portal_staff_role(role_key):
+        permissions = get_role_permissions(role_key)
+        if not _can_assign_client_link(permissions):
+            return jsonify({"success": False, "error": "access denied"}), 403
+        return jsonify({"success": True, "stats": get_staff_invite_stats(g.db, g.current_user_id)}), 200
+    return jsonify({"success": True, "stats": get_referral_stats(g.db, g.current_user_id)}), 200
+
+
 @lk_bp.get("/lk/manager-invite")
 def get_manager_invite_link():
     """Токен и относительный путь для ссылки приглашения клиента."""
@@ -1231,6 +1285,7 @@ def get_case_data(user_id: int):
             "timeline": [],
             "document_requests": [],
             "referral_id": None,
+            "referral_user": None,
             "manager_id": get_primary_manager_id_for_client(g.db, user_id),
             "timeline_manual": False,
             "document_requests_manual": False,
@@ -1254,6 +1309,9 @@ def get_case_data(user_id: int):
     )
     response_case_data["team_assignment_kind"] = team_kind
     response_case_data["team_members"] = team_members
+    response_case_data["referral_user"] = referral_user_payload(
+        g.db, response_case_data.get("referral_id")
+    )
     if team_kind == "client_managers":
         response_case_data["manager_id"] = get_primary_manager_id_for_client(
             g.db, user_id
@@ -1355,6 +1413,207 @@ def add_case_team_member(user_id: int):
         {
             "success": True,
             "team_members": team_members,
+        }
+    ), 200
+
+
+@lk_bp.put("/lk/case-referral/<int:user_id>")
+def update_case_referral(user_id: int):
+    """Set or clear the referrer shown in the referral dashboard widget."""
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+
+    target = get_user_by_id(g.db, user_id)
+    if not target:
+        return jsonify({"success": False, "error": "user_not_found"}), 404
+    if is_portal_staff_role(normalize_role_key(target["role_key"] or "")):
+        return jsonify({"success": False, "error": "target_not_client"}), 400
+
+    payload = request.get_json(silent=True) or {}
+    identifier = (
+        payload.get("display_id")
+        if payload.get("display_id") is not None
+        else payload.get("client_id", payload.get("member_id"))
+    )
+    clear_requested = bool(payload.get("clear")) or str(identifier or "").strip() == ""
+    referral_id = None
+
+    if not clear_requested:
+        lookup_payload = dict(payload)
+        if lookup_payload.get("client_id") is None and lookup_payload.get("display_id") is not None:
+            lookup_payload["client_id"] = lookup_payload.get("display_id")
+        referral_id, resolve_err = resolve_payload_client_user_id(g.db, lookup_payload)
+        if resolve_err:
+            return jsonify({"success": False, "error": resolve_err}), 400
+        if int(referral_id) == int(user_id):
+            return jsonify({"success": False, "error": "self_referral"}), 400
+        referrer = get_user_by_id(g.db, referral_id)
+        if not referrer:
+            return jsonify({"success": False, "error": "referrer_not_found"}), 404
+        if not is_client_role_key(referrer["role_key"] or ""):
+            return jsonify({"success": False, "error": "referrer_not_client"}), 400
+
+    old_case_data = get_case_data_by_user_id(g.db, user_id)
+    old_referral_id = old_case_data.get("referral_id") if old_case_data else None
+    if not set_case_referral_id(g.db, user_id, referral_id):
+        return jsonify({"success": False, "error": "save_failed"}), 500
+
+    if old_referral_id != referral_id:
+        details = "Реферер очищен"
+        if referral_id:
+            referrer = get_user_by_id(g.db, referral_id)
+            details = (
+                f"{referrer['name'] or referrer['email']} (ID: {referral_id})"
+                if referrer
+                else str(referral_id)
+            )
+        add_history_entry(g.db, user_id, g.current_user_id, "Реферал обновлён", details)
+
+    return jsonify(
+        {
+            "success": True,
+            "referral_id": referral_id,
+            "referral_user": referral_user_payload(g.db, referral_id),
+        }
+    ), 200
+
+
+@lk_bp.get("/lk/case-referrals/<int:user_id>")
+def get_case_referrals(user_id: int):
+    """List clients referred by this user for the case referral widget."""
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+    target = get_user_by_id(g.db, user_id)
+    if not target:
+        return jsonify({"success": False, "error": "user_not_found"}), 404
+    if not is_client_role_key(target["role_key"] or ""):
+        return jsonify({"success": False, "error": "target_not_client"}), 400
+    return jsonify(
+        {
+            "success": True,
+            "referrals": list_referrals_for_referrer(g.db, user_id),
+        }
+    ), 200
+
+
+@lk_bp.post("/lk/case-referrals/<int:user_id>")
+def add_case_referral(user_id: int):
+    """Attach a referred client to this case owner by public display id or internal id."""
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+    referrer = get_user_by_id(g.db, user_id)
+    if not referrer:
+        return jsonify({"success": False, "error": "user_not_found"}), 404
+    if not is_client_role_key(referrer["role_key"] or ""):
+        return jsonify({"success": False, "error": "target_not_client"}), 400
+
+    payload = request.get_json(silent=True) or {}
+    referred_user_id, resolve_err = resolve_payload_client_user_id(g.db, payload)
+    if resolve_err:
+        return jsonify({"success": False, "error": resolve_err}), 400
+    if int(referred_user_id) == int(user_id):
+        return jsonify({"success": False, "error": "self_referral"}), 400
+
+    referred = get_user_by_id(g.db, referred_user_id)
+    if not referred:
+        return jsonify({"success": False, "error": "client_not_found"}), 404
+    if not is_client_role_key(referred["role_key"] or ""):
+        return jsonify({"success": False, "error": "referred_not_client"}), 400
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, referred_user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+
+    old_case_data = get_case_data_by_user_id(g.db, referred_user_id)
+    old_referral_id = old_case_data.get("referral_id") if old_case_data else None
+    if not set_case_referral_id(g.db, referred_user_id, user_id):
+        return jsonify({"success": False, "error": "save_failed"}), 500
+
+    if int(old_referral_id or 0) != int(user_id):
+        add_history_entry(
+            g.db,
+            user_id,
+            g.current_user_id,
+            "Реферал добавлен",
+            f"{referred['name'] or referred['email']} (ID: {referred_user_id})",
+        )
+        add_history_entry(
+            g.db,
+            referred_user_id,
+            g.current_user_id,
+            "Реферер обновлен",
+            f"{referrer['name'] or referrer['email']} (ID: {user_id})",
+        )
+
+    return jsonify(
+        {
+            "success": True,
+            "referrals": list_referrals_for_referrer(g.db, user_id),
+        }
+    ), 200
+
+
+@lk_bp.put("/lk/case-referrals/<int:user_id>/<int:referred_user_id>")
+def update_case_referral_amounts(user_id: int, referred_user_id: int):
+    """Update hold/paid amounts for one user referred by this case owner."""
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+    case = get_case_data_by_user_id(g.db, referred_user_id)
+    if not case or int(case.get("referral_id") or 0) != int(user_id):
+        return jsonify({"success": False, "error": "referral_not_found"}), 404
+    payload = request.get_json(silent=True) or {}
+    try:
+        hold_eur = max(0, int(payload.get("referral_hold_eur", 0) or 0))
+        paid_eur = max(0, int(payload.get("referral_paid_eur", 0) or 0))
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "error": "invalid_amount"}), 400
+    if not update_referral_amounts(
+        g.db,
+        referred_user_id,
+        hold_eur=hold_eur,
+        paid_eur=paid_eur,
+    ):
+        return jsonify({"success": False, "error": "save_failed"}), 500
+    add_history_entry(
+        g.db,
+        user_id,
+        g.current_user_id,
+        "Реферальные выплаты обновлены",
+        f"Клиент #{referred_user_id}: на удержании {hold_eur} €, выплачено {paid_eur} €",
+    )
+    return jsonify(
+        {
+            "success": True,
+            "referrals": list_referrals_for_referrer(g.db, user_id),
+        }
+    ), 200
+
+
+@lk_bp.delete("/lk/case-referrals/<int:user_id>/<int:referred_user_id>")
+def remove_case_referral(user_id: int, referred_user_id: int):
+    """Detach one referred client from this case owner."""
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+    if not _viewer_may_access_client_case_data(g.db, g.current_user_id, referred_user_id):
+        return jsonify({"success": False, "error": "access denied"}), 403
+
+    case = get_case_data_by_user_id(g.db, referred_user_id)
+    if not case or int(case.get("referral_id") or 0) != int(user_id):
+        return jsonify({"success": False, "error": "referral_not_found"}), 404
+
+    referred = get_user_by_id(g.db, referred_user_id)
+    if not set_case_referral_id(g.db, referred_user_id, None):
+        return jsonify({"success": False, "error": "save_failed"}), 500
+
+    add_history_entry(
+        g.db,
+        user_id,
+        g.current_user_id,
+        "Реферал удален",
+        f"{(referred['name'] or referred['email']) if referred else 'Клиент'} (ID: {referred_user_id})",
+    )
+    return jsonify(
+        {
+            "success": True,
+            "referrals": list_referrals_for_referrer(g.db, user_id),
         }
     ), 200
 
@@ -1688,7 +1947,7 @@ def update_case_data(user_id: int):
     team_kind = team_assignment_kind_for_target(old_role)
     if team_kind == "client_managers":
         manager_id = get_primary_manager_id_for_client(g.db, user_id)
-        referral_id = None
+        referral_id = old_case_data.get("referral_id") if old_case_data else referral_id
     else:
         manager_id = None
         referral_id = None

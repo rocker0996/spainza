@@ -34,6 +34,7 @@ from services.auth_service import (
     verify_email_token,
 )
 from services.case_template_apply import materialize_case_from_template_if_needed
+from services.client_referral import apply_client_referral_invite
 from services.manager_client_assign import (
     resolve_manager_id_from_invite_token,
     try_assign_client_to_manager,
@@ -106,6 +107,38 @@ def _is_request_secure() -> bool:
 def _auth_cookie_attrs() -> tuple[bool, str]:
     """Same-site Lax cookie; Secure only on HTTPS (works on http://localhost)."""
     return _is_request_secure(), "Lax"
+
+
+def _apply_registration_invite(user_id: int, invite_token: str, source: str) -> None:
+    invite = (invite_token or "").strip()
+    if not invite:
+        return
+    mgr_id = resolve_manager_id_from_invite_token(g.db, invite)
+    if mgr_id:
+        try:
+            ok, code = try_assign_client_to_manager(g.db, mgr_id, user_id)
+            if not ok and code != "personal_manager_taken":
+                current_app.logger.warning(
+                    "%s invite assign: user_id=%s manager_id=%s code=%s",
+                    source,
+                    user_id,
+                    mgr_id,
+                    code,
+                )
+        except Exception as exc:
+            current_app.logger.exception("%s invite assign failed: %s", source, exc)
+        return
+    try:
+        ok, code = apply_client_referral_invite(g.db, invite, user_id)
+        if not ok:
+            current_app.logger.warning(
+                "%s referral invite: user_id=%s code=%s",
+                source,
+                user_id,
+                code,
+            )
+    except Exception as exc:
+        current_app.logger.exception("%s referral invite failed: %s", source, exc)
 
 
 def _set_auth_cookie(response, token: str):
@@ -246,20 +279,7 @@ def _create_google_user_session(user_info: dict, manager_invite_token: str = "")
         except Exception as exc:
             current_app.logger.exception("case template materialize after google login: %s", exc)
 
-        if manager_invite_token:
-            mgr_id = resolve_manager_id_from_invite_token(g.db, manager_invite_token)
-            if mgr_id:
-                try:
-                    ok, code = try_assign_client_to_manager(g.db, mgr_id, user_id)
-                    if not ok and code != "personal_manager_taken":
-                        current_app.logger.warning(
-                            "google invite assign: user_id=%s manager_id=%s code=%s",
-                            user_id,
-                            mgr_id,
-                            code,
-                        )
-                except Exception as exc:
-                    current_app.logger.exception("google invite assign failed: %s", exc)
+        _apply_registration_invite(user_id, manager_invite_token, "google")
 
         try:
             send_support_welcome_to_new_user(g.db, user_id)
@@ -448,20 +468,7 @@ def register():
     except Exception as exc:
         current_app.logger.exception("case template materialize after register: %s", exc)
 
-    if manager_invite_token:
-        mgr_id = resolve_manager_id_from_invite_token(g.db, manager_invite_token)
-        if mgr_id:
-            try:
-                ok, code = try_assign_client_to_manager(g.db, mgr_id, user_id)
-                if not ok and code != "personal_manager_taken":
-                    current_app.logger.warning(
-                        "register invite assign: user_id=%s manager_id=%s code=%s",
-                        user_id,
-                        mgr_id,
-                        code,
-                    )
-            except Exception as exc:
-                current_app.logger.exception("register invite assign failed: %s", exc)
+    _apply_registration_invite(user_id, manager_invite_token, "register")
 
     try:
         send_support_welcome_to_new_user(g.db, user_id)

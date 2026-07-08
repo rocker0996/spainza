@@ -215,6 +215,7 @@ def create_users_table(connection: sqlite3.Connection) -> None:
             password_hash TEXT NOT NULL,
             avatar TEXT,
             role_key TEXT NOT NULL DEFAULT 'user',
+            client_referral_token TEXT,
             created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
         )
         """
@@ -402,6 +403,8 @@ def ensure_users_columns(connection: sqlite3.Connection) -> None:
         connection.execute("ALTER TABLE users ADD COLUMN current_stage TEXT DEFAULT 'consultation'")
     if "manager_invite_token" not in existing_columns:
         connection.execute("ALTER TABLE users ADD COLUMN manager_invite_token TEXT")
+    if "client_referral_token" not in existing_columns:
+        connection.execute("ALTER TABLE users ADD COLUMN client_referral_token TEXT")
     if "email_verified_at" not in existing_columns:
         connection.execute("ALTER TABLE users ADD COLUMN email_verified_at TEXT")
     if "email_verification_token_hash" not in existing_columns:
@@ -438,6 +441,9 @@ def ensure_users_columns(connection: sqlite3.Connection) -> None:
 
     connection.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS ux_users_display_id ON users(display_id)"
+    )
+    connection.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS ux_users_client_referral_token ON users(client_referral_token)"
     )
 
     backfill_missing_user_display_ids(connection)

@@ -108,7 +108,7 @@ def sync_case_primary_manager(connection: sqlite3.Connection, client_id: int) ->
             case.get("archive_file_name"),
             list(case.get("timeline") or []),
             list(case.get("document_requests") or []),
-            None,
+            case.get("referral_id"),
             primary_id,
             bool(case.get("timeline_manual")),
             bool(case.get("document_requests_manual")),

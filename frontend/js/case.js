@@ -57,6 +57,8 @@ let caseData = {
 /** client_managers | manager_moderators | moderator_managers */
 let teamAssignmentKind = 'client_managers';
 let teamMembers = [];
+let referralUser = null;
+let referralItems = [];
 let isEditMode = false;
 let draggedElement = null;
 /** Не вызывать автосохранение при программной установке #visa-type (иначе уходит пустой кейс до шаблона). */
@@ -1540,7 +1542,27 @@ function toggleEditMode(enabled) {
             btn.disabled = !enabled;
         });
     }
+    const referralInput = document.getElementById('case-referral-id-input');
+    if (referralInput) referralInput.disabled = !enabled;
+    const referralInputContainer = document.getElementById('case-referral-input-container');
+    if (referralInputContainer) {
+        referralInputContainer.querySelectorAll('button').forEach((btn) => {
+            btn.disabled = !enabled;
+        });
+    }
+    const referralClearBtn = document.getElementById('case-referral-clear-btn');
+    if (referralClearBtn) referralClearBtn.disabled = !enabled;
+    document.querySelectorAll('[data-referral-amount-input]').forEach((input) => {
+        input.disabled = !enabled;
+    });
+    document.querySelectorAll('[data-referral-save-btn]').forEach((btn) => {
+        btn.disabled = !enabled;
+    });
+    document.querySelectorAll('[data-referral-remove-btn]').forEach((btn) => {
+        btn.disabled = !enabled;
+    });
     renderTeamMembersList();
+    renderReferralUser();
 
     if (enabled) {
         const toggleTrack = document
@@ -1569,6 +1591,12 @@ function setupViewModeInterceptors() {
         '#document-requests-list input[type="checkbox"]',
         '#manager-id-input',
         '#manager-input-container button',
+        '#case-referral-id-input',
+        '#case-referral-input-container button',
+        '#case-referral-clear-btn',
+        '[data-referral-amount-input]',
+        '[data-referral-save-btn]',
+        '[data-referral-remove-btn]',
         '#case-team-assigned-list button'
     ].join(', ');
 
@@ -1668,6 +1696,7 @@ function configureCasePageForTargetUser() {
     }
 
     applyTeamAssignmentI18n(teamAssignmentKind);
+    renderReferralUser();
 }
 
 function renderTeamMembersList() {
@@ -1705,6 +1734,248 @@ function renderTeamMembersList() {
             </div>
         `;
     }).join('');
+}
+
+function renderReferralUser() {
+    const panel = document.getElementById('case-referral-panel');
+    const list = document.getElementById('case-referrals-list');
+    if (!panel || !list) return;
+
+    const isClientCase = teamAssignmentKind === 'client_managers' && !isTargetStaffPortalUser();
+    panel.classList.toggle('hidden', !isClientCase);
+    if (!isClientCase) return;
+
+    if (!referralItems || referralItems.length === 0) {
+        list.innerHTML = `
+            <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
+                Этот клиент пока никого не привёл.
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = referralItems.map((user) => {
+        const initials = getUserInitials(user.name || user.email || '');
+        const avatarHtml = user.avatar
+            ? `<img src="${escapeHtmlCase(user.avatar)}" alt="" class="w-full h-full object-cover" />`
+            : escapeHtmlCase(initials);
+        const displayId = user.display_id ? String(user.display_id).trim().toUpperCase() : `#${user.id}`;
+        const hold = Number(user.referral_hold_eur || 0);
+        const paid = Number(user.referral_paid_eur || 0);
+        const disabled = isEditMode ? '' : 'disabled';
+        return `
+            <div class="grid grid-cols-1 gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 sm:grid-cols-[minmax(0,1fr)_7.25rem_7.25rem_5.75rem] sm:items-center">
+                <div class="flex min-w-0 items-center gap-2">
+                    <div class="h-8 w-8 rounded-full overflow-hidden bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs font-manrope shrink-0">${avatarHtml}</div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex min-w-0 items-center gap-2">
+                            <div class="truncate text-sm font-semibold text-slate-800">${escapeHtmlCase(user.name || t('clients.noName'))}</div>
+                            <div class="shrink-0 rounded-md bg-white px-1.5 py-0.5 text-[10px] font-mono font-bold tracking-wide text-slate-500">${escapeHtmlCase(displayId)}</div>
+                        </div>
+                        <div class="truncate text-xs text-slate-500">${escapeHtmlCase(user.email || '')}</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 sm:contents">
+                    <label class="block min-w-0">
+                        <span class="mb-1 block text-[9px] font-bold uppercase tracking-widest text-slate-400">Удерж.</span>
+                        <input ${disabled} data-referral-amount-input data-referral-hold="${user.id}" type="number" min="0" step="1" value="${hold}" class="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-semibold text-slate-800 disabled:bg-slate-100"/>
+                    </label>
+                    <label class="block min-w-0">
+                        <span class="mb-1 block text-[9px] font-bold uppercase tracking-widest text-slate-400">Выпл.</span>
+                        <input ${disabled} data-referral-amount-input data-referral-paid="${user.id}" type="number" min="0" step="1" value="${paid}" class="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-semibold text-slate-800 disabled:bg-slate-100"/>
+                    </label>
+                    <div class="col-span-2 flex items-end gap-2 sm:col-span-1">
+                        <button ${disabled} data-referral-save-btn type="button" onclick="saveReferralAmounts(${user.id})" class="inline-flex h-9 flex-1 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-9 sm:flex-none" title="Сохранить">
+                            <span class="material-symbols-outlined text-[18px]">save</span>
+                        </button>
+                        <button ${disabled} data-referral-remove-btn type="button" onclick="removeReferral(${user.id})" class="inline-flex h-9 flex-1 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-9 sm:flex-none" title="Удалить реферала">
+                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function showReferralError(message) {
+    const error = document.getElementById('case-referral-error');
+    if (!error) return;
+    error.textContent = message;
+    error.classList.remove('hidden');
+}
+
+function hideReferralError() {
+    const error = document.getElementById('case-referral-error');
+    if (error) error.classList.add('hidden');
+}
+
+async function loadCaseReferrals() {
+    if (!currentUserId) return;
+    try {
+        const response = await fetch(`${API_BASE}/lk/case-referrals/${currentUserId}`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+            referralItems = [];
+            renderReferralUser();
+            return;
+        }
+        referralItems = Array.isArray(data.referrals) ? data.referrals : [];
+        renderReferralUser();
+    } catch (error) {
+        console.error(error);
+        referralItems = [];
+        renderReferralUser();
+    }
+}
+
+async function saveReferralAmounts(referredUserId) {
+    if (!isEditMode) {
+        showEnableEditModeToast();
+        return;
+    }
+    if (!currentUserId || !referredUserId) return;
+    const holdInput = document.querySelector(`[data-referral-hold="${referredUserId}"]`);
+    const paidInput = document.querySelector(`[data-referral-paid="${referredUserId}"]`);
+    const hold = Math.max(0, parseInt(String(holdInput?.value || '0'), 10) || 0);
+    const paid = Math.max(0, parseInt(String(paidInput?.value || '0'), 10) || 0);
+    hideReferralError();
+    try {
+        const response = await fetch(`${API_BASE}/lk/case-referrals/${currentUserId}/${referredUserId}`, {
+            method: 'PUT',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                referral_hold_eur: hold,
+                referral_paid_eur: paid,
+            }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+            showReferralError('Не удалось сохранить выплаты по рефералу');
+            return;
+        }
+        referralItems = Array.isArray(data.referrals) ? data.referrals : referralItems;
+        renderReferralUser();
+    } catch (error) {
+        console.error(error);
+        showReferralError('Не удалось сохранить выплаты по рефералу');
+    }
+}
+
+async function assignReferral() {
+    if (!isEditMode) {
+        showEnableEditModeToast();
+        return;
+    }
+    if (!currentUserId) return;
+    const input = document.getElementById("case-referral-id-input");
+    const token = normalizeCaseManagerDisplayIdInput(input?.value || "");
+
+    if (!token) {
+        showReferralError("Введите ID клиента");
+        return;
+    }
+    if (!isCompletePublicDisplayIdCase(token) && !/^\d+$/.test(token)) {
+        showReferralError("Введите публичный номер AA1234 или внутренний числовой ID");
+        return;
+    }
+
+    hideReferralError();
+    try {
+        const response = await fetch(`${API_BASE}/lk/case-referrals/${currentUserId}`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ client_id: token }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+            const err = data.error || '';
+            if (err === 'self_referral') {
+                showReferralError('Нельзя добавить этого же клиента');
+            } else if (err === 'client_not_found') {
+                showReferralError('Клиент с таким ID не найден');
+            } else if (err === 'referred_not_client') {
+                showReferralError('Можно добавить только клиента, не сотрудника');
+            } else if (err === 'missing_client_id' || err === 'invalid_ids') {
+                showReferralError('Введите корректный ID клиента');
+            } else if (response.status === 403) {
+                showReferralError('Недостаточно прав');
+            } else {
+                showReferralError('Не удалось добавить реферала');
+            }
+            return;
+        }
+        referralItems = Array.isArray(data.referrals) ? data.referrals : referralItems;
+        if (input) input.value = '';
+        renderReferralUser();
+        showCaseToast('Реферал добавлен', 'success');
+    } catch (error) {
+        console.error(error);
+        showReferralError('Не удалось добавить реферала');
+    }
+}
+
+async function removeReferral(referredUserId) {
+    if (!isEditMode) {
+        showEnableEditModeToast();
+        return;
+    }
+    if (!currentUserId || !referredUserId) return;
+    const item = referralItems.find((user) => Number(user.id) === Number(referredUserId));
+    const label = item?.display_id || item?.name || item?.email || `#${referredUserId}`;
+    const ok = await showCaseConfirm({
+        title: 'Удалить реферала?',
+        message: `Клиент ${label} больше не будет считаться приведенным этим пользователем.`,
+        confirmText: 'Удалить',
+        danger: true,
+    });
+    if (!ok) return;
+
+    hideReferralError();
+    try {
+        const response = await fetch(`${API_BASE}/lk/case-referrals/${currentUserId}/${referredUserId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.success) {
+            showReferralError(response.status === 403 ? 'Недостаточно прав' : 'Не удалось удалить реферала');
+            return;
+        }
+        referralItems = Array.isArray(data.referrals) ? data.referrals : referralItems;
+        renderReferralUser();
+        showCaseToast('Реферал удален', 'success');
+    } catch (error) {
+        console.error(error);
+        showReferralError('Не удалось удалить реферала');
+    }
+}
+
+function bindReferralControls() {
+    const input = document.getElementById("case-referral-id-input");
+    if (!input || input.dataset.caseReferralBound === "1") {
+        return;
+    }
+    input.dataset.caseReferralBound = "1";
+    const sync = () => {
+        const next = normalizeCaseManagerDisplayIdInput(input.value);
+        if (input.value !== next) {
+            input.value = next;
+        }
+    };
+    input.addEventListener("input", sync);
+    input.addEventListener("blur", sync);
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            void assignReferral();
+        }
+    });
 }
 
 async function removeCaseTeamMember(memberId) {
@@ -1801,13 +2072,18 @@ function addHistoryEntry(action, details = '') {
 function loadTeamAssignments(loadedCaseData) {
     if (!loadedCaseData) {
         teamMembers = [];
+        referralUser = null;
+        referralItems = [];
         renderTeamMembersList();
+        renderReferralUser();
         return;
     }
     teamAssignmentKind = loadedCaseData.team_assignment_kind || 'client_managers';
     teamMembers = Array.isArray(loadedCaseData.team_members) ? loadedCaseData.team_members : [];
+    referralUser = loadedCaseData.referral_user || null;
     configureCasePageForTargetUser();
     renderTeamMembersList();
+    renderReferralUser();
 }
 
 /**
@@ -1884,6 +2160,8 @@ async function initializeCasePage() {
 
         await bootstrapCaseEditors(loadedCaseData);
         await loadTeamAssignments(loadedCaseData);
+        await loadCaseReferrals();
+        bindReferralControls();
 
         const editToggle = document.getElementById('edit-mode-toggle');
         const editEnabled = editToggle ? editToggle.checked : false;
@@ -2471,6 +2749,7 @@ window.toggleDocumentRequest = toggleDocumentRequest;
 window.deleteDocumentRequest = deleteDocumentRequest;
 window.recallDocumentRequest = recallDocumentRequest;
 window.assignReferral = assignReferral;
+window.removeReferral = removeReferral;
 window.assignManager = assignManager;
 window.clearReferral = clearReferral;
 window.clearManager = clearManager;
