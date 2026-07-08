@@ -4,7 +4,8 @@ import json
 import secrets
 from sqlite3 import IntegrityError
 
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from flask import Blueprint, current_app, g, jsonify, redirect, request, make_response
@@ -109,6 +110,15 @@ def _auth_cookie_attrs() -> tuple[bool, str]:
     return _is_request_secure(), "Lax"
 
 
+def _shared_cookie_domain() -> str:
+    host = urlparse(_public_base_url()).hostname or ""
+    if not host or host in {"localhost", "127.0.0.1", "0.0.0.0"}:
+        return ""
+    if host.count(".") < 1:
+        return ""
+    return host[4:] if host.startswith("www.") else host
+
+
 def _apply_registration_invite(user_id: int, invite_token: str, source: str) -> None:
     invite = (invite_token or "").strip()
     if not invite:
@@ -211,6 +221,15 @@ def _google_oauth_configured() -> bool:
     )
 
 
+def _google_login_error_redirect(code: str, *, details: str = ""):
+    safe_code = str(code or "unknown").strip()[:40] or "unknown"
+    if details:
+        current_app.logger.warning("google oauth failed: %s: %s", safe_code, details[:800])
+    else:
+        current_app.logger.warning("google oauth failed: %s", safe_code)
+    return redirect(_login_page_url(google_error=safe_code))
+
+
 def _post_form_json(url: str, data: dict, timeout: int = 15) -> dict:
     encoded = urlencode(data).encode("utf-8")
     req = Request(
@@ -222,8 +241,12 @@ def _post_form_json(url: str, data: dict, timeout: int = 15) -> dict:
         },
         method="POST",
     )
-    with urlopen(req, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
+    try:
+        with urlopen(req, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"HTTP {exc.code}: {body}") from exc
 
 
 def _get_json(url: str, token: str, timeout: int = 15) -> dict:
@@ -233,14 +256,16 @@ def _get_json(url: str, token: str, timeout: int = 15) -> dict:
 
 
 def _clear_google_state_cookie(response):
-    secure_cookie, same_site = _auth_cookie_attrs()
+    secure_cookie, _same_site = _auth_cookie_attrs()
+    cookie_domain = _shared_cookie_domain()
     response.set_cookie(
         GOOGLE_OAUTH_STATE_COOKIE,
         "",
         httponly=True,
         secure=secure_cookie,
-        samesite=same_site,
+        samesite="None" if secure_cookie else "Lax",
         path="/",
+        domain=cookie_domain or None,
         expires=0,
         max_age=0,
     )
@@ -310,14 +335,16 @@ def google_oauth_start():
         "prompt": "select_account",
     }
     response = make_response(redirect(f"{GOOGLE_AUTH_URL}?{urlencode(params)}"))
-    secure_cookie, same_site = _auth_cookie_attrs()
+    secure_cookie, _same_site = _auth_cookie_attrs()
+    cookie_domain = _shared_cookie_domain()
     response.set_cookie(
         GOOGLE_OAUTH_STATE_COOKIE,
         nonce,
         httponly=True,
         secure=secure_cookie,
-        samesite=same_site,
+        samesite="None" if secure_cookie else "Lax",
         path="/",
+        domain=cookie_domain or None,
         max_age=10 * 60,
     )
     return response
@@ -326,25 +353,28 @@ def google_oauth_start():
 @auth_bp.get("/auth/google/callback")
 def google_oauth_callback():
     if not _google_oauth_configured():
-        return redirect(_login_page_url(google_error="config"))
+        return _google_login_error_redirect("config")
 
     error = str(request.args.get("error") or "").strip()
     if error:
-        return redirect(_login_page_url(google_error=error[:40]))
+        return _google_login_error_redirect(error[:40], details="provider returned error")
 
     code = str(request.args.get("code") or "").strip()
     state = str(request.args.get("state") or "").strip()
     if not code or not state:
-        return redirect(_login_page_url(google_error="invalid"))
+        return _google_login_error_redirect("invalid", details="missing code or state")
 
     try:
         state_payload = _google_oauth_serializer().loads(state, max_age=10 * 60)
     except (BadSignature, SignatureExpired):
-        return redirect(_login_page_url(google_error="state"))
+        return _google_login_error_redirect("state", details="state signature invalid or expired")
 
     state_cookie = str(request.cookies.get(GOOGLE_OAUTH_STATE_COOKIE) or "")
     if not state_cookie or state_cookie != str(state_payload.get("nonce") or ""):
-        return redirect(_login_page_url(google_error="state"))
+        return _google_login_error_redirect(
+            "state",
+            details=f"state cookie mismatch; cookie_present={bool(state_cookie)}",
+        )
 
     try:
         token_payload = _post_form_json(
@@ -360,20 +390,20 @@ def google_oauth_callback():
         access_token = str(token_payload.get("access_token") or "")
         if not access_token:
             current_app.logger.warning("google oauth token payload missing access_token")
-            return redirect(_login_page_url(google_error="token"))
+            return _google_login_error_redirect("token", details="missing access_token")
         user_info = _get_json(GOOGLE_USERINFO_URL, access_token)
     except Exception as exc:
         current_app.logger.exception("google oauth callback failed: %s", exc)
-        return redirect(_login_page_url(google_error="callback"))
+        return _google_login_error_redirect("callback", details=str(exc))
 
     user_id, user_row, created, code = _create_google_user_session(
         user_info,
         manager_invite_token=str(state_payload.get("manager_invite_token") or "").strip(),
     )
     if code == "account_deleted":
-        return redirect(_login_page_url(google_error="account_deleted"))
+        return _google_login_error_redirect("account_deleted")
     if code == "email_not_verified" or not user_id or not user_row:
-        return redirect(_login_page_url(google_error="email"))
+        return _google_login_error_redirect("email", details="email missing or not verified")
 
     try:
         add_security_log(
