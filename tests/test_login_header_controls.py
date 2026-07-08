@@ -33,6 +33,8 @@ class LoginHeaderControlsTest(unittest.TestCase):
         self.assertIn('data-locale-btn="en"', self.html)
         self.assertIn(">RU</button>", self.html)
         self.assertIn(">EN</button>", self.html)
+        self.assertIn('/frontend/css/portal.css?v=2', self.html)
+        self.assertIn('/frontend/js/login-i18n.js?v=12', self.html)
         self.assertNotIn('data-i18n="common.langRu"', self.html)
         self.assertNotIn('data-i18n="common.langEn"', self.html)
 

@@ -1,9 +1,9 @@
-const CACHE_NAME = "spainza-portal-shell-v1";
+const CACHE_NAME = "spainza-portal-shell-v2";
 const PRECACHE_URLS = [
   "/frontend/app.webmanifest",
   "/frontend/login.html",
   "/frontend/lk/dashboard.html",
-  "/frontend/css/portal.css",
+  "/frontend/css/portal.css?v=2",
   "/frontend/js/pwa.js",
   "/frontend/img/icon.png",
   "/frontend/img/app-icon-192.png",

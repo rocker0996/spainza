@@ -40,6 +40,8 @@ class PortalPwaTest(unittest.TestCase):
         self.assertIn("/frontend/lk/dashboard.html", service_worker)
         self.assertIn("/frontend/login.html", service_worker)
         self.assertIn("/frontend/app.webmanifest", service_worker)
+        self.assertIn('spainza-portal-shell-v2', service_worker)
+        self.assertIn('/frontend/css/portal.css?v=2', service_worker)
         self.assertIn("/frontend/img/icon.png", service_worker)
 
 
