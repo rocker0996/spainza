@@ -16,6 +16,8 @@ class LoginHeaderControlsTest(unittest.TestCase):
         self.assertNotIn('data-i18n="login.backHome"', self.html)
         self.assertIn('id="login-brand-home"', self.html)
         self.assertIn('href="/ru/index.html"', self.html)
+        self.assertIn("pointer-events-none", self.html)
+        self.assertIn("pointer-events-auto", self.html)
         self.assertIn(">Spainza</a>", self.html)
 
     def test_login_language_switcher_is_compact(self):
