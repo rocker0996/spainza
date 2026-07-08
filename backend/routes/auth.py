@@ -370,11 +370,13 @@ def google_oauth_callback():
         return _google_login_error_redirect("state", details="state signature invalid or expired")
 
     state_cookie = str(request.cookies.get(GOOGLE_OAUTH_STATE_COOKIE) or "")
-    if not state_cookie or state_cookie != str(state_payload.get("nonce") or ""):
+    if state_cookie and state_cookie != str(state_payload.get("nonce") or ""):
         return _google_login_error_redirect(
             "state",
-            details=f"state cookie mismatch; cookie_present={bool(state_cookie)}",
+            details="state cookie mismatch",
         )
+    if not state_cookie:
+        current_app.logger.warning("google oauth state cookie missing; signed state accepted")
 
     try:
         token_payload = _post_form_json(
