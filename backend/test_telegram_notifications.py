@@ -62,6 +62,24 @@ class TelegramNotificationsTest(unittest.TestCase):
         self.assertIn("set:messages:0", callbacks)
         self.assertIn("set:lang:en", callbacks)
 
+    def test_link_login_and_retry_datetimes_are_serialized(self) -> None:
+        from models.notifications import (
+            create_telegram_link_code,
+            create_telegram_login_session,
+            enqueue_notification,
+            mark_notification_failed,
+        )
+
+        code, link_expiry = create_telegram_link_code(self.db, 10, "secret")
+        _, start_code, login_expiry = create_telegram_login_session(self.db, "secret")
+        notification_id = enqueue_notification(self.db, 10, "test", {})
+        mark_notification_failed(self.db, notification_id, "temporary", attempts=1)
+
+        self.assertEqual(len(code), 6)
+        self.assertTrue(start_code.startswith("login"))
+        self.assertTrue(link_expiry.endswith("Z"))
+        self.assertTrue(login_expiry.endswith("Z"))
+
 
 if __name__ == "__main__":
     unittest.main()

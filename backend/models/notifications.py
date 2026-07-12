@@ -124,7 +124,7 @@ def create_telegram_link_code(
     expires_at = (
         utc_now() + timedelta(minutes=LINK_CODE_TTL_MINUTES)
     )
-    expires_at = to_storage_datetime(expires_at_dt)
+    expires_at = to_storage_datetime(expires_at)
     connection.execute(
         """
         INSERT INTO telegram_link_codes (user_id, code_hash, expires_at)
@@ -177,7 +177,7 @@ def create_telegram_login_session(
     expires_at = (
         utc_now() + timedelta(minutes=LOGIN_SESSION_TTL_MINUTES)
     )
-    expires_at = to_storage_datetime(expires_at_dt)
+    expires_at = to_storage_datetime(expires_at)
     connection.execute(
         """
         INSERT INTO telegram_login_sessions (poll_token, start_code, code_hash, expires_at)
@@ -416,7 +416,7 @@ def mark_notification_failed(
     next_retry = (
         utc_now() + timedelta(seconds=delay_seconds)
     )
-    next_retry = to_storage_datetime(next_retry_dt)
+    next_retry = to_storage_datetime(next_retry)
     connection.execute(
         """
         UPDATE notification_outbox
