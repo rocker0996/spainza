@@ -18,6 +18,7 @@ from models.notifications import (
     upsert_telegram_link,
 )
 from models.user import get_user_by_id
+from models.telegram_preferences import get_preferences, update_preferences
 from services.telegram_login import resolve_or_create_user_from_telegram
 from services.telegram_questions import cancel_question, consume_question_text, start_question
 from services.notification_service import lk_url
@@ -36,6 +37,7 @@ from services.telegram_views import (
     build_main_menu,
     build_question_categories_view,
     build_question_prompt_view,
+    build_settings_view,
     render_markup,
 )
 
@@ -401,6 +403,35 @@ def _show_question_flow(
     return True
 
 
+def _show_settings(
+    connection: sqlite3.Connection,
+    chat_id: int,
+    callback_data: str,
+    *,
+    message_id: Optional[int] = None,
+) -> bool:
+    user_id = _linked_user_id_for_chat(connection, chat_id)
+    if not user_id:
+        _handle_connect_hint(connection, chat_id)
+        return False
+    locale = _locale_for_user(connection, user_id)
+    if callback_data.startswith("set:"):
+        _, field, raw_value = callback_data.split(":", 2)
+        if field == "lang" and raw_value in {"ru", "en"}:
+            connection.execute("UPDATE users SET locale = ? WHERE id = ?", (raw_value, user_id))
+            connection.commit()
+            update_preferences(connection, user_id, locale=raw_value)
+            locale = raw_value
+        elif field in {"messages", "documents", "case_updates", "reminders", "digest_enabled"} and raw_value in {"0", "1"}:
+            update_preferences(connection, user_id, **{field: raw_value == "1"})
+    view = build_settings_view(locale, get_preferences(connection, user_id))
+    token = Config.TELEGRAM_BOT_TOKEN
+    if not token:
+        return False
+    _deliver_view(token, chat_id, view, message_id=message_id)
+    return True
+
+
 def handle_update(connection: sqlite3.Connection, update: dict, *, bot_username: str = "") -> None:
     callback = update.get("callback_query")
     if callback:
@@ -531,7 +562,9 @@ def _handle_callback(
         except Exception:
             pass
 
-    if data == "nav:ask" or data.startswith("ask:start:"):
+    if data == "nav:settings" or data.startswith("set:"):
+        _show_settings(connection, chat_id, data, message_id=message.get("message_id"))
+    elif data == "nav:ask" or data.startswith("ask:start:"):
         _show_question_flow(connection, chat_id, data, message_id=message.get("message_id"))
     elif data == "nav:faq" or data.startswith("faq:"):
         _show_faq_view(connection, chat_id, data, message_id=message.get("message_id"))
