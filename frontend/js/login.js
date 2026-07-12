@@ -683,7 +683,8 @@
       telegramLoginUnavailable.classList.add("hidden");
     }
     document.getElementById("telegram-app-login-btn")?.addEventListener("click", function () {
-      startTelegramAppLogin(botUsername);
+      const telegramWindow = window.open("about:blank", "_blank");
+      startTelegramAppLogin(botUsername, telegramWindow);
     });
   }
 
@@ -694,13 +695,31 @@
     }
   }
 
-  function openTelegramApp(url, tgUrl) {
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
-    const target = isMobile && tgUrl ? tgUrl : url || tgUrl;
-    if (!target) {
+  function showTelegramOpenLink(url) {
+    if (!successBox || !url) {
       return;
     }
-    window.location.href = target;
+    successBox.textContent = t("login.telegramPending") + " ";
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = t("login.telegramOpen");
+    link.className = "underline font-semibold";
+    successBox.appendChild(link);
+  }
+
+  function openTelegramApp(url, tgUrl, telegramWindow) {
+    const target = url || tgUrl;
+    if (!target) {
+      return false;
+    }
+    if (telegramWindow && !telegramWindow.closed) {
+      telegramWindow.location.href = target;
+      return true;
+    }
+    showTelegramOpenLink(url || tgUrl);
+    return false;
   }
 
   async function pollTelegramAppLogin(pollToken) {
@@ -733,7 +752,7 @@
     return false;
   }
 
-  async function startTelegramAppLogin(botUsername) {
+  async function startTelegramAppLogin(botUsername, telegramWindow) {
     errorBox.textContent = "";
     successBox.textContent = "";
     stopTelegramLoginPolling();
@@ -757,12 +776,15 @@
     }
 
     if (!payload || !payload.success || !payload.poll_token) {
+      if (telegramWindow && !telegramWindow.closed) {
+        telegramWindow.close();
+      }
       errorBox.textContent = t("login.telegramUnavailable");
       return;
     }
 
     successBox.textContent = t("login.telegramPending");
-    openTelegramApp(payload.telegram_url, payload.tg_url);
+    openTelegramApp(payload.telegram_url, payload.tg_url, telegramWindow);
 
     telegramLoginPollTimer = window.setInterval(function () {
       pollTelegramAppLogin(payload.poll_token);
