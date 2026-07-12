@@ -60,7 +60,6 @@ def build_main_menu(locale: str, *, task_count: int = 0, active_stage: str = "�
             "✅ Что нужно сделать",
             "📄 Документы",
             "📍 Мой кейс",
-            "💬 Задать вопрос",
             "📚 Частые вопросы",
             "⚙️ Настройки",
         ]
@@ -75,11 +74,10 @@ def build_main_menu(locale: str, *, task_count: int = 0, active_stage: str = "�
             "✅ What to do",
             "📄 Documents",
             "📍 My case",
-            "💬 Ask a question",
             "📚 FAQ",
             "⚙️ Settings",
         ]
-    callbacks = ["nav:tasks", "nav:docs", "nav:case", "nav:ask", "nav:faq", "nav:settings"]
+    callbacks = ["nav:tasks", "nav:docs", "nav:case", "nav:faq", "nav:settings"]
     return BotView(
         text,
         [[BotButton(label, callback_data=callback)] for label, callback in zip(labels, callbacks)],

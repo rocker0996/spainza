@@ -12,7 +12,7 @@ if str(BACKEND_DIR) not in sys.path:
 
 
 class TelegramViewsTest(unittest.TestCase):
-    def test_main_menu_has_six_stable_actions(self) -> None:
+    def test_main_menu_has_five_stable_actions_without_question_flow(self) -> None:
         from services.telegram_views import build_main_menu
 
         view = build_main_menu("ru", task_count=3, active_stage="Проверка")
@@ -24,13 +24,30 @@ class TelegramViewsTest(unittest.TestCase):
                 "nav:tasks",
                 "nav:docs",
                 "nav:case",
-                "nav:ask",
                 "nav:faq",
                 "nav:settings",
             ],
         )
         self.assertIn("3", view.text)
         self.assertIn("Проверка", view.text)
+
+    def test_reply_menu_matches_current_assistant_features(self) -> None:
+        from services.telegram_bot import _main_menu_markup
+
+        labels = [button["text"] for row in _main_menu_markup(True)["keyboard"] for button in row]
+
+        self.assertEqual(
+            labels,
+            [
+                "✅ Что нужно сделать",
+                "📄 Документы",
+                "📍 Мой кейс",
+                "📚 Частые вопросы",
+                "🏠 Кабинет",
+                "⚙️ Настройки",
+            ],
+        )
+        self.assertNotIn("Задать вопрос", " ".join(labels))
 
     def test_navigation_rows_always_offer_back_and_home(self) -> None:
         from services.telegram_views import navigation_rows
