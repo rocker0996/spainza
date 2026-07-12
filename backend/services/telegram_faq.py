@@ -86,9 +86,9 @@ FAQ_ARTICLES = {
         ),
         _article(
             "upload_help", "portal", "Не получается загрузить файл",
-            "Проверьте формат и размер файла, затем повторите загрузку в стабильной сети. Если ошибка сохраняется, выберите «Задать вопрос» → «Техническая проблема» и опишите сообщение об ошибке.",
+            "Повторите загрузку при стабильном подключении. Если ошибка сохраняется, откройте сообщения по кнопке ниже и отправьте менеджеру текст ошибки.",
             "I cannot upload a file",
-            "Check the file format and size, then retry on a stable connection. If the error continues, choose Ask a question → Technical issue and include the error message.",
+            "Retry the upload on a stable connection. If the error continues, open Messages using the button below and send the error text to your manager.",
         ),
     ]
 }

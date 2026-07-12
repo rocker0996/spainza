@@ -35,14 +35,31 @@ class TelegramFaqTest(unittest.TestCase):
         self.assertTrue(articles)
         self.assertEqual({article.category for article in articles}, {"documents"})
 
-    def test_article_view_offers_feedback_and_manager_question(self) -> None:
+    def test_article_view_returns_home_and_opens_manager_chat(self) -> None:
         from services.telegram_views import build_faq_view
 
-        view = build_faq_view("ru", "doc_rejected")
+        view = build_faq_view(
+            "ru",
+            "doc_rejected",
+            manager_chat_url="https://spainza.com/frontend/lk/messages.html?openUserId=AB1234",
+        )
         callbacks = [button.callback_data for row in view.rows for button in row]
+        urls = [button.url for row in view.rows for button in row if button.url]
 
-        self.assertIn("faq:helped:doc_rejected", callbacks)
-        self.assertIn("ask:start:documents", callbacks)
+        self.assertIn("nav:home", callbacks)
+        self.assertNotIn("faq:helped:doc_rejected", callbacks)
+        self.assertIn("https://spainza.com/frontend/lk/messages.html?openUserId=AB1234", urls)
+
+    def test_upload_help_does_not_list_technical_limits(self) -> None:
+        from services.telegram_faq import FAQ_ARTICLES
+
+        article = FAQ_ARTICLES["upload_help"]
+        combined = f"{article.body_ru} {article.body_en}".lower()
+
+        self.assertNotIn("50 мб", combined)
+        self.assertNotIn("50 mb", combined)
+        self.assertNotIn("mime", combined)
+        self.assertNotIn("задать вопрос", combined)
 
     def test_guest_keyboard_exposes_faq(self) -> None:
         from services.telegram_bot import _guest_menu_markup
