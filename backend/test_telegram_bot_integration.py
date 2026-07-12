@@ -27,6 +27,8 @@ class TelegramBotIntegrationTest(unittest.TestCase):
         self.db.execute(
             "INSERT INTO users (id, email, password_hash, name, role_key, locale) VALUES (10, 'client@test', 'x', 'Client', 'client', 'ru')"
         )
+        self.db.execute("UPDATE users SET display_id = 'AB1234' WHERE id = 3")
+        self.db.execute("INSERT INTO manager_clients (manager_id, client_id) VALUES (3, 10)")
         self.db.execute(
             "INSERT INTO case_data (user_id, timeline_data, document_requests) VALUES (?, ?, ?)",
             (
@@ -41,7 +43,7 @@ class TelegramBotIntegrationTest(unittest.TestCase):
     def tearDown(self) -> None:
         self.db.close()
 
-    def test_linked_client_opens_tasks_and_sends_structured_question(self) -> None:
+    def test_linked_client_opens_tasks_and_faq_links_to_manager_chat(self) -> None:
         from services.telegram_bot import handle_update
 
         with (
@@ -57,7 +59,7 @@ class TelegramBotIntegrationTest(unittest.TestCase):
             )
             handle_update(
                 self.db,
-                {"update_id": 2, "callback_query": {"id": "c2", "data": "ask:start:documents", "message": {"message_id": 5, "chat": {"id": 700}}}},
+                {"update_id": 2, "callback_query": {"id": "c2", "data": "faq:doc_rejected", "message": {"message_id": 5, "chat": {"id": 700}}}},
             )
             handle_update(
                 self.db,
@@ -65,10 +67,10 @@ class TelegramBotIntegrationTest(unittest.TestCase):
             )
 
         self.assertGreaterEqual(edit.call_count, 2)
-        message = self.db.execute("SELECT message_text FROM messages ORDER BY id DESC LIMIT 1").fetchone()
-        self.assertIn("Документы", message["message_text"])
-        self.assertIn("Проверка", message["message_text"])
-        self.assertIn("Нужен ли апостиль?", message["message_text"])
+        faq_markup = edit.call_args_list[1].kwargs["reply_markup"]
+        urls = [button.get("url") for row in faq_markup["inline_keyboard"] for button in row]
+        self.assertTrue(any(url and "messages.html?openUserId=AB1234" in url for url in urls))
+        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM messages").fetchone()[0], 0)
 
     def test_guest_personal_section_returns_connection_hint(self) -> None:
         from services.telegram_bot import handle_update

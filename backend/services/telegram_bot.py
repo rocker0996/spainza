@@ -6,6 +6,7 @@ import re
 import sqlite3
 import time
 from typing import Any, Optional
+from urllib.parse import quote
 
 from config import Config
 from models.case_data import count_sent_document_requests, get_case_data_by_user_id
@@ -20,7 +21,7 @@ from models.notifications import (
 from models.user import get_user_by_id
 from models.telegram_preferences import get_preferences, update_preferences
 from services.telegram_login import resolve_or_create_user_from_telegram
-from services.telegram_questions import cancel_question, consume_question_text, start_question
+from services.team_assignment import get_primary_manager_id_for_client
 from services.notification_service import lk_url
 from services.telegram_client_summary import load_client_summary
 from services.telegram_api import (
@@ -35,8 +36,6 @@ from services.telegram_views import (
     build_client_section_view,
     build_faq_view,
     build_main_menu,
-    build_question_categories_view,
-    build_question_prompt_view,
     build_settings_view,
     render_markup,
 )
@@ -375,45 +374,30 @@ def _show_faq_view(
     user_id = _linked_user_id_for_chat(connection, chat_id)
     locale = _locale_for_user(connection, user_id) if user_id else "ru"
     target = None if callback_data == "nav:faq" else callback_data.removeprefix("faq:")
-    if target and target.startswith("helped:"):
-        target = target.split(":", 1)[1]
     token = Config.TELEGRAM_BOT_TOKEN
     if not token:
         return False
-    _deliver_view(token, chat_id, build_faq_view(locale, target), message_id=message_id)
+    _deliver_view(
+        token,
+        chat_id,
+        build_faq_view(
+            locale,
+            target,
+            manager_chat_url=_manager_chat_url(connection, user_id) if user_id else None,
+        ),
+        message_id=message_id,
+    )
     return True
 
 
-def _show_question_flow(
-    connection: sqlite3.Connection,
-    chat_id: int,
-    callback_data: str,
-    *,
-    message_id: Optional[int] = None,
-) -> bool:
-    user_id = _linked_user_id_for_chat(connection, chat_id)
-    if not user_id:
-        _handle_connect_hint(connection, chat_id)
-        return False
-    locale = _locale_for_user(connection, user_id)
-    if callback_data == "nav:ask":
-        view = build_question_categories_view(locale)
-    else:
-        category = callback_data.removeprefix("ask:start:")
-        summary = load_client_summary(connection, user_id)
-        start_question(
-            connection,
-            user_id=user_id,
-            chat_id=chat_id,
-            category=category,
-            context={"active_stage": summary.case.active_title},
-        )
-        view = build_question_prompt_view(locale, category)
-    token = Config.TELEGRAM_BOT_TOKEN
-    if not token:
-        return False
-    _deliver_view(token, chat_id, view, message_id=message_id)
-    return True
+def _manager_chat_url(connection: sqlite3.Connection, user_id: int) -> str:
+    base = lk_url("/frontend/lk/messages.html")
+    manager_id = get_primary_manager_id_for_client(connection, user_id)
+    if not manager_id:
+        return base
+    manager = get_user_by_id(connection, manager_id)
+    display_id = str(manager["display_id"] or "").strip() if manager else ""
+    return f"{base}?openUserId={quote(display_id)}" if display_id else base
 
 
 def _show_settings(
@@ -472,7 +456,6 @@ def handle_update(connection: sqlite3.Connection, update: dict, *, bot_username:
     telegram_user_id = from_user.get("id")
     telegram_username = from_user.get("username")
     text = str(message.get("text") or "").strip()
-    update_id = int(update.get("update_id") or 0)
 
     if not text:
         return
@@ -502,41 +485,11 @@ def handle_update(connection: sqlite3.Connection, update: dict, *, bot_username:
         _handle_help(connection, chat_id, bot_username=bot_username)
         return
 
-    if lowered.startswith("/cancel"):
-        cancel_question(connection, chat_id)
-        ru = _is_ru_for_chat(connection, chat_id)
-        _send(connection, chat_id, "Вопрос отменён." if ru else "Question cancelled.")
-        _show_main_view(connection, chat_id)
-        return
-
     menu_action = MENU_TEXT_ACTIONS.get(text)
     if menu_action:
         _dispatch_menu_action(connection, chat_id, menu_action, bot_username=bot_username)
         return
 
-    user_id = _linked_user_id_for_chat(connection, chat_id)
-    if user_id and update_id:
-        result = consume_question_text(
-            connection,
-            chat_id=chat_id,
-            update_id=update_id,
-            text=text,
-            locale=_locale_for_user(connection, user_id),
-            support_user_id=Config.PORTAL_SUPPORT_USER_ID,
-        )
-        if result.created:
-            ru = _locale_for_user(connection, user_id) == "ru"
-            _send(
-                connection,
-                chat_id,
-                "✅ Вопрос отправлен. Ответ появится в сообщениях личного кабинета."
-                if ru
-                else "✅ Question sent. The reply will appear in portal messages.",
-                reply_markup=_inline_keyboard(
-                    [[{"text": "💬 " + ("Открыть чат" if ru else "Open chat"), "url": lk_url("/frontend/lk/messages.html")}]]
-                ),
-            )
-            return
 
 
 def _dispatch_menu_action(
@@ -589,8 +542,6 @@ def _handle_callback(
 
     if data == "nav:settings" or data.startswith("set:"):
         _show_settings(connection, chat_id, data, message_id=message.get("message_id"))
-    elif data == "nav:ask" or data.startswith("ask:start:"):
-        _show_question_flow(connection, chat_id, data, message_id=message.get("message_id"))
     elif data == "nav:faq" or data.startswith("faq:"):
         _show_faq_view(connection, chat_id, data, message_id=message.get("message_id"))
     elif data in {"nav:tasks", "nav:docs", "nav:case", "docs:pending", "docs:review", "docs:approved", "docs:fix"}:
