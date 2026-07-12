@@ -277,6 +277,15 @@ def build_settings_view(locale: str, preferences: TelegramPreferences) -> BotVie
                 )
             ]
         )
+    quiet_enabled = bool(preferences.quiet_start and preferences.quiet_end)
+    rows.append(
+        [
+            BotButton(
+                f"{'✅' if quiet_enabled else '❌'} " + ("Тихие часы 22:00–08:00" if ru else "Quiet hours 22:00–08:00"),
+                callback_data=f"set:quiet:{0 if quiet_enabled else 1}",
+            )
+        ]
+    )
     rows.append(
         [
             BotButton(

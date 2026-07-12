@@ -422,6 +422,13 @@ def _show_settings(
             connection.commit()
             update_preferences(connection, user_id, locale=raw_value)
             locale = raw_value
+        elif field == "quiet" and raw_value in {"0", "1"}:
+            update_preferences(
+                connection,
+                user_id,
+                quiet_start="22:00" if raw_value == "1" else None,
+                quiet_end="08:00" if raw_value == "1" else None,
+            )
         elif field in {"messages", "documents", "case_updates", "reminders", "digest_enabled"} and raw_value in {"0", "1"}:
             update_preferences(connection, user_id, **{field: raw_value == "1"})
     view = build_settings_view(locale, get_preferences(connection, user_id))

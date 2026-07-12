@@ -30,10 +30,14 @@ def create_notification_tables(connection: sqlite3.Connection) -> None:
             next_retry_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
             sent_at TEXT,
+            dedupe_key TEXT,
+            deliver_after TEXT,
+            urgency TEXT NOT NULL DEFAULT 'normal',
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
     )
+    _ensure_outbox_columns(connection)
     connection.execute(
         """
         CREATE INDEX IF NOT EXISTS idx_notification_outbox_pending
@@ -95,6 +99,19 @@ def create_notification_tables(connection: sqlite3.Connection) -> None:
         """
     )
     connection.commit()
+
+
+def _ensure_outbox_columns(connection: sqlite3.Connection) -> None:
+    columns = {row[1] for row in connection.execute("PRAGMA table_info(notification_outbox)").fetchall()}
+    if "dedupe_key" not in columns:
+        connection.execute("ALTER TABLE notification_outbox ADD COLUMN dedupe_key TEXT")
+    if "deliver_after" not in columns:
+        connection.execute("ALTER TABLE notification_outbox ADD COLUMN deliver_after TEXT")
+    if "urgency" not in columns:
+        connection.execute("ALTER TABLE notification_outbox ADD COLUMN urgency TEXT NOT NULL DEFAULT 'normal'")
+    connection.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_notification_outbox_dedupe ON notification_outbox(dedupe_key) WHERE dedupe_key IS NOT NULL"
+    )
 
 
 def _hash_link_code(code: str, secret_key: str) -> str:
@@ -349,13 +366,19 @@ def enqueue_notification(
     user_id: int,
     event_type: str,
     payload: dict[str, Any],
+    *,
+    dedupe_key: Optional[str] = None,
+    deliver_after: Optional[str] = None,
+    urgency: str = "normal",
 ) -> Optional[int]:
     import json
 
     cursor = connection.execute(
         """
-        INSERT INTO notification_outbox (user_id, event_type, payload_json, next_retry_at, created_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO notification_outbox (
+            user_id, event_type, payload_json, next_retry_at, created_at,
+            dedupe_key, deliver_after, urgency
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             user_id,
@@ -363,10 +386,13 @@ def enqueue_notification(
             json.dumps(payload, ensure_ascii=False),
             _now_utc(),
             _now_utc(),
+            dedupe_key,
+            deliver_after,
+            "urgent" if urgency == "urgent" else "normal",
         ),
     )
     connection.commit()
-    return cursor.lastrowid
+    return cursor.lastrowid if cursor.rowcount else None
 
 
 def fetch_pending_notifications(
@@ -376,15 +402,28 @@ def fetch_pending_notifications(
 ) -> list[sqlite3.Row]:
     return connection.execute(
         """
-        SELECT id, user_id, event_type, payload_json, attempts
+        SELECT id, user_id, event_type, payload_json, attempts, urgency
         FROM notification_outbox
         WHERE status = 'pending'
           AND next_retry_at <= ?
+          AND (deliver_after IS NULL OR deliver_after <= ?)
         ORDER BY id ASC
         LIMIT ?
         """,
-        (_now_utc(), limit),
+        (_now_utc(), _now_utc(), limit),
     ).fetchall()
+
+
+def defer_notification_until(
+    connection: sqlite3.Connection,
+    notification_id: int,
+    deliver_after: str,
+) -> None:
+    connection.execute(
+        "UPDATE notification_outbox SET deliver_after = ? WHERE id = ? AND status = 'pending'",
+        (deliver_after, notification_id),
+    )
+    connection.commit()
 
 
 def mark_notification_sent(connection: sqlite3.Connection, notification_id: int) -> None:

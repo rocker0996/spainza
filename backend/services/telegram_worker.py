@@ -9,13 +9,17 @@ from typing import Optional
 from config import Config
 from models.notifications import (
     fetch_pending_notifications,
+    defer_notification_until,
     get_telegram_link_for_user,
     mark_notification_failed,
     mark_notification_sent,
 )
-from services.notification_service import build_telegram_message, parse_payload
+from models.telegram_preferences import get_preferences
+from services.notification_service import build_telegram_message, lk_url, parse_payload
 from services.telegram_api import TelegramApiError, delete_webhook, get_me, get_updates, send_message
 from services.telegram_bot import handle_update, setup_bot_ui
+from services.telegram_scheduler import build_digest, delivery_delay_until, schedule_due_reminders
+from utils.time import to_storage_datetime, utc_now
 
 _worker_singleton: Optional["TelegramWorker"] = None
 
@@ -58,7 +62,24 @@ class TelegramWorker:
 
         rows = fetch_pending_notifications(connection, limit=batch_size)
         processed = 0
+        processed_ids: set[int] = set()
         for row in rows:
+            if int(row["id"]) in processed_ids:
+                continue
+            preferences = get_preferences(connection, int(row["user_id"]))
+            if str(row["urgency"] or "normal") != "urgent":
+                deliver_at = delivery_delay_until(
+                    preferences,
+                    utc_now(),
+                )
+                if deliver_at is not None:
+                    defer_notification_until(
+                        connection,
+                        int(row["id"]),
+                        to_storage_datetime(deliver_at),
+                    )
+                    processed += 1
+                    continue
             link = get_telegram_link_for_user(connection, int(row["user_id"]))
             if not link:
                 mark_notification_failed(
@@ -69,6 +90,50 @@ class TelegramWorker:
                 )
                 processed += 1
                 continue
+
+            if preferences.digest_enabled and str(row["urgency"] or "normal") != "urgent":
+                group = [
+                    candidate
+                    for candidate in rows
+                    if int(candidate["user_id"]) == int(row["user_id"])
+                    and str(candidate["urgency"] or "normal") != "urgent"
+                ]
+                if len(group) > 1:
+                    entries: list[tuple[str, str]] = []
+                    locale = "ru"
+                    for candidate in group:
+                        payload = parse_payload(candidate["payload_json"])
+                        locale = "en" if str(payload.get("locale") or "ru") == "en" else "ru"
+                        item_text, _ = build_telegram_message(str(candidate["event_type"]), payload)
+                        lines = [line.strip() for line in item_text.splitlines() if line.strip()]
+                        entries.append((lines[0] if lines else "Spainza", " · ".join(lines[1:3])))
+                    try:
+                        send_message(
+                            token,
+                            int(link["telegram_chat_id"]),
+                            build_digest(locale, entries),
+                            reply_markup={
+                                "inline_keyboard": [[{
+                                    "text": "🏠 " + ("Открыть кабинет" if locale == "ru" else "Open portal"),
+                                    "url": lk_url("/frontend/lk/dashboard.html"),
+                                }]]
+                            },
+                        )
+                        for candidate in group:
+                            mark_notification_sent(connection, int(candidate["id"]))
+                            processed_ids.add(int(candidate["id"]))
+                            processed += 1
+                    except TelegramApiError as exc:
+                        for candidate in group:
+                            mark_notification_failed(
+                                connection,
+                                int(candidate["id"]),
+                                str(exc),
+                                attempts=int(candidate["attempts"]) + 1,
+                            )
+                            processed_ids.add(int(candidate["id"]))
+                            processed += 1
+                    continue
 
             payload = parse_payload(row["payload_json"])
             text, reply_markup = build_telegram_message(str(row["event_type"]), payload)
@@ -124,6 +189,10 @@ class TelegramWorker:
         while True:
             connection = connection_factory()
             try:
+                try:
+                    schedule_due_reminders(connection, utc_now())
+                except Exception as exc:
+                    print(f"[telegram-worker] scheduler warning: {exc}")
                 self.process_outbox(connection)
                 self.poll_bot_updates(connection)
             finally:
