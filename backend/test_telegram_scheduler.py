@@ -93,6 +93,24 @@ class TelegramSchedulerTest(unittest.TestCase):
         self.assertIsNotNone(deliver_at)
         self.assertGreater(deliver_at, now)
 
+    def test_reminder_becomes_irrelevant_after_task_completion(self) -> None:
+        from services.telegram_scheduler import reminder_is_relevant
+
+        requests = [{"id": 9, "name": "Страховка", "sent": True, "fulfilled": False, "deadline": "2026-07-15"}]
+        self.db.execute(
+            "INSERT INTO case_data (user_id, document_requests) VALUES (?, ?)",
+            (10, json.dumps(requests)),
+        )
+        self.db.commit()
+        payload = {"task_kind": "upload", "title": "Страховка", "due_at": "2026-07-15"}
+        self.assertTrue(reminder_is_relevant(self.db, 10, payload))
+
+        requests[0]["fulfilled"] = True
+        self.db.execute("UPDATE case_data SET document_requests = ? WHERE user_id = 10", (json.dumps(requests),))
+        self.db.commit()
+
+        self.assertFalse(reminder_is_relevant(self.db, 10, payload))
+
 
 if __name__ == "__main__":
     unittest.main()

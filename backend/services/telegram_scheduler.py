@@ -99,6 +99,16 @@ def schedule_due_reminders(connection: sqlite3.Connection, now: datetime) -> int
     return scheduled
 
 
+def reminder_is_relevant(connection: sqlite3.Connection, user_id: int, payload: dict) -> bool:
+    kind = str(payload.get("task_kind") or "")
+    title = str(payload.get("title") or "")
+    due_at = str(payload.get("due_at") or "")
+    return any(
+        task.kind == kind and task.title == title and str(task.due_at or "") == due_at
+        for task in load_client_summary(connection, user_id).tasks
+    )
+
+
 def build_digest(locale: str, entries: list[tuple[str, str]]) -> str:
     ru = locale == "ru"
     lines = [
