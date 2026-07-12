@@ -32,6 +32,7 @@ def initialize_database_schema(connection: sqlite3.Connection) -> None:
     from models.message import Message
     from models.notifications import create_notification_tables
     from models.telegram_conversation import create_telegram_conversation_tables
+    from models.telegram_preferences import create_telegram_preferences_table
 
     create_users_table(connection)
     create_documents_table(connection)
@@ -46,6 +47,7 @@ def initialize_database_schema(connection: sqlite3.Connection) -> None:
     create_manager_case_templates_table(connection)
     create_notification_tables(connection)
     create_telegram_conversation_tables(connection)
+    create_telegram_preferences_table(connection)
     Message.create_table(connection)
     connection.execute(
         """

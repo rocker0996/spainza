@@ -13,6 +13,7 @@ from models.notifications import (
     get_telegram_link_for_user,
 )
 from models.user import get_user_by_id
+from models.telegram_preferences import get_preferences
 
 
 EVENT_MESSAGE_RECEIVED = "message.received"
@@ -62,6 +63,10 @@ def notify(
     """Queue a Telegram notification if the user opted in and linked Telegram."""
     if not _user_notify_telegram_enabled(connection, user_id):
         return None
+    category = category_for_event(event_type)
+    preferences = get_preferences(connection, user_id)
+    if category and not bool(getattr(preferences, category)):
+        return None
     payload = dict(context)
     payload["locale"] = _user_locale(connection, user_id)
     notification_id = enqueue_notification(connection, user_id, event_type, payload)
@@ -73,6 +78,18 @@ def notify(
         except Exception:
             pass
     return notification_id
+
+
+def category_for_event(event_type: str) -> Optional[str]:
+    if event_type == EVENT_MESSAGE_RECEIVED:
+        return "messages"
+    if event_type in {EVENT_DOCUMENT_REQUEST_SENT, EVENT_DOCUMENT_APPROVED, EVENT_DOCUMENT_REJECTED}:
+        return "documents"
+    if event_type in {EVENT_CASE_TIMELINE_STATUS, EVENT_CASE_STAGE_CHANGED}:
+        return "case_updates"
+    if event_type.startswith("reminder."):
+        return "reminders"
+    return None
 
 
 def portal_base_url() -> str:
@@ -202,9 +219,13 @@ def build_telegram_message(
         buttons.append(
             [
                 {
+                    "text": "❌ " + ("Посмотреть причину" if ru else "View reason"),
+                    "url": lk_url("/frontend/lk/documents.html"),
+                },
+                {
                     "text": "🔄 " + ("Загрузить заново" if ru else "Re-upload"),
                     "url": lk_url("/frontend/lk/documents.html"),
-                }
+                },
             ]
         )
 

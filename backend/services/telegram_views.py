@@ -8,6 +8,7 @@ from typing import Optional
 from services.telegram_client_summary import ClientSummary
 from services.telegram_faq import FAQ_CATEGORIES, get_faq, search_faq
 from services.telegram_questions import QUESTION_CATEGORIES
+from models.telegram_preferences import TelegramPreferences
 from services.notification_service import lk_url
 
 
@@ -254,3 +255,40 @@ def build_question_prompt_view(locale: str, category: str) -> BotView:
         else f"💬 {topic}\n\nWrite your question in one message. I will attach your case context.\n\n/cancel — cancel"
     )
     return BotView(text, navigation_rows("nav:ask", locale))
+
+
+def build_settings_view(locale: str, preferences: TelegramPreferences) -> BotView:
+    ru = locale == "ru"
+    labels = {
+        "messages": ("Сообщения менеджера", "Manager messages"),
+        "documents": ("Документы", "Documents"),
+        "case_updates": ("Изменения кейса", "Case updates"),
+        "reminders": ("Напоминания", "Reminders"),
+        "digest_enabled": ("Ежедневный дайджест", "Daily digest"),
+    }
+    rows: list[list[BotButton]] = []
+    for field, pair in labels.items():
+        enabled = bool(getattr(preferences, field))
+        rows.append(
+            [
+                BotButton(
+                    f"{'✅' if enabled else '❌'} {pair[0] if ru else pair[1]}",
+                    callback_data=f"set:{field}:{0 if enabled else 1}",
+                )
+            ]
+        )
+    rows.append(
+        [
+            BotButton(
+                "🌐 English" if ru else "🌐 Русский",
+                callback_data="set:lang:en" if ru else "set:lang:ru",
+            )
+        ]
+    )
+    rows.extend(navigation_rows("nav:home", locale))
+    return BotView(
+        "⚙️ Настройки\n\nНажмите, чтобы включить или отключить уведомления."
+        if ru
+        else "⚙️ Settings\n\nTap to enable or disable notifications.",
+        rows,
+    )
