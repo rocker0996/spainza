@@ -20,6 +20,7 @@ from models.notifications import (
 from models.user import get_user_by_id
 from services.telegram_login import resolve_or_create_user_from_telegram
 from services.notification_service import lk_url
+from services.telegram_client_summary import load_client_summary
 from services.telegram_api import (
     TelegramApiError,
     answer_callback_query,
@@ -27,7 +28,12 @@ from services.telegram_api import (
     send_message,
     set_my_commands,
 )
-from services.telegram_views import BotView, build_main_menu, render_markup
+from services.telegram_views import (
+    BotView,
+    build_client_section_view,
+    build_main_menu,
+    render_markup,
+)
 
 START_CODE_RE = re.compile(r"^/start(?:@\w+)?(?:\s+(\d{6}))?\s*$", re.IGNORECASE)
 LOGIN_START_CODE_RE = re.compile(
@@ -315,6 +321,29 @@ def _show_main_view(
     return True
 
 
+def _show_client_section(
+    connection: sqlite3.Connection,
+    chat_id: int,
+    callback_data: str,
+    *,
+    message_id: Optional[int] = None,
+) -> bool:
+    user_id = _linked_user_id_for_chat(connection, chat_id)
+    if not user_id:
+        _handle_connect_hint(connection, chat_id)
+        return False
+    view = build_client_section_view(
+        callback_data,
+        _locale_for_user(connection, user_id),
+        load_client_summary(connection, user_id),
+    )
+    token = Config.TELEGRAM_BOT_TOKEN
+    if not view or not token:
+        return False
+    _deliver_view(token, chat_id, view, message_id=message_id)
+    return True
+
+
 def handle_update(connection: sqlite3.Connection, update: dict, *, bot_username: str = "") -> None:
     callback = update.get("callback_query")
     if callback:
@@ -411,7 +440,14 @@ def _handle_callback(
         except Exception:
             pass
 
-    if data == CB_STATUS:
+    if data in {"nav:tasks", "nav:docs", "nav:case", "docs:pending", "docs:review", "docs:approved", "docs:fix"}:
+        _show_client_section(
+            connection,
+            chat_id,
+            data,
+            message_id=message.get("message_id"),
+        )
+    elif data == CB_STATUS:
         _handle_status(connection, chat_id)
     elif data == CB_HELP:
         _handle_help(connection, chat_id, bot_username=bot_username)
