@@ -6,6 +6,7 @@ from dataclasses import asdict, dataclass
 from typing import Optional
 
 from services.telegram_client_summary import ClientSummary
+from services.telegram_faq import FAQ_CATEGORIES, get_faq, search_faq
 from services.notification_service import lk_url
 
 
@@ -185,3 +186,45 @@ def build_client_section_view(
     if callback_data.startswith("docs:"):
         return build_documents_view(locale, summary, callback_data.split(":", 1)[1])
     return None
+
+
+def build_faq_view(locale: str, target: Optional[str] = None) -> BotView:
+    ru = locale == "ru"
+    if not target:
+        rows = [
+            [BotButton(labels[0] if ru else labels[1], callback_data=f"faq:cat:{category}")]
+            for category, labels in FAQ_CATEGORIES.items()
+        ]
+        rows.extend(navigation_rows("nav:home", locale))
+        return BotView(
+            "📚 Частые вопросы\n\nВыберите тему:" if ru else "📚 Frequently asked questions\n\nChoose a topic:",
+            rows,
+        )
+
+    if target.startswith("cat:"):
+        category = target.split(":", 1)[1]
+        articles = search_faq(locale, category)
+        rows = [[BotButton(article.title(locale), callback_data=f"faq:{article.article_id}")] for article in articles]
+        rows.extend(navigation_rows("nav:faq", locale))
+        return BotView(
+            "📚 " + ("Вопросы по теме" if ru else "Questions in this topic"),
+            rows,
+        )
+
+    article = get_faq(locale, target)
+    if not article:
+        return BotView(
+            "Ответ не найден." if ru else "Answer not found.",
+            navigation_rows("nav:faq", locale),
+        )
+    rows = [
+        [BotButton("👍 Это помогло" if ru else "👍 This helped", callback_data=f"faq:helped:{article.article_id}")],
+        [
+            BotButton(
+                "💬 Задать вопрос менеджеру" if ru else "💬 Ask a manager",
+                callback_data=f"ask:start:{article.category}",
+            )
+        ],
+    ]
+    rows.extend(navigation_rows(f"faq:cat:{article.category}", locale))
+    return BotView(f"📚 {article.title(locale)}\n\n{article.body(locale)}", rows)

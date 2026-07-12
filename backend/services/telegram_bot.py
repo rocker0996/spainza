@@ -31,6 +31,7 @@ from services.telegram_api import (
 from services.telegram_views import (
     BotView,
     build_client_section_view,
+    build_faq_view,
     build_main_menu,
     render_markup,
 )
@@ -59,6 +60,8 @@ MENU_TEXT_ACTIONS = {
     "🔕 Disconnect": "unlink",
     "🔗 Как подключить": "connect",
     "🔗 How to connect": "connect",
+    "📚 Частые вопросы": "faq",
+    "📚 FAQ": "faq",
 }
 
 
@@ -146,8 +149,8 @@ def _main_menu_markup(ru: bool) -> dict[str, Any]:
 
 def _guest_menu_markup(ru: bool) -> dict[str, Any]:
     if ru:
-        return _reply_keyboard([["🔗 Как подключить", "❓ Помощь"]])
-    return _reply_keyboard([["🔗 How to connect", "❓ Help"]])
+        return _reply_keyboard([["🔗 Как подключить", "❓ Помощь"], ["📚 Частые вопросы"]])
+    return _reply_keyboard([["🔗 How to connect", "❓ Help"], ["📚 FAQ"]])
 
 
 def _welcome_guest_text(ru: bool) -> str:
@@ -344,6 +347,25 @@ def _show_client_section(
     return True
 
 
+def _show_faq_view(
+    connection: sqlite3.Connection,
+    chat_id: int,
+    callback_data: str,
+    *,
+    message_id: Optional[int] = None,
+) -> bool:
+    user_id = _linked_user_id_for_chat(connection, chat_id)
+    locale = _locale_for_user(connection, user_id) if user_id else "ru"
+    target = None if callback_data == "nav:faq" else callback_data.removeprefix("faq:")
+    if target and target.startswith("helped:"):
+        target = target.split(":", 1)[1]
+    token = Config.TELEGRAM_BOT_TOKEN
+    if not token:
+        return False
+    _deliver_view(token, chat_id, build_faq_view(locale, target), message_id=message_id)
+    return True
+
+
 def handle_update(connection: sqlite3.Connection, update: dict, *, bot_username: str = "") -> None:
     callback = update.get("callback_query")
     if callback:
@@ -416,6 +438,8 @@ def _dispatch_menu_action(
         _handle_unlink_prompt(connection, chat_id)
     elif action == "connect":
         _handle_connect_hint(connection, chat_id)
+    elif action == "faq":
+        _show_faq_view(connection, chat_id, "nav:faq")
 
 
 def _handle_callback(
@@ -440,7 +464,9 @@ def _handle_callback(
         except Exception:
             pass
 
-    if data in {"nav:tasks", "nav:docs", "nav:case", "docs:pending", "docs:review", "docs:approved", "docs:fix"}:
+    if data == "nav:faq" or data.startswith("faq:"):
+        _show_faq_view(connection, chat_id, data, message_id=message.get("message_id"))
+    elif data in {"nav:tasks", "nav:docs", "nav:case", "docs:pending", "docs:review", "docs:approved", "docs:fix"}:
         _show_client_section(
             connection,
             chat_id,
