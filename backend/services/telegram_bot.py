@@ -79,18 +79,24 @@ def setup_bot_ui(token: str) -> None:
         set_my_commands(
             token,
             [
-                {"command": "start", "description": "Главное меню"},
-                {"command": "status", "description": "Статус кейса"},
-                {"command": "help", "description": "Справка и кнопки"},
+                {"command": "start", "description": "🏠 Главное меню"},
+                {"command": "tasks", "description": "✅ Что нужно сделать"},
+                {"command": "documents", "description": "📄 Документы"},
+                {"command": "case", "description": "📍 Мой кейс"},
+                {"command": "faq", "description": "📚 Частые вопросы"},
+                {"command": "settings", "description": "⚙️ Настройки"},
             ],
             language_code="ru",
         )
         set_my_commands(
             token,
             [
-                {"command": "start", "description": "Main menu"},
-                {"command": "status", "description": "Case status"},
-                {"command": "help", "description": "Help and buttons"},
+                {"command": "start", "description": "🏠 Main menu"},
+                {"command": "tasks", "description": "✅ What to do"},
+                {"command": "documents", "description": "📄 Documents"},
+                {"command": "case", "description": "📍 My case"},
+                {"command": "faq", "description": "📚 FAQ"},
+                {"command": "settings", "description": "⚙️ Settings"},
             ],
             language_code="en",
         )
@@ -129,7 +135,7 @@ def _reply_keyboard(labels: list[list[str]]) -> dict[str, Any]:
     return {
         "keyboard": [[{"text": label} for label in row] for row in labels],
         "resize_keyboard": True,
-        "is_persistent": True,
+        "is_persistent": False,
     }
 
 
@@ -474,7 +480,27 @@ def handle_update(connection: sqlite3.Connection, update: dict, *, bot_username:
         return
 
     if lowered.startswith("/status"):
-        _handle_status(connection, chat_id)
+        _show_client_section(connection, chat_id, "nav:case")
+        return
+
+    if lowered.startswith("/tasks"):
+        _show_client_section(connection, chat_id, "nav:tasks")
+        return
+
+    if lowered.startswith("/documents"):
+        _show_client_section(connection, chat_id, "nav:docs")
+        return
+
+    if lowered.startswith("/case"):
+        _show_client_section(connection, chat_id, "nav:case")
+        return
+
+    if lowered.startswith("/faq"):
+        _show_faq_view(connection, chat_id, "nav:faq")
+        return
+
+    if lowered.startswith("/settings"):
+        _show_settings(connection, chat_id, "nav:settings")
         return
 
     if lowered.startswith("/unlink"):
@@ -482,7 +508,8 @@ def handle_update(connection: sqlite3.Connection, update: dict, *, bot_username:
         return
 
     if lowered.startswith("/help"):
-        _handle_help(connection, chat_id, bot_username=bot_username)
+        if not _show_main_view(connection, chat_id, ensure_reply_keyboard=True):
+            _handle_help(connection, chat_id, bot_username=bot_username)
         return
 
     menu_action = MENU_TEXT_ACTIONS.get(text)

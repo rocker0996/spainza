@@ -271,6 +271,14 @@ def build_settings_view(locale: str, preferences: TelegramPreferences) -> BotVie
             )
         ]
     )
+    rows.append(
+        [
+            BotButton(
+                "🔕 Отключить Telegram" if ru else "🔕 Disconnect Telegram",
+                callback_data="menu:unlink",
+            )
+        ]
+    )
     rows.extend(navigation_rows("nav:home", locale))
     return BotView(
         "⚙️ Настройки\n\nНажмите, чтобы включить или отключить уведомления."
