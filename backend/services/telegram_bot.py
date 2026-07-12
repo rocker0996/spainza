@@ -20,7 +20,14 @@ from models.notifications import (
 from models.user import get_user_by_id
 from services.telegram_login import resolve_or_create_user_from_telegram
 from services.notification_service import lk_url
-from services.telegram_api import answer_callback_query, send_message, set_my_commands
+from services.telegram_api import (
+    TelegramApiError,
+    answer_callback_query,
+    edit_message_text,
+    send_message,
+    set_my_commands,
+)
+from services.telegram_views import BotView, build_main_menu, render_markup
 
 START_CODE_RE = re.compile(r"^/start(?:@\w+)?(?:\s+(\d{6}))?\s*$", re.IGNORECASE)
 LOGIN_START_CODE_RE = re.compile(
@@ -258,6 +265,56 @@ def _send(
     send_message(token, chat_id, text, reply_markup=reply_markup)
 
 
+def _deliver_view(
+    token: str,
+    chat_id: int,
+    view: BotView,
+    *,
+    message_id: Optional[int] = None,
+) -> None:
+    markup = render_markup(view)
+    if message_id is not None:
+        try:
+            edit_message_text(
+                token,
+                chat_id,
+                message_id,
+                view.text,
+                reply_markup=markup,
+            )
+            return
+        except TelegramApiError:
+            pass
+    send_message(token, chat_id, view.text, reply_markup=markup)
+
+
+def _main_view_for_chat(connection: sqlite3.Connection, chat_id: int) -> Optional[BotView]:
+    user_id = _linked_user_id_for_chat(connection, chat_id)
+    if not user_id:
+        return None
+    locale = _locale_for_user(connection, user_id)
+    case_data = get_case_data_by_user_id(connection, user_id)
+    return build_main_menu(
+        locale,
+        task_count=count_sent_document_requests(case_data),
+        active_stage=_active_timeline_step(case_data),
+    )
+
+
+def _show_main_view(
+    connection: sqlite3.Connection,
+    chat_id: int,
+    *,
+    message_id: Optional[int] = None,
+) -> bool:
+    view = _main_view_for_chat(connection, chat_id)
+    token = Config.TELEGRAM_BOT_TOKEN
+    if not view or not token:
+        return False
+    _deliver_view(token, chat_id, view, message_id=message_id)
+    return True
+
+
 def handle_update(connection: sqlite3.Connection, update: dict, *, bot_username: str = "") -> None:
     callback = update.get("callback_query")
     if callback:
@@ -373,6 +430,8 @@ def _handle_callback(
         )
     elif data == CB_CONNECT:
         _handle_connect_hint(connection, chat_id)
+    elif data == "nav:home":
+        _show_main_view(connection, chat_id, message_id=message.get("message_id"))
 
 
 def _handle_login_start(
@@ -506,12 +565,13 @@ def _handle_start(
     ru = _is_ru_for_chat(connection, chat_id)
     linked = _linked_user_id_for_chat(connection, chat_id) is not None
     if linked:
-        _send(
-            connection,
-            chat_id,
-            _welcome_returning_text(ru),
-            reply_markup=_main_menu_markup(ru),
-        )
+        if not _show_main_view(connection, chat_id):
+            _send(
+                connection,
+                chat_id,
+                _welcome_returning_text(ru),
+                reply_markup=_main_menu_markup(ru),
+            )
         return
 
     _send(

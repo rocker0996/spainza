@@ -123,6 +123,26 @@ def send_message(
     return _api_request(token, "sendMessage", payload)["result"]
 
 
+def edit_message_text(
+    token: str,
+    chat_id: int,
+    message_id: int,
+    text: str,
+    *,
+    reply_markup: Optional[dict[str, Any]] = None,
+    disable_web_page_preview: bool = True,
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "chat_id": chat_id,
+        "message_id": message_id,
+        "text": text,
+        "disable_web_page_preview": disable_web_page_preview,
+    }
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    return _api_request(token, "editMessageText", payload)["result"]
+
+
 def answer_callback_query(
     token: str,
     callback_query_id: str,
