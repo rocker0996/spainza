@@ -7,6 +7,7 @@ from typing import Optional
 
 from services.telegram_client_summary import ClientSummary
 from services.telegram_faq import FAQ_CATEGORIES, get_faq, search_faq
+from services.telegram_questions import QUESTION_CATEGORIES
 from services.notification_service import lk_url
 
 
@@ -228,3 +229,28 @@ def build_faq_view(locale: str, target: Optional[str] = None) -> BotView:
     ]
     rows.extend(navigation_rows(f"faq:cat:{article.category}", locale))
     return BotView(f"📚 {article.title(locale)}\n\n{article.body(locale)}", rows)
+
+
+def build_question_categories_view(locale: str) -> BotView:
+    ru = locale == "ru"
+    rows = [
+        [BotButton(labels[0] if ru else labels[1], callback_data=f"ask:start:{category}")]
+        for category, labels in QUESTION_CATEGORIES.items()
+    ]
+    rows.extend(navigation_rows("nav:home", locale))
+    return BotView(
+        "💬 Задать вопрос\n\nВыберите тему:" if ru else "💬 Ask a question\n\nChoose a topic:",
+        rows,
+    )
+
+
+def build_question_prompt_view(locale: str, category: str) -> BotView:
+    ru = locale == "ru"
+    labels = QUESTION_CATEGORIES.get(category, QUESTION_CATEGORIES["other"])
+    topic = labels[0] if ru else labels[1]
+    text = (
+        f"💬 {topic}\n\nНапишите вопрос одним сообщением. Я добавлю к нему данные вашего кейса.\n\n/cancel — отменить"
+        if ru
+        else f"💬 {topic}\n\nWrite your question in one message. I will attach your case context.\n\n/cancel — cancel"
+    )
+    return BotView(text, navigation_rows("nav:ask", locale))
