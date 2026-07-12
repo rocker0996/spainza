@@ -86,6 +86,21 @@ class TelegramBotIntegrationTest(unittest.TestCase):
         combined = " ".join(str(call.args[2]) for call in send.call_args_list)
         self.assertIn("подключ", combined.lower())
 
+    def test_start_refreshes_persistent_reply_keyboard(self) -> None:
+        from services.telegram_bot import handle_update
+
+        with (
+            patch("services.telegram_bot.Config.TELEGRAM_BOT_TOKEN", "token"),
+            patch("services.telegram_bot.send_message") as send,
+        ):
+            handle_update(
+                self.db,
+                {"update_id": 8, "message": {"chat": {"id": 700}, "from": {"id": 70}, "text": "/start"}},
+            )
+
+        markups = [call.kwargs.get("reply_markup") for call in send.call_args_list]
+        self.assertTrue(any(markup and "keyboard" in markup for markup in markups))
+
 
 if __name__ == "__main__":
     unittest.main()

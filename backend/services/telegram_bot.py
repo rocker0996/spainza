@@ -55,14 +55,16 @@ CB_UNLINK_NO = "menu:unlink_no"
 CB_CONNECT = "menu:connect"
 
 MENU_TEXT_ACTIONS = {
-    "📌 Статус кейса": "status",
-    "📌 Case status": "status",
+    "✅ Что нужно сделать": "tasks",
+    "✅ What to do": "tasks",
+    "📄 Документы": "documents",
+    "📄 Documents": "documents",
+    "📍 Мой кейс": "case",
+    "📍 My case": "case",
     "🏠 Кабинет": "portal",
     "🏠 Portal": "portal",
-    "❓ Помощь": "help",
-    "❓ Help": "help",
-    "🔕 Отключить": "unlink",
-    "🔕 Disconnect": "unlink",
+    "⚙️ Настройки": "settings",
+    "⚙️ Settings": "settings",
     "🔗 Как подключить": "connect",
     "🔗 How to connect": "connect",
     "📚 Частые вопросы": "faq",
@@ -140,14 +142,16 @@ def _main_menu_markup(ru: bool) -> dict[str, Any]:
     if ru:
         return _reply_keyboard(
             [
-                ["📌 Статус кейса", "🏠 Кабинет"],
-                ["❓ Помощь", "🔕 Отключить"],
+                ["✅ Что нужно сделать", "📄 Документы"],
+                ["📍 Мой кейс", "📚 Частые вопросы"],
+                ["🏠 Кабинет", "⚙️ Настройки"],
             ]
         )
     return _reply_keyboard(
         [
-            ["📌 Case status", "🏠 Portal"],
-            ["❓ Help", "🔕 Disconnect"],
+            ["✅ What to do", "📄 Documents"],
+            ["📍 My case", "📚 FAQ"],
+            ["🏠 Portal", "⚙️ Settings"],
         ]
     )
 
@@ -320,12 +324,21 @@ def _show_main_view(
     chat_id: int,
     *,
     message_id: Optional[int] = None,
+    ensure_reply_keyboard: bool = False,
 ) -> bool:
     view = _main_view_for_chat(connection, chat_id)
     token = Config.TELEGRAM_BOT_TOKEN
     if not view or not token:
         return False
     _deliver_view(token, chat_id, view, message_id=message_id)
+    if ensure_reply_keyboard:
+        ru = _is_ru_for_chat(connection, chat_id)
+        send_message(
+            token,
+            chat_id,
+            "Быстрое меню обновлено." if ru else "Quick menu updated.",
+            reply_markup=_main_menu_markup(ru),
+        )
     return True
 
 
@@ -535,6 +548,9 @@ def _dispatch_menu_action(
 ) -> None:
     if action == "status":
         _handle_status(connection, chat_id)
+    elif action in {"tasks", "documents", "case"}:
+        callback = {"tasks": "nav:tasks", "documents": "nav:docs", "case": "nav:case"}[action]
+        _show_client_section(connection, chat_id, callback)
     elif action == "portal":
         _handle_portal(connection, chat_id)
     elif action == "help":
@@ -545,6 +561,8 @@ def _dispatch_menu_action(
         _handle_connect_hint(connection, chat_id)
     elif action == "faq":
         _show_faq_view(connection, chat_id, "nav:faq")
+    elif action == "settings":
+        _show_settings(connection, chat_id, "nav:settings")
 
 
 def _handle_callback(
@@ -736,7 +754,7 @@ def _handle_start(
     ru = _is_ru_for_chat(connection, chat_id)
     linked = _linked_user_id_for_chat(connection, chat_id) is not None
     if linked:
-        if not _show_main_view(connection, chat_id):
+        if not _show_main_view(connection, chat_id, ensure_reply_keyboard=True):
             _send(
                 connection,
                 chat_id,
