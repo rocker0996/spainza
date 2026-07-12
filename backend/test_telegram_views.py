@@ -71,6 +71,45 @@ class TelegramViewsTest(unittest.TestCase):
 
         send.assert_called_once()
 
+    def test_client_section_views_render_actionable_summary(self) -> None:
+        from services.telegram_client_summary import (
+            CaseStep,
+            CaseSummary,
+            ClientSummary,
+            ClientTask,
+            DocumentSummary,
+        )
+        from services.telegram_views import (
+            build_case_view,
+            build_documents_view,
+            build_tasks_view,
+        )
+
+        summary = ClientSummary(
+            tasks=[ClientTask("upload", "Справка", "18.07", "urgent", "https://example.test/docs")],
+            documents=DocumentSummary(pending_upload=1, in_review=2, approved=3, needs_fix=1),
+            case=CaseSummary(
+                steps=(CaseStep("Анкета", "completed"), CaseStep("Проверка", "active")),
+                active_title="Проверка",
+                updated_at="2026-07-12T10:00:00Z",
+            ),
+        )
+
+        self.assertIn("Справка", build_tasks_view("ru", summary).text)
+        self.assertIn("На проверке: 2", build_documents_view("ru", summary).text)
+        self.assertIn("🔵 Проверка", build_case_view("ru", summary).text)
+
+    def test_section_callback_selects_expected_view(self) -> None:
+        from services.telegram_client_summary import ClientSummary
+        from services.telegram_views import build_client_section_view
+
+        summary = ClientSummary()
+
+        self.assertTrue(build_client_section_view("nav:tasks", "ru", summary).text.startswith("✅"))
+        self.assertTrue(build_client_section_view("nav:docs", "ru", summary).text.startswith("📄"))
+        self.assertTrue(build_client_section_view("nav:case", "ru", summary).text.startswith("📍"))
+        self.assertIsNone(build_client_section_view("nav:unknown", "ru", summary))
+
 
 if __name__ == "__main__":
     unittest.main()
