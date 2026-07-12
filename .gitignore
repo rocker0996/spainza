@@ -41,6 +41,7 @@ coverage/
 .coverage.*
 htmlcov/
 .cache/
+.worktrees/
 
 # IDE settings
 .cursor/
