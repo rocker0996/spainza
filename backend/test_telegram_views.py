@@ -48,6 +48,28 @@ class TelegramViewsTest(unittest.TestCase):
             ],
         )
         self.assertNotIn("Задать вопрос", " ".join(labels))
+        self.assertFalse(_main_menu_markup(True).get("is_persistent"))
+
+    def test_bot_command_menu_matches_current_features(self) -> None:
+        from services.telegram_bot import setup_bot_ui
+
+        with patch("services.telegram_bot.set_my_commands") as setter:
+            setup_bot_ui("token")
+
+        ru_commands = setter.call_args_list[0].args[1]
+        self.assertEqual(
+            ru_commands,
+            [
+                {"command": "start", "description": "🏠 Главное меню"},
+                {"command": "tasks", "description": "✅ Что нужно сделать"},
+                {"command": "documents", "description": "📄 Документы"},
+                {"command": "case", "description": "📍 Мой кейс"},
+                {"command": "faq", "description": "📚 Частые вопросы"},
+                {"command": "settings", "description": "⚙️ Настройки"},
+            ],
+        )
+        self.assertNotIn("help", [item["command"] for item in ru_commands])
+        self.assertNotIn("status", [item["command"] for item in ru_commands])
 
     def test_navigation_rows_always_offer_back_and_home(self) -> None:
         from services.telegram_views import navigation_rows
