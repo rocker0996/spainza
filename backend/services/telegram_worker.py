@@ -18,7 +18,12 @@ from models.telegram_preferences import get_preferences
 from services.notification_service import build_telegram_message, lk_url, parse_payload
 from services.telegram_api import TelegramApiError, delete_webhook, get_me, get_updates, send_message
 from services.telegram_bot import handle_update, setup_bot_ui
-from services.telegram_scheduler import build_digest, delivery_delay_until, schedule_due_reminders
+from services.telegram_scheduler import (
+    build_digest,
+    delivery_delay_until,
+    reminder_is_relevant,
+    schedule_due_reminders,
+)
 from utils.time import to_storage_datetime, utc_now
 
 _worker_singleton: Optional["TelegramWorker"] = None
@@ -67,6 +72,15 @@ class TelegramWorker:
             if int(row["id"]) in processed_ids:
                 continue
             preferences = get_preferences(connection, int(row["user_id"]))
+            row_payload = parse_payload(row["payload_json"])
+            if str(row["event_type"]).startswith("reminder.") and not reminder_is_relevant(
+                connection,
+                int(row["user_id"]),
+                row_payload,
+            ):
+                mark_notification_sent(connection, int(row["id"]))
+                processed += 1
+                continue
             if str(row["urgency"] or "normal") != "urgent":
                 deliver_at = delivery_delay_until(
                     preferences,
@@ -135,7 +149,7 @@ class TelegramWorker:
                             processed += 1
                     continue
 
-            payload = parse_payload(row["payload_json"])
+            payload = row_payload
             text, reply_markup = build_telegram_message(str(row["event_type"]), payload)
             try:
                 send_message(
