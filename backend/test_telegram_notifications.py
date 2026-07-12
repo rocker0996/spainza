@@ -61,6 +61,7 @@ class TelegramNotificationsTest(unittest.TestCase):
         self.assertIn("set:documents:0", callbacks)
         self.assertIn("set:messages:0", callbacks)
         self.assertIn("set:lang:en", callbacks)
+        self.assertIn("set:quiet:1", callbacks)
 
     def test_link_login_and_retry_datetimes_are_serialized(self) -> None:
         from models.notifications import (

@@ -253,6 +253,23 @@ def build_telegram_message(
             [{"text": "🏠 " + ("Кабинет" if ru else "Dashboard"), "url": lk_url("/frontend/lk/dashboard.html")}]
         )
 
+    elif event_type == "reminder.task_due":
+        title = str(payload.get("title") or "—").strip()
+        due_at = str(payload.get("due_at") or "").strip()
+        offset = int(payload.get("offset_days") or 0)
+        if offset > 0:
+            lead = f"До срока: {offset} дн." if ru else f"Due in {offset} days"
+        elif offset == 0:
+            lead = "Срок сегодня" if ru else "Due today"
+        else:
+            lead = "Срок прошёл" if ru else "Overdue"
+        text = f"⏰ {'Напоминание' if ru else 'Reminder'}\n\n{title}\n{lead}"
+        if due_at:
+            text += f"\n{'Дата' if ru else 'Date'}: {due_at}"
+        buttons.append(
+            [{"text": "✅ " + ("Открыть задачу" if ru else "Open task"), "url": lk_url("/frontend/lk/documents.html")}]
+        )
+
     else:
         text = "🔔 Spainza: " + ("Новое уведомление" if ru else "New notification")
 
