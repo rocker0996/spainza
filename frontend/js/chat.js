@@ -47,6 +47,9 @@
       "chat.replyDeletedPreview": "Удалённое сообщение",
       "chat.cancelReply": "Отменить ответ",
       "chat.deleteMessageError": "Не удалось удалить сообщение. {error}",
+      "chat.imageViewerTitle": "Просмотр изображения",
+      "chat.openImage": "Открыть изображение",
+      "chat.closeImage": "Закрыть изображение",
     },
     en: {
       "chat.you": "You",
@@ -60,6 +63,9 @@
       "chat.replyDeletedPreview": "Deleted message",
       "chat.cancelReply": "Cancel reply",
       "chat.deleteMessageError": "Could not delete message. {error}",
+      "chat.imageViewerTitle": "Image preview",
+      "chat.openImage": "Open image",
+      "chat.closeImage": "Close image",
     },
   };
 
@@ -261,6 +267,10 @@
   const documentsModal = document.getElementById("chat-documents-modal");
   const documentsList = document.getElementById("chat-documents-list");
   const documentsCloseBtn = document.getElementById("chat-documents-close");
+  const chatImageViewer = document.getElementById("chat-image-viewer");
+  const chatImageViewerImage = document.getElementById("chat-image-viewer-image");
+  const chatImageViewerClose = document.getElementById("chat-image-viewer-close");
+  const ChatMedia = window.ChatMedia;
   let confirmDialogResolve = null;
   let alertDialogResolve = null;
 
@@ -302,6 +312,16 @@
       setTimeout(finish, 380);
     });
   }
+
+  const imageViewer =
+    ChatMedia && chatImageViewer && chatImageViewerImage
+      ? ChatMedia.createImageViewerController({
+          modal: chatImageViewer,
+          image: chatImageViewerImage,
+          openModal: openChatOverlayModal,
+          closeModal: closeChatOverlayModal,
+        })
+      : null;
 
   function showChatConfirm({ title, message, confirmText, variant = "warning" }) {
     return new Promise((resolve) => {
@@ -1587,7 +1607,13 @@
   function renderMessageBody(message, isOutgoing) {
     let content = renderReplyQuoteHtml(getReplyToForMessage(message), isOutgoing);
     if (message.image_url) {
-      content += `<img src="${escapeHtml(buildProtectedApiUrl(message.image_url))}" class="max-w-xs rounded-lg" alt="Image"/>`;
+      const imageUrl = escapeHtml(buildProtectedApiUrl(message.image_url));
+      const imageLabel = escapeHtml(t("chat.openImage"));
+      content += `
+        <button type="button" class="chat-image-viewer-trigger" data-chat-image-src="${imageUrl}" aria-label="${imageLabel}">
+          <img src="${imageUrl}" class="chat-message-image" alt="${imageLabel}" />
+        </button>
+      `;
     }
     if (message.file_url) {
       const fileName = message.file_name || "file";
@@ -1945,7 +1971,11 @@
     }
     byId.messagesContainer.querySelectorAll(".msg-bubble--interactive").forEach((bubble) => {
       bubble.addEventListener("click", (event) => {
-        if (event.target.closest("a") || event.target.closest("[data-account-deletion-action]")) {
+        if (
+          event.target.closest("a") ||
+          event.target.closest("[data-account-deletion-action]") ||
+          event.target.closest(".chat-image-viewer-trigger")
+        ) {
           return;
         }
         const row = bubble.closest("[data-message-index]");
@@ -2545,7 +2575,28 @@
         sendMessage();
       }
     });
+    byId.messageInput.addEventListener("paste", (event) => {
+      const imageFiles = ChatMedia.extractClipboardImageFiles(event.clipboardData);
+      if (!imageFiles.length) {
+        return;
+      }
+      event.preventDefault();
+      queueAttachments(imageFiles);
+    });
   }
+
+  byId.messagesContainer.addEventListener("click", (event) => {
+    const trigger = event.target.closest(".chat-image-viewer-trigger");
+    if (!trigger || !imageViewer) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    imageViewer.open({
+      src: trigger.getAttribute("data-chat-image-src"),
+      alt: trigger.querySelector("img")?.getAttribute("alt") || t("chat.openImage"),
+    });
+  });
 
   if (byId.attachImage) {
     byId.attachImage.addEventListener("click", () => {
@@ -2579,6 +2630,21 @@
         event.target.classList.contains("chat-modal__backdrop")
       ) {
         closeChatDocumentsModal();
+      }
+    });
+  }
+
+  if (chatImageViewerClose && imageViewer) {
+    chatImageViewerClose.addEventListener("click", () => imageViewer.close());
+  }
+
+  if (chatImageViewer && imageViewer) {
+    chatImageViewer.addEventListener("click", (event) => {
+      if (
+        event.target === chatImageViewer ||
+        event.target.classList.contains("chat-modal__backdrop")
+      ) {
+        imageViewer.close();
       }
     });
   }
@@ -2687,6 +2753,10 @@
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
+    if (chatImageViewer && chatImageViewer.classList.contains("is-open")) {
+      imageViewer.close();
+      return;
+    }
     if (documentsModal && documentsModal.classList.contains("is-open")) {
       closeChatDocumentsModal();
       return;

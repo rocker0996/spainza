@@ -6,7 +6,7 @@
   "scripts": {
     "build:css": "tailwindcss -i ./frontend/css/tailwind.input.css -o ./frontend/css/portal.css --minify",
     "watch:css": "tailwindcss -i ./frontend/css/tailwind.input.css -o ./frontend/css/portal.css --watch",
-    "test": "python -m unittest backend.test_smoke -v && python -m unittest discover -s tests -v && python backend/test_visa_permissions.py"
+    "test": "node --test tests/chat-media.test.js && python -m unittest backend.test_smoke -v && python -m unittest discover -s tests -v && python backend/test_visa_permissions.py"
   },
   "keywords": [],
   "author": "",
