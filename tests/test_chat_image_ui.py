@@ -25,7 +25,8 @@ class ChatImageUiTest(unittest.TestCase):
         self.assertIn('id="chat-image-viewer-image"', self.html)
         self.assertIn('id="chat-image-viewer-close"', self.html)
         self.assertIn("chat-image-viewer__panel", self.html)
-        self.assertEqual(self.i18n_js.count('"chat.imageViewerTitle"'), 2)
+        self.assertIn('data-i18n="chat.photoViewerTitle">Просмотр фото', self.html)
+        self.assertEqual(self.i18n_js.count('"chat.photoViewerTitle"'), 2)
         self.assertEqual(self.i18n_js.count('"chat.openImage"'), 2)
         self.assertEqual(self.i18n_js.count('"chat.closeImage"'), 2)
 
@@ -40,6 +41,30 @@ class ChatImageUiTest(unittest.TestCase):
         self.assertIn('data-chat-image-src=', self.chat_js)
         self.assertIn('closest(".chat-image-viewer-trigger")', self.chat_js)
         self.assertIn("imageViewer.open", self.chat_js)
+
+    def test_photo_messages_use_compact_media_bubbles(self):
+        self.assertIn('message.image_url ? " msg-bubble--media" : ""', self.chat_js)
+        self.assertIn(".msg-bubble--media", self.html)
+        self.assertIn("width: fit-content", self.html)
+        self.assertIn("display: inline-block", self.html)
+
+    def test_chat_photos_have_count_and_gallery_modal(self):
+        for element_id in (
+            "shared-photos-btn",
+            "shared-photos-count",
+            "chat-photos-modal",
+            "chat-photos-list",
+            "chat-photos-close",
+        ):
+            self.assertIn(f'id="{element_id}"', self.html)
+        self.assertIn("collectChatPhotos", self.chat_js)
+        self.assertIn("updateSharedPhotosLabel", self.chat_js)
+        self.assertIn("openChatPhotosModal", self.chat_js)
+        self.assertEqual(self.i18n_js.count('"chat.photosCount"'), 2)
+        self.assertEqual(self.i18n_js.count('"chat.photosModalTitle"'), 2)
+
+    def test_i18n_cache_version_is_bumped(self):
+        self.assertIn('../js/lk-i18n.js?v=25', self.html)
 
     def test_viewer_supports_close_button_backdrop_and_escape(self):
         self.assertIn('chatImageViewerClose.addEventListener("click"', self.chat_js)

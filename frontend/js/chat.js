@@ -13,6 +13,8 @@
     attachImage: document.getElementById("attach-image-btn"),
     sharedDocsButton: document.getElementById("shared-docs-btn"),
     sharedDocsCount: document.getElementById("shared-docs-count"),
+    sharedPhotosButton: document.getElementById("shared-photos-btn"),
+    sharedPhotosCount: document.getElementById("shared-photos-count"),
     newConversation: document.getElementById("new-conversation-btn"),
     activeMenu: document.getElementById("active-chat-menu-btn"),
     chatMenuDropdown: document.getElementById("chat-menu-dropdown"),
@@ -47,7 +49,8 @@
       "chat.replyDeletedPreview": "Удалённое сообщение",
       "chat.cancelReply": "Отменить ответ",
       "chat.deleteMessageError": "Не удалось удалить сообщение. {error}",
-      "chat.imageViewerTitle": "Просмотр изображения",
+      "chat.imageViewerTitle": "Просмотр фото",
+      "chat.photoViewerTitle": "Просмотр фото",
       "chat.openImage": "Открыть изображение",
       "chat.closeImage": "Закрыть изображение",
     },
@@ -63,7 +66,8 @@
       "chat.replyDeletedPreview": "Deleted message",
       "chat.cancelReply": "Cancel reply",
       "chat.deleteMessageError": "Could not delete message. {error}",
-      "chat.imageViewerTitle": "Image preview",
+      "chat.imageViewerTitle": "Photo preview",
+      "chat.photoViewerTitle": "Photo preview",
       "chat.openImage": "Open image",
       "chat.closeImage": "Close image",
     },
@@ -267,6 +271,9 @@
   const documentsModal = document.getElementById("chat-documents-modal");
   const documentsList = document.getElementById("chat-documents-list");
   const documentsCloseBtn = document.getElementById("chat-documents-close");
+  const photosModal = document.getElementById("chat-photos-modal");
+  const photosList = document.getElementById("chat-photos-list");
+  const photosCloseBtn = document.getElementById("chat-photos-close");
   const chatImageViewer = document.getElementById("chat-image-viewer");
   const chatImageViewerImage = document.getElementById("chat-image-viewer-image");
   const chatImageViewerClose = document.getElementById("chat-image-viewer-close");
@@ -687,6 +694,16 @@
       });
   }
 
+  function collectChatPhotos(messages) {
+    return (messages || [])
+      .filter((message) => message && message.image_url)
+      .sort((a, b) => {
+        const timeA = (window.LkI18n?.parseInstant(a.created_at)?.getTime()) || 0;
+        const timeB = (window.LkI18n?.parseInstant(b.created_at)?.getTime()) || 0;
+        return timeB - timeA;
+      });
+  }
+
   function formatDocumentListDate(timestamp) {
     const dateLabel = formatDateSeparator(timestamp);
     const timeLabel = formatMessageTime(timestamp);
@@ -719,6 +736,72 @@
     }
     byId.sharedDocsCount.textContent =
       count > 0 ? t("chat.documentsCount", { count }) : t("chat.documents");
+  }
+
+  function updateSharedPhotosLabel(count) {
+    if (!byId.sharedPhotosCount) {
+      return;
+    }
+    byId.sharedPhotosCount.textContent =
+      count > 0 ? t("chat.photosCount", { count }) : t("chat.photos");
+  }
+
+  function buildChatPhotoItemHtml(message) {
+    const imageUrl = escapeHtml(buildProtectedApiUrl(message.image_url));
+    const imageLabel = escapeHtml(t("chat.openImage"));
+    const senderName = getDocumentSenderName(message);
+    const dateLabel = formatDocumentListDate(message.created_at);
+    const meta = escapeHtml(t("chat.documentsSentBy", { name: senderName, date: dateLabel }));
+
+    return `
+      <button type="button" class="chat-photo-card chat-image-viewer-trigger" data-chat-image-src="${imageUrl}" aria-label="${imageLabel}">
+        <img src="${imageUrl}" class="chat-photo-card__image" alt="${imageLabel}" loading="lazy" />
+        <span class="block truncate px-3 py-2 text-[11px] font-medium text-outline">${meta}</span>
+      </button>
+    `;
+  }
+
+  function renderChatPhotosList() {
+    if (!photosList) {
+      return;
+    }
+
+    const conversation = findConversation(activeConversationId);
+    const photos = conversation ? collectChatPhotos(conversation.messages) : [];
+
+    if (!photos.length) {
+      photosList.innerHTML = `
+        <div class="flex flex-col items-center justify-center text-center py-10 px-4 col-span-full">
+          <span class="material-symbols-outlined text-[48px] text-stone-300 mb-3">photo_library</span>
+          <p class="text-sm text-outline font-medium">${escapeHtml(t("chat.photosEmpty"))}</p>
+        </div>
+      `;
+      return;
+    }
+
+    photosList.innerHTML = photos.map(buildChatPhotoItemHtml).join("");
+  }
+
+  function openChatPhotosModal() {
+    if (!activeConversationId) {
+      showChatAlert({
+        title: t("chat.photos"),
+        message: t("chat.photosSelectChat"),
+        icon: "info",
+      });
+      return;
+    }
+
+    const titleEl = document.getElementById("chat-photos-title");
+    const subtitleEl = document.getElementById("chat-photos-subtitle");
+    if (titleEl) titleEl.textContent = t("chat.photosModalTitle");
+    if (subtitleEl) subtitleEl.textContent = t("chat.photosModalSubtitle");
+    renderChatPhotosList();
+    openChatOverlayModal(photosModal);
+  }
+
+  function closeChatPhotosModal() {
+    closeChatOverlayModal(photosModal);
   }
 
   function buildChatDocumentItemHtml(message) {
@@ -1789,6 +1872,7 @@
       byId.activeName.textContent = '';
       byId.activeRole.textContent = '';
       updateSharedDocsLabel(0);
+      updateSharedPhotosLabel(0);
       // Скрыть аватар
       const avatarImg = document.querySelector('#active-chat-avatar');
       if (avatarImg) {
@@ -1814,6 +1898,7 @@
 
     const messages = activeConversation.messages || [];
     updateSharedDocsLabel(collectChatDocuments(messages).length);
+    updateSharedPhotosLabel(collectChatPhotos(messages).length);
     let lastDateKey = "";
 
     const messagesMarkup = messages
@@ -1859,7 +1944,8 @@
         const content = renderMessageBody(message, isMe);
         const msgIdAttr =
           message.id != null ? ` data-message-id="${Number(message.id)}"` : "";
-        const bubbleClass = "msg-bubble msg-bubble--interactive";
+        const mediaBubbleClass = message.image_url ? " msg-bubble--media" : "";
+        const bubbleClass = `msg-bubble msg-bubble--interactive${mediaBubbleClass}`;
         const deletedHint = renderDeletedByPeerHint(message);
         const peerDeletedClass = message.is_deleted_by_peer ? " msg-bubble--peer-deleted" : "";
 
@@ -2585,7 +2671,7 @@
     });
   }
 
-  byId.messagesContainer.addEventListener("click", (event) => {
+  function openImageFromTrigger(event) {
     const trigger = event.target.closest(".chat-image-viewer-trigger");
     if (!trigger || !imageViewer) {
       return;
@@ -2596,7 +2682,12 @@
       src: trigger.getAttribute("data-chat-image-src"),
       alt: trigger.querySelector("img")?.getAttribute("alt") || t("chat.openImage"),
     });
-  });
+  }
+
+  byId.messagesContainer.addEventListener("click", openImageFromTrigger);
+  if (photosList) {
+    photosList.addEventListener("click", openImageFromTrigger);
+  }
 
   if (byId.attachImage) {
     byId.attachImage.addEventListener("click", () => {
@@ -2619,6 +2710,10 @@
     byId.sharedDocsButton.addEventListener("click", openChatDocumentsModal);
   }
 
+  if (byId.sharedPhotosButton) {
+    byId.sharedPhotosButton.addEventListener("click", openChatPhotosModal);
+  }
+
   if (documentsCloseBtn) {
     documentsCloseBtn.addEventListener("click", closeChatDocumentsModal);
   }
@@ -2630,6 +2725,21 @@
         event.target.classList.contains("chat-modal__backdrop")
       ) {
         closeChatDocumentsModal();
+      }
+    });
+  }
+
+  if (photosCloseBtn) {
+    photosCloseBtn.addEventListener("click", closeChatPhotosModal);
+  }
+
+  if (photosModal) {
+    photosModal.addEventListener("click", (event) => {
+      if (
+        event.target === photosModal ||
+        event.target.classList.contains("chat-modal__backdrop")
+      ) {
+        closeChatPhotosModal();
       }
     });
   }
@@ -2755,6 +2865,10 @@
     if (event.key !== "Escape") return;
     if (chatImageViewer && chatImageViewer.classList.contains("is-open")) {
       imageViewer.close();
+      return;
+    }
+    if (photosModal && photosModal.classList.contains("is-open")) {
+      closeChatPhotosModal();
       return;
     }
     if (documentsModal && documentsModal.classList.contains("is-open")) {
