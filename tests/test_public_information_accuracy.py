@@ -26,6 +26,10 @@ class PublicInformationAccuracyTest(unittest.TestCase):
             self.assertNotIn("€993", page)
             self.assertNotIn("€331", page)
 
+        self.assertIn("200% SMI;<br/>", ru)
+        self.assertIn("75% SMI;<br/>", ru)
+        self.assertIn("25% SMI.<br/>Порог пересматривается", ru)
+
     def test_digital_nomad_qualification_lists_all_recognized_routes(self):
         ru = read("frontend/ru/nomad.html")
         en = read("frontend/en/nomad.html")
