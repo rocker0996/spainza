@@ -68,25 +68,23 @@
     if (language === "en") {
       return {
         eyebrow: "Privacy settings",
-        title: "Cookies make the service smoother",
+        title: "Necessary technologies",
         body:
-          "We use essential cookies for login and security, and optional analytics to improve Spainza. You can accept all cookies or keep only the necessary ones.",
-        accept: "Accept all",
-        necessary: "Necessary only",
+          "We currently use necessary technologies for sign-in, security, language and interface preferences, and remembering that you have seen this notice. We do not use advertising or third-party analytics cookies.",
+        accept: "Got it",
         details: "Cookie policy",
         close: "Close cookie notice",
       };
     }
-    return {
-      eyebrow: "Настройки приватности",
-      title: "Мы используем cookies",
-      body:
-        "Нужные cookies помогают входить в личный кабинет и защищать сессию, а дополнительные помогают улучшать Spainza. Можно принять все или оставить только необходимые.",
-      accept: "Принять все",
-      necessary: "Только необходимые",
-      details: "Политика cookies",
-      close: "Закрыть уведомление о cookies",
-    };
+      return {
+        eyebrow: "Настройки приватности",
+        title: "Необходимые технологии",
+        body:
+          "Сейчас мы используем необходимые технологии для входа, безопасности, сохранения языка и настроек интерфейса, а также чтобы запомнить показ этого уведомления. Рекламные cookie и сторонняя аналитика не используются.",
+        accept: "Понятно",
+        details: "Политика cookies",
+        close: "Закрыть уведомление о cookies",
+      };
   }
 
   function ensureStyles() {
@@ -144,8 +142,7 @@
       '<p class="spainza-cookie__body">' + copy.body + "</p>" +
       "</div>" +
       '<div class="spainza-cookie__actions">' +
-      '<button class="spainza-cookie__button spainza-cookie__button--primary" type="button" data-cookie-choice="all">' + copy.accept + "</button>" +
-      '<button class="spainza-cookie__button spainza-cookie__button--secondary" type="button" data-cookie-choice="necessary">' + copy.necessary + "</button>" +
+      '<button class="spainza-cookie__button spainza-cookie__button--primary" type="button" data-cookie-choice="acknowledged">' + copy.accept + "</button>" +
       '<a class="spainza-cookie__link" href="' + getPolicyHref(language) + '">' + copy.details + "</a>" +
       "</div>" +
       "</div>";

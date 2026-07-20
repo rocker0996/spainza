@@ -155,6 +155,7 @@
 <p class="font-label text-sm font-bold tracking-widest text-primary-container uppercase mb-4">Юридическая информация</p>
 <h1 class="font-headline text-5xl md:text-5xl font-extrabold tracking-tight text-on-background mb-6 leading-tight">Политика использования файлов cookie</h1>
 <p class="font-body text-xl text-on-surface-variant leading-relaxed max-w-2xl">Как Spainza использует cookie и аналогичные технологии.</p>
+<p class="font-body text-sm text-on-surface-variant mt-4">Редакция и дата вступления в силу: 20 июля 2026 года.</p>
 </div>
 <article class="space-y-[1.33rem]">
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
@@ -187,9 +188,12 @@
 <div class="font-body text-on-surface-variant space-y-4 leading-relaxed">
 <p><strong>Строго необходимые (технические):</strong></p>
 <ul class="list-disc pl-5 space-y-2 mt-4 text-on-background">
-<li><strong>access_token</strong> (HTTP cookie, как правило с атрибутами HttpOnly/Secure и ограниченным сроком действия) — аутентификация в личном кабинете и авторизованный доступ к защищённым программным интерфейсам;</li>
-<li><strong>currentUserProfile</strong>, <strong>currentUserProfileSavedAt</strong> (localStorage) — кэширование сведений профиля для корректного отображения интерфейса; <strong>token</strong> (localStorage) — устаревший (legacy) ключ, сохраняемый по соображениям обратной совместимости;</li>
-<li><strong>spainza.language</strong>, <strong>userLocale</strong> (localStorage) — сохранение выбранного языка и локали интерфейса.</li>
+<li><strong>access_token</strong> (HTTP cookie) — аутентификация в личном кабинете и доступ к защищённым интерфейсам; устанавливается с атрибутами <strong>HttpOnly</strong> и <strong>SameSite=Lax</strong>, а при работе через HTTPS также с атрибутом <strong>Secure</strong>, на срок до 7 дней;</li>
+<li><strong>google_oauth_state</strong> (HTTP cookie) — защита сценария входа через Google; устанавливается с атрибутом <strong>HttpOnly</strong>, <strong>SameSite=None</strong> и <strong>Secure</strong> при HTTPS либо <strong>SameSite=Lax</strong> в локальной HTTP-среде, на срок до 10 минут; удаляется после успешного завершения входа, а при отмене или ошибке прекращает действие по истечении указанного срока;</li>
+<li><strong>currentUserProfile</strong>, <strong>currentUserProfileSavedAt</strong> (localStorage) — кэширование сведений профиля для корректного отображения интерфейса;</li>
+<li><strong>spainza.language</strong>, <strong>userLocale</strong> (localStorage) — сохранение выбранного языка и локали интерфейса;</li>
+<li><strong>spainza.cookieConsent.v1</strong> (localStorage) — сохранение выбранного варианта в уведомлении о cookie, чтобы не показывать его повторно;</li>
+<li><strong>token</strong> (localStorage) — устаревший (legacy) ключ; текущая версия Сервиса не использует его для аутентификации и удаляет при выходе и в отдельных сценариях доступа.</li>
 </ul>
 <p><strong>Функционально-сессионные:</strong> кратковременные значения в sessionStorage (в частности, <strong>manager_invite_token</strong>) для завершения отдельных сценариев авторизации и привязки.</p>
 <p><strong>Аналитические и маркетинговые:</strong> на дату публикации Оператор <strong>не применяет</strong> сторонних рекламных или аналитических технологий (включая Google Analytics, Meta Pixel и аналогичные). При изменении подхода настоящая Политика будет соответствующим образом обновлена.</p>
@@ -198,7 +202,7 @@
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
 <h2 class="font-headline text-2xl font-bold text-on-background mb-6 flex items-center gap-3"><span class="text-primary-container bg-primary-fixed-dim/30 w-8 h-8 rounded-full flex items-center justify-center text-sm">5</span>Сроки хранения</h2>
 <div class="font-body text-on-surface-variant space-y-4 leading-relaxed">
-<p>Сессионные cookie прекращают действие при истечении срока токена аутентификации либо при выходе из Учётной записи. Значения sessionStorage удаляются по завершении сессии вкладки браузера. Данные localStorage сохраняются до их удаления Пользователем средствами браузера либо до момента, когда приложение очищает соответствующие ключи (в частности, при выходе из Учётной записи).</p>
+<p><strong>access_token</strong> хранится не более 7 дней и удаляется при выходе из Учётной записи; <strong>google_oauth_state</strong> хранится не более 10 минут и удаляется после успешного входа через Google либо прекращает действие по истечении срока при отмене или ошибке. Значения sessionStorage, включая <strong>manager_invite_token</strong>, обычно удаляются при завершении сессии вкладки или после использования. Данные localStorage сохраняются до их удаления Пользователем средствами браузера либо до момента, когда приложение очищает соответствующие ключи; кэш профиля удаляется при выходе, а языковые настройки и <strong>spainza.cookieConsent.v1</strong> могут сохраняться дольше.</p>
 </div>
 </section>
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
@@ -211,14 +215,14 @@
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
 <h2 class="font-headline text-2xl font-bold text-on-background mb-6 flex items-center gap-3"><span class="text-primary-container bg-primary-fixed-dim/30 w-8 h-8 rounded-full flex items-center justify-center text-sm">7</span>Сторонние ресурсы и поставщики</h2>
 <div class="font-body text-on-surface-variant space-y-4 leading-relaxed">
-<p>Сервис может загружать шрифты и библиотеки оформления из сетей доставки контента (в частности, Google Fonts и CDN библиотек интерфейса), а также использовать виджет авторизации Telegram. Такие поставщики могут обрабатывать технические данные (включая IP-адрес и сведения о браузере) в соответствии с их собственными политиками, на которые Оператор не оказывает влияния и за которые не несёт ответственности.</p>
+<p>Сервис загружает или может загружать шрифты и библиотеки оформления из сетей доставки контента (в частности, Google Fonts и CDN библиотек интерфейса), а также использовать Google для входа и Telegram для входа, привязки аккаунта и уведомлений. При обращении к таким ресурсам соответствующие поставщики могут получать технические данные, включая IP-адрес и сведения о браузере, и обрабатывать их по собственным правилам. Эти внешние запросы могут выполняться при загрузке страницы или при выборе соответствующей функции.</p>
 <p>Пользователь самостоятельно и под свою ответственность оценивает риски перехода по внешним ссылкам и использования сторонних сервисов.</p>
 </div>
 </section>
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
 <h2 class="font-headline text-2xl font-bold text-on-background mb-6 flex items-center gap-3"><span class="text-primary-container bg-primary-fixed-dim/30 w-8 h-8 rounded-full flex items-center justify-center text-sm">8</span>Изменение Политики</h2>
 <div class="font-body text-on-surface-variant space-y-4 leading-relaxed">
-<p>Оператор вправе в одностороннем порядке обновлять настоящую Политику. Действующая редакция с указанием даты вступления в силу размещается на данной странице. Продолжение использования Сервиса после опубликования изменений означает согласие Пользователя с обновлённой редакцией.</p>
+<p>Оператор вправе обновлять настоящую Политику. Дата редакции и вступления в силу указана в начале страницы. Продолжение использования Сервиса после опубликования изменений означает согласие Пользователя с обновлённой редакцией.</p>
 </div>
 </section>
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">

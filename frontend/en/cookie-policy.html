@@ -155,6 +155,7 @@
 <p class="font-label text-sm font-bold tracking-widest text-primary-container uppercase mb-4">Legal Information</p>
 <h1 class="font-headline text-5xl md:text-5xl font-extrabold tracking-tight text-on-background mb-6 leading-tight">Cookie Policy</h1>
 <p class="font-body text-xl text-on-surface-variant leading-relaxed max-w-2xl">How Spainza uses cookies and similar technologies.</p>
+<p class="font-body text-sm text-on-surface-variant mt-4">Version and effective date: 20 July 2026.</p>
 </div>
 <article class="space-y-[1.33rem]">
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
@@ -187,9 +188,12 @@
 <div class="font-body text-on-surface-variant space-y-4 leading-relaxed">
 <p><strong>Strictly necessary (technical):</strong></p>
 <ul class="list-disc pl-5 space-y-2 mt-4 text-on-background">
-<li><strong>access_token</strong> (HTTP cookie, typically with HttpOnly/Secure attributes and a limited validity period) — authentication in the client portal and authorised access to protected application interfaces;</li>
-<li><strong>currentUserProfile</strong>, <strong>currentUserProfileSavedAt</strong> (localStorage) — caching of profile data for correct rendering of the interface; <strong>token</strong> (localStorage) — a legacy key retained for backward compatibility;</li>
-<li><strong>spainza.language</strong>, <strong>userLocale</strong> (localStorage) — saving the selected interface language and locale.</li>
+<li><strong>access_token</strong> (HTTP cookie) — authentication in the client portal and access to protected interfaces; set with <strong>HttpOnly</strong> and <strong>SameSite=Lax</strong>, and also <strong>Secure</strong> when HTTPS is used, for up to 7 days;</li>
+<li><strong>google_oauth_state</strong> (HTTP cookie) — protects the Google sign-in flow; set with <strong>HttpOnly</strong>, <strong>SameSite=None</strong> and <strong>Secure</strong> over HTTPS, or <strong>SameSite=Lax</strong> in a local HTTP environment, for up to 10 minutes; removed after successful sign-in and otherwise expires after that period if the flow is cancelled or fails;</li>
+<li><strong>currentUserProfile</strong>, <strong>currentUserProfileSavedAt</strong> (localStorage) — caching profile data for correct interface rendering;</li>
+<li><strong>spainza.language</strong>, <strong>userLocale</strong> (localStorage) — saving the selected interface language and locale;</li>
+<li><strong>spainza.cookieConsent.v1</strong> (localStorage) — saving the choice made in the cookie notice so it is not displayed repeatedly;</li>
+<li><strong>token</strong> (localStorage) — a legacy key; the current Service does not use it for authentication and removes it on sign-out and in certain access flows.</li>
 </ul>
 <p><strong>Functional/session:</strong> short-lived sessionStorage values (in particular, <strong>manager_invite_token</strong>) used to complete specific authorisation and linking flows.</p>
 <p><strong>Analytics and marketing:</strong> as of the publication date, the Operator does <strong>not</strong> use any third-party advertising or analytics technologies (including Google Analytics, Meta Pixel, or similar). Should this approach change, this Policy will be updated accordingly.</p>
@@ -198,7 +202,7 @@
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
 <h2 class="font-headline text-2xl font-bold text-on-background mb-6 flex items-center gap-3"><span class="text-primary-container bg-primary-fixed-dim/30 w-8 h-8 rounded-full flex items-center justify-center text-sm">5</span>Retention periods</h2>
 <div class="font-body text-on-surface-variant space-y-4 leading-relaxed">
-<p>Session cookies cease to be valid when the authentication token expires or upon sign-out from the Account. sessionStorage values are removed when the browser tab session ends. localStorage data is retained until the User clears it via the browser or until the application clears the relevant keys (in particular, on sign-out from the Account).</p>
+<p><strong>access_token</strong> is retained for no more than 7 days and is removed on sign-out; <strong>google_oauth_state</strong> is retained for no more than 10 minutes and is removed after successful Google sign-in, or expires at the end of that period if the flow is cancelled or fails. sessionStorage values, including <strong>manager_invite_token</strong>, are normally removed when the tab session ends or after use. localStorage data remains until the User clears it in the browser or the application clears the relevant keys; the profile cache is removed on sign-out, while language preferences and <strong>spainza.cookieConsent.v1</strong> may remain longer.</p>
 </div>
 </section>
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
@@ -211,14 +215,14 @@
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
 <h2 class="font-headline text-2xl font-bold text-on-background mb-6 flex items-center gap-3"><span class="text-primary-container bg-primary-fixed-dim/30 w-8 h-8 rounded-full flex items-center justify-center text-sm">7</span>Third-party resources and providers</h2>
 <div class="font-body text-on-surface-variant space-y-4 leading-relaxed">
-<p>The Service may load fonts and styling libraries from content delivery networks (in particular, Google Fonts and UI library CDNs) and may use the Telegram login widget. Such providers may process technical data (including IP address and browser information) under their own policies, which the Operator does not influence and for which it is not responsible.</p>
+<p>The Service loads or may load fonts and styling libraries from content delivery networks, including Google Fonts and UI library CDNs, and may use Google for sign-in and Telegram for sign-in, account linking, and notifications. When such resources are accessed, the relevant providers may receive technical data, including the IP address and browser information, and process it under their own rules. These external requests may occur when a page loads or when the corresponding feature is selected.</p>
 <p>The User independently and at their own responsibility assesses the risks of following external links and using third-party services.</p>
 </div>
 </section>
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
 <h2 class="font-headline text-2xl font-bold text-on-background mb-6 flex items-center gap-3"><span class="text-primary-container bg-primary-fixed-dim/30 w-8 h-8 rounded-full flex items-center justify-center text-sm">8</span>Changes to the Policy</h2>
 <div class="font-body text-on-surface-variant space-y-4 leading-relaxed">
-<p>The Operator may unilaterally update this Policy. The effective version, stating its effective date, is posted on this page. Continued use of the Service after changes are published constitutes the User’s acceptance of the updated version.</p>
+<p>The Operator may update this Policy. Its version and effective date are stated at the beginning of this page. Continued use of the Service after changes are published constitutes the User’s acceptance of the updated version.</p>
 </div>
 </section>
 <section class="bg-surface-container-lowest p-8 md:p-10 rounded-xl shadow-[0_8px_30px_rgb(117,118,130,0.04)] border border-surface-variant/40">
