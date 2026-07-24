@@ -182,7 +182,11 @@ class NomadPagesTest(unittest.TestCase):
         ):
             with self.subTest(relative_path=relative_path):
                 footer = read(relative_path)
-                self.assertIn('class="!bg-slate-50', footer)
+                self.assertIn(
+                    'class="!bg-slate-50 w-full pt-12 pb-6 sm:pt-16 sm:pb-8',
+                    footer,
+                )
+                self.assertNotIn("mt-16", footer)
                 self.assertNotIn("dark:", footer)
                 self.assertNotIn("Сопровождение релокации цифровых кочевников", footer)
                 self.assertNotIn("Relocation support for digital nomads", footer)
