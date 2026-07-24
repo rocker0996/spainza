@@ -92,7 +92,7 @@ class NomadPagesTest(unittest.TestCase):
             with self.subTest(locale=locale):
                 page = read(f"frontend/{locale}/index.html")
                 self.assertIn('id="faq"', page)
-                self.assertIn('id="faq" class="py-16 sm:py-24 bg-surface-container-low"', page)
+                self.assertIn('id="faq" class="pt-16 sm:pt-24 pb-0 bg-surface-container-low"', page)
                 self.assertIn('max-w-7xl mx-auto', page[page.index('id="faq"'):])
                 self.assertEqual(page.count('class="faq-item '), 9)
                 self.assertIn(".faq-item::details-content", page)
@@ -161,6 +161,10 @@ class NomadPagesTest(unittest.TestCase):
                 home = read(f"frontend/{locale}/index.html")
                 self.assertIn('<main class="pt-20 sm:pt-32">', home)
                 self.assertNotIn('<main class="pt-20 sm:pt-32 pb-16 sm:pb-24">', home)
+                self.assertIn(
+                    '<section id="faq" class="pt-16 sm:pt-24 pb-0 bg-surface-container-low">',
+                    home,
+                )
 
                 for page_name in ("nomad.html", "nomad-case.html"):
                     page = read(f"frontend/{locale}/{page_name}")
@@ -175,6 +179,7 @@ class NomadPagesTest(unittest.TestCase):
         ):
             with self.subTest(relative_path=relative_path):
                 footer = read(relative_path)
+                self.assertIn('class="!bg-slate-50', footer)
                 self.assertNotIn("Сопровождение релокации цифровых кочевников", footer)
                 self.assertNotIn("Relocation support for digital nomads", footer)
 
