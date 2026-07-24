@@ -10,6 +10,7 @@
 <link rel="alternate" hreflang="en" href="https://spainza.com/en/nomad.html"/>
 <link rel="alternate" hreflang="x-default" href="https://spainza.com/en/nomad.html"/>
 <link rel="icon" href="/frontend/img/favicons/favicon.ico"/>
+<link rel="stylesheet" href="/frontend/css/portal.css"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600&amp;display=swap" rel="stylesheet"/>
@@ -23,35 +24,35 @@ tailwind.config={theme:{extend:{colors:{background:"#fbf8ff",surface:"#fbf8ff","
 </head>
 <body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-white">
 <div id="site-header"></div>
-<main class="pt-24 sm:pt-32 overflow-hidden">
-<section class="max-w-7xl mx-auto px-6 lg:px-8 pb-20 grid lg:grid-cols-[1.08fr_.92fr] gap-12 items-center">
+<main class="pt-20 sm:pt-32 overflow-hidden">
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-20 grid lg:grid-cols-[1.08fr_.92fr] gap-8 lg:gap-12 items-center">
   <div>
     <p class="font-semibold tracking-[.18em] text-xs sm:text-sm text-primary mb-5">DIGITAL NOMAD RESIDENCE · SPAIN · 2026</p>
     <h1 class="font-headline text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.04]">ВНЖ Digital Nomad Испании</h1>
-    <p class="font-headline text-2xl sm:text-3xl font-bold mt-7">Получите решение до 20 рабочих дней</p>
-    <p class="text-lg text-on-variant mt-2">Вместо месяцев неопределённости</p>
+    <p class="uppercase font-headline text-2xl sm:text-3xl font-bold mt-7">Получите решение до 20 рабочих дней</p>
+    <p class="uppercase text-lg text-on-variant mt-2">Вместо месяцев неопределённости</p>
     <div class="flex flex-col sm:flex-row gap-3 mt-8">
-      <a class="rounded-xl bg-primary-container text-white font-bold px-6 py-4 text-center hover:bg-primary transition" href="./contact.html?service=nomad">Предварительная оценка</a>
+      <a class="rounded-xl bg-primary-container text-white font-bold px-6 py-4 text-center hover:bg-primary transition" href="./contact.html?service=nomad">Получить предварительную оценку</a>
       <a class="rounded-xl bg-surface-high font-bold px-6 py-4 text-center hover:bg-outline/40 transition" href="./nomad-case.html">Посмотреть реальные кейсы</a>
     </div>
     <p class="text-xs text-on-variant mt-3">* Ответ специалиста в течение 15 минут в рабочее время.</p>
   </div>
-  <aside class="relative bg-white border border-outline/40 rounded-[2rem] p-7 sm:p-9 shadow-[0_24px_70px_rgba(52,61,110,.12)]">
+  <aside class="relative bg-white border border-outline/40 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-9 shadow-[0_24px_70px_rgba(52,61,110,.12)]">
     <div class="absolute -top-16 -right-16 w-48 h-48 bg-primary-container/10 rounded-full blur-3xl"></div>
     <p class="text-xs tracking-[.16em] uppercase font-bold text-primary">Case audit</p>
     <h2 class="font-headline text-2xl sm:text-3xl font-extrabold mt-3">Ваш кейс проходит 4 уровня проверки</h2>
     <ol class="mt-7 space-y-5">
       <li class="flex gap-4"><b class="text-primary">01</b><span>Основание для получения ВНЖ</span></li>
       <li class="flex gap-4"><b class="text-primary">02</b><span>Трудовая и корпоративная документация</span></li>
-      <li class="flex gap-4"><b class="text-primary">03</b><span>Доход, банк и социальное страхование</span></li>
+      <li class="flex gap-4"><b class="text-primary">03</b><span>Доход, налоговые отчисления и социальное страхование</span></li>
       <li class="flex gap-4"><b class="text-primary">04</b><span>Финальная проверка перед подачей в UGE</span></li>
     </ol>
     <p class="mt-7 pt-6 border-t border-outline/40 font-semibold">Сопровождение до получения решения и оформления&nbsp;TIE</p>
   </aside>
 </section>
 
-<section class="bg-surface-low py-20">
-  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+<section class="bg-surface-low py-12 sm:py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
       <article class="bg-white rounded-2xl p-6"><span class="material-symbols-outlined text-primary">person_off</span><h3 class="font-headline font-bold text-xl mt-4">Без личного присутствия</h3><p class="text-sm text-on-variant mt-2">Документы подаём через представителя.</p></article>
       <article class="bg-white rounded-2xl p-6"><span class="material-symbols-outlined text-primary">family_restroom</span><h3 class="font-headline font-bold text-xl mt-4">Заявитель + семья</h3><p class="text-sm text-on-variant mt-2">Единая стратегия по семейному делу.</p></article>
@@ -62,36 +63,36 @@ tailwind.config={theme:{extend:{colors:{background:"#fbf8ff",surface:"#fbf8ff","
   </div>
 </section>
 
-<section class="max-w-7xl mx-auto px-6 lg:px-8 py-20">
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
   <div class="max-w-3xl">
-    <h2 class="font-headline text-3xl sm:text-4xl font-extrabold">Что именно делает Spainza</h2>
+    <h2 class="font-headline text-3xl sm:text-4xl font-extrabold">Что именно делает Spainza?</h2>
     <p class="text-xl font-semibold mt-4">Мы не выдаём универсальный список документов</p>
     <p class="text-on-variant mt-2">Сначала мы определяем, чем юридически подтверждается именно ваш кейс.</p>
   </div>
   <div class="grid md:grid-cols-2 gap-5 mt-10">
-    <article class="bg-white border border-outline/40 rounded-2xl p-7"><h3 class="font-headline font-bold text-xl">Право на программу</h3><p class="text-on-variant mt-2">Проверка формы занятости, работодателя или ИП, профессионального опыта и характера дистанционной работы.</p></article>
-    <article class="bg-white border border-outline/40 rounded-2xl p-7"><h3 class="font-headline font-bold text-xl">Финансовая модель</h3><p class="text-on-variant mt-2">Анализ зарплаты, движения средств, расчётных листов, налоговых документов и достаточности средств.</p></article>
-    <article class="bg-white border border-outline/40 rounded-2xl p-7"><h3 class="font-headline font-bold text-xl">Социальное страхование</h3><p class="text-on-variant mt-2">Определение применимого механизма подтверждения страхового покрытия.</p></article>
-    <article class="bg-white border border-outline/40 rounded-2xl p-7"><h3 class="font-headline font-bold text-xl">Подача и сопровождение</h3><p class="text-on-variant mt-2">Подготовка заявления, подача документов, ответы на дозапросы UGE и контроль процедуры.</p></article>
+    <article class="bg-white border border-outline/40 rounded-2xl p-5 sm:p-7"><h3 class="font-headline font-bold text-xl">Право на программу</h3><p class="text-on-variant mt-2">Проверка формы занятости, работодателя или ИП, профессионального опыта и характера дистанционной работы.</p></article>
+    <article class="bg-white border border-outline/40 rounded-2xl p-5 sm:p-7"><h3 class="font-headline font-bold text-xl">Финансовая модель</h3><p class="text-on-variant mt-2">Анализ зарплаты, движения средств, расчётных листов, налоговых документов и достаточности средств.</p></article>
+    <article class="bg-white border border-outline/40 rounded-2xl p-5 sm:p-7"><h3 class="font-headline font-bold text-xl">Социальное страхование</h3><p class="text-on-variant mt-2">Определение применимого механизма подтверждения страхового покрытия.</p></article>
+    <article class="bg-white border border-outline/40 rounded-2xl p-5 sm:p-7"><h3 class="font-headline font-bold text-xl">Подача и сопровождение</h3><p class="text-on-variant mt-2">Подготовка документов, подача через представителя, ответы на дозапросы UGE и контроль процедуры.</p></article>
   </div>
 </section>
 
-<section class="bg-surface-low py-20">
-  <div class="max-w-7xl mx-auto px-6 lg:px-8">
-    <p class="text-primary font-bold">Кейсы и решения</p>
+<section class="bg-surface-low py-12 sm:py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <p class="uppercase text-primary font-bold">Кейсы и решения</p>
     <h2 class="font-headline text-3xl sm:text-4xl font-extrabold mt-2">Не обещания. Реальные результаты.</h2>
-    <article class="mt-10 bg-white rounded-[2rem] p-7 sm:p-10 grid lg:grid-cols-[1fr_auto] gap-8 shadow-sm">
-      <div><p class="text-xs uppercase tracking-wider text-primary font-bold">Наёмный сотрудник иностранной IT-компании</p><h3 class="font-headline text-2xl font-bold mt-3">ВНЖ на 3 года</h3>
-        <ul class="mt-5 space-y-3 text-on-variant"><li class="check-row">Дистанционный трудовой договор</li><li class="check-row">Подтверждение профессионального опыта</li><li class="check-row">Отдельная работа по социальному страхованию</li><li class="check-row">Подача через представителя</li></ul>
+    <article class="mt-10 bg-white rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-10 grid lg:grid-cols-[1fr_auto] gap-6 lg:gap-8 shadow-sm">
+      <div><p class="text-xs uppercase tracking-wider text-primary font-bold">Карточка кейса:</p><h3 class="font-headline text-2xl font-bold mt-3">Наёмный сотрудник иностранной компании</h3>
+        <ul class="mt-5 space-y-1 text-on-variant"><li class="check-row">Дистанционный трудовой договор</li><li class="check-row">Подтверждение профессионального опыта</li><li class="check-row">Подтверждение ежемесячного дохода</li><li class="check-row">Подтверждение социального страхования</li><li class="check-row">Документ, подтверждающий отсутствие судимости</li><li class="check-row">Подача заявления через представителя</li><li class="check-row font-bold text-on-surface">Результат: ВНЖ Испании сроком на 3 года</li></ul>
       </div>
-      <a class="self-end rounded-xl bg-primary-container text-white font-bold px-6 py-4 text-center" href="./nomad-case.html">Посмотреть структуру кейса</a>
+      <a class="self-end w-full sm:w-auto rounded-xl bg-primary-container text-white font-bold px-6 py-4 text-center" href="./nomad-case.html">Разбор реального кейса</a>
     </article>
   </div>
 </section>
 
-<section class="max-w-7xl mx-auto px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12">
-  <div><p class="text-primary font-bold">Экспертиза в деталях</p><h2 class="font-headline text-3xl sm:text-4xl font-extrabold mt-2">Почему дела получают запросы или отказы</h2><p class="text-xl mt-5">Решение зависит не от количества документов</p><p class="text-on-variant mt-3">Мы проверяем не каждый документ отдельно, а весь кейс как единую систему доказательств.</p></div>
-  <ul class="bg-white border border-outline/40 rounded-2xl p-7 space-y-3 text-on-variant">
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 grid lg:grid-cols-2 gap-8 lg:gap-12">
+  <div><p class="uppercase text-primary font-bold">Экспертиза в деталях</p><h2 class="font-headline text-3xl sm:text-4xl font-extrabold mt-2">Почему дела получают запросы или отказы</h2><p class="text-xl mt-5">Решение зависит не от количества документов</p><p class="text-on-variant mt-3">Мы проверяем не каждый документ отдельно, а весь кейс как единую систему доказательств.</p></div>
+  <ul class="bg-white border border-outline/40 rounded-2xl p-5 sm:p-7 space-y-3 text-on-variant">
     <li class="check-row">Противоречия между договором, справками и банковскими поступлениями</li>
     <li class="check-row">Неполные идентификационные данные</li>
     <li class="check-row">Неподтверждённая возможность дистанционной работы из Испании</li>
@@ -102,21 +103,16 @@ tailwind.config={theme:{extend:{colors:{background:"#fbf8ff",surface:"#fbf8ff","
   </ul>
 </section>
 
-<section class="bg-primary text-white py-20">
-  <div class="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-[.75fr_1.25fr] gap-12">
-    <div><p class="uppercase tracking-widest text-sm text-white/70">Стоимость</p><h2 class="font-headline text-3xl font-extrabold mt-3">Полное сопровождение Digital Nomad</h2><p class="font-headline text-5xl font-extrabold mt-6">от €1 600</p></div>
+<section class="bg-primary text-white py-12 sm:py-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-[.75fr_1.25fr] gap-8 lg:gap-12">
+    <div><p class="uppercase tracking-widest text-sm text-white/70">Стоимость</p><h2 class="font-headline text-3xl font-extrabold mt-3">Полное сопровождение Digital Nomad</h2><p class="font-headline text-5xl font-extrabold mt-6">от €1 600</p><a class="inline-block mt-8 rounded-xl bg-white text-primary font-bold px-8 py-4" href="./contact.html?service=nomad">Могу ли я получить ВНЖ?</a></div>
     <div class="grid md:grid-cols-2 gap-6">
-      <div class="bg-[#dfe3ff] text-primary rounded-2xl p-7"><h3 class="font-headline text-xl font-bold">В стоимость входит</h3><ul class="mt-5 space-y-3 text-sm text-[#253b89]"><li>Индивидуальная стратегия подачи</li><li>Персональный перечень документов</li><li>Подготовка, проверка и корректировка</li><li>Формирование полного заявления</li><li>Подача через представителя</li><li>Ответы на запросы UGE</li><li>Контроль и получение решения</li></ul></div>
-      <div class="bg-[#ffebe6] text-[#7a210b] rounded-2xl p-7"><h3 class="font-headline text-xl font-bold">Оплачивается отдельно</h3><ul class="mt-5 space-y-3 text-sm text-[#8a3a25]"><li>Переводы на испанский язык</li><li>Государственные пошлины</li><li>Медицинская страховка</li><li>Нотариальные действия</li></ul></div>
+      <div class="bg-[#dfe3ff] text-primary rounded-2xl p-5 sm:p-7"><h3 class="font-headline text-xl font-bold">В стоимость входит</h3><ul class="mt-5 space-y-3 text-sm text-[#253b89]"><li>Индивидуальная стратегия подачи</li><li>Персональный перечень документов</li><li>Подготовка, проверка и корректировка документов</li><li>Формирование полного кейса</li><li>Подача через представителя</li><li>Ответы на дозапросы UGE</li><li>Контроль рассмотрения и получение решения</li></ul></div>
+      <div class="bg-[#ffebe6] text-[#7a210b] rounded-2xl p-5 sm:p-7"><h3 class="font-headline text-xl font-bold">Оплачивается отдельно</h3><ul class="mt-5 space-y-3 text-sm text-[#8a3a25]"><li>Переводы документов на испанский язык</li><li>Государственные пошлины</li><li>Медицинская страховка</li><li>Нотариальные действия</li></ul></div>
     </div>
   </div>
 </section>
 
-<section class="max-w-5xl mx-auto px-6 lg:px-8 py-20 text-center">
-  <h2 class="font-headline text-3xl sm:text-4xl font-extrabold">Готовы приступить к процессу?</h2>
-  <p class="text-on-variant mt-4">Разберём основание, риски и следующий шаг для вашего кейса.</p>
-  <a class="inline-block mt-8 rounded-xl bg-primary-container text-white font-bold px-8 py-4" href="./contact.html?service=nomad">Получить предварительную оценку</a>
-</section>
 </main>
 <div id="site-footer"></div>
 <script src="../../shared/layout.js"></script>

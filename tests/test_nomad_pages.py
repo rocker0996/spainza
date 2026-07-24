@@ -120,8 +120,87 @@ class NomadPagesTest(unittest.TestCase):
         ):
             self.assertNotIn(phrase, ru)
 
-        self.assertIn("Готовы приступить к процессу?", ru)
-        self.assertIn("Ready to start the process?", en)
+        self.assertNotIn("Готовы приступить к процессу?", ru)
+        self.assertNotIn("Ready to start the process?", en)
+
+    def test_latest_nomad_copy_and_case_card_match_approved_revision(self):
+        ru = read("frontend/ru/nomad.html")
+        en = read("frontend/en/nomad.html")
+
+        for phrase in (
+            "Карточка кейса:",
+            "Наёмный сотрудник иностранной компании",
+            "Подтверждение ежемесячного дохода",
+            "Подтверждение социального страхования",
+            "Документ, подтверждающий отсутствие судимости",
+            "Подача заявления через представителя",
+            "Результат: ВНЖ Испании сроком на 3 года",
+            "Подготовка документов, подача через представителя",
+            "Формирование полного кейса",
+            "Контроль рассмотрения и получение решения",
+            "Переводы документов на испанский язык",
+        ):
+            self.assertIn(phrase, ru)
+
+        for rejected in (
+            "Наёмный сотрудник иностранной IT-компании",
+            "Отдельная работа по социальному страхованию",
+            "Готовы приступить к процессу?",
+            "Разберём основание, риски и следующий шаг для вашего кейса.",
+        ):
+            self.assertNotIn(rejected, ru)
+
+        self.assertIn(">Могу ли я получить ВНЖ?</a>", ru)
+        self.assertIn(">Can I get a residence permit?</a>", en)
+        self.assertIn('class="uppercase', ru[ru.index("Получите решение до 20 рабочих дней") - 120:])
+        self.assertIn("space-y-1", ru)
+
+    def test_home_has_no_empty_gap_and_nomad_pages_load_footer_styles(self):
+        for locale in ("ru", "en"):
+            with self.subTest(locale=locale):
+                home = read(f"frontend/{locale}/index.html")
+                self.assertIn('<main class="pt-20 sm:pt-32">', home)
+                self.assertNotIn('<main class="pt-20 sm:pt-32 pb-16 sm:pb-24">', home)
+
+                for page_name in ("nomad.html", "nomad-case.html"):
+                    page = read(f"frontend/{locale}/{page_name}")
+                    self.assertIn('/frontend/css/portal.css', page)
+                    self.assertIn('<div id="site-footer"></div>', page)
+
+    def test_shared_footers_do_not_include_relocation_description(self):
+        for relative_path in (
+            "shared/footer.html",
+            "shared/ru/footer.html",
+            "shared/en/footer.html",
+        ):
+            with self.subTest(relative_path=relative_path):
+                footer = read(relative_path)
+                self.assertNotIn("Сопровождение релокации цифровых кочевников", footer)
+                self.assertNotIn("Relocation support for digital nomads", footer)
+
+    def test_nomad_pages_have_mobile_first_spacing_and_ctas(self):
+        expected_case_links = {
+            "ru": "Разбор реального кейса",
+            "en": "Real case breakdown",
+        }
+
+        for locale, case_link in expected_case_links.items():
+            with self.subTest(locale=locale, page="nomad"):
+                page = read(f"frontend/{locale}/nomad.html")
+                self.assertIn(f">{case_link}</a>", page)
+                self.assertIn("px-4 sm:px-6 lg:px-8", page)
+                self.assertIn("py-12 sm:py-20", page)
+                self.assertIn("p-5 sm:p-7", page)
+                self.assertIn("w-full sm:w-auto", page)
+                self.assertNotIn("Посмотреть структуру кейса", page)
+                self.assertNotIn("View the case structure", page)
+
+            with self.subTest(locale=locale, page="nomad-case"):
+                page = read(f"frontend/{locale}/nomad-case.html")
+                self.assertIn("px-4 sm:px-6 lg:px-8", page)
+                self.assertIn("py-12 sm:py-20", page)
+                self.assertIn("p-5 sm:p-7", page)
+                self.assertIn("w-full sm:w-auto", page)
 
 
 if __name__ == "__main__":
