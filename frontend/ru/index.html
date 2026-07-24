@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 
 <html class="light" lang="ru"><head>
 <meta charset="utf-8"/>
@@ -162,7 +162,67 @@
         details.mobile-nav:not([open]) summary .icon-close {
             display: none;
         }
+        :root {
+            interpolate-size: allow-keywords;
+        }
+        .faq-item {
+            transition: background-color 280ms ease, color 280ms ease, box-shadow 280ms ease, transform 280ms ease;
+        }
+        .faq-item summary {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+        .faq-item summary::-webkit-details-marker {
+            display: none;
+        }
+        .faq-item summary::after {
+            content: "+";
+            flex: 0 0 auto;
+            font-size: 1.75rem;
+            line-height: 1;
+            color: #0052ff;
+            transition: transform 280ms ease, color 280ms ease;
+        }
+        .faq-item::details-content {
+            block-size: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: block-size 320ms ease, opacity 240ms ease, content-visibility 320ms allow-discrete;
+        }
+        .faq-item[open] {
+            background: #0052ff;
+            color: #ffffff;
+            box-shadow: 0 18px 44px rgba(0, 82, 255, 0.22);
+            transform: translateY(-2px);
+        }
+        .faq-item[open]::details-content {
+            block-size: auto;
+            opacity: 1;
+        }
+        .faq-item[open] summary::after {
+            color: #ffffff;
+            transform: rotate(45deg);
+        }
+        .faq-item[open] p {
+            color: rgba(255, 255, 255, 0.82);
+        }
     </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Как получить ВНЖ Digital Nomad в Испании в 2026 году?","acceptedAnswer":{"@type":"Answer","text":"Нужно подтвердить дистанционную работу или бизнес за пределами Испании, квалификацию, достаточный доход, социальное страхование и остальные требования, затем подать согласованный пакет по подходящему маршруту."}},
+{"@type":"Question","name":"Можно ли подать документы, находясь в Испании по туристической визе другого государства Шенген?","acceptedAnswer":{"@type":"Answer","text":"Подача из Испании обычно возможна при законном пребывании, но основание въезда, сроки и отсутствие нарушений нужно проверить до подачи."}},
+{"@type":"Question","name":"На какой срок выдаётся ВНЖ?","acceptedAnswer":{"@type":"Answer","text":"При подаче из Испании разрешение обычно выдаётся на срок до трёх лет, но не дольше подтверждённого срока отношений или деятельности."}},
+{"@type":"Question","name":"Можно ли получить ВНЖ без высшего образования?","acceptedAnswer":{"@type":"Answer","text":"Да, вместо диплома признанного учебного заведения можно подтвердить не менее трёх лет релевантного профессионального опыта."}},
+{"@type":"Question","name":"Может ли владелец собственной компании податься на Digital Nomad?","acceptedAnswer":{"@type":"Answer","text":"Да, если структура компании, реальная деятельность, дистанционный характер работы и отношения заявителя с бизнесом надлежащим образом подтверждены."}},
+{"@type":"Question","name":"Можно ли включить супруга и детей?","acceptedAnswer":{"@type":"Answer","text":"Да, супруг или партнёр, несовершеннолетние дети и в предусмотренных случаях другие зависимые члены семьи могут подаваться совместно или присоединиться позже."}},
+{"@type":"Question","name":"Какие доходы нужны семье?","acceptedAnswer":{"@type":"Answer","text":"В 2026 году: €34 188 в год для заявителя, €12 820,50 для первого члена семьи и €4 273,50 для каждого следующего; это 200%, 75% и 25% SMI."}},
+{"@type":"Question","name":"Что делать после получения положительного решения?","acceptedAnswer":{"@type":"Answer","text":"Нужно проверить условия решения, оформить TIE, выполнить регистрационные и налоговые обязанности и контролировать сроки продления."}},
+{"@type":"Question","name":"Можно ли работать с испанскими клиентами?","acceptedAnswer":{"@type":"Answer","text":"Для профессиональной деятельности допускается ограниченная работа с испанскими клиентами при сохранении основной зарубежной деятельности; конкретную модель нужно оценить индивидуально."}}
+]}
+</script>
 </head>
 <body class="bg-background text-on-background font-body selection:bg-primary-container selection:text-white">
 <div id="site-header"></div>
@@ -305,6 +365,24 @@
                             </p>
 </div>
 </div>
+</div>
+</div>
+</section>
+<section id="faq" class="py-16 sm:py-24 bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<p class="text-primary font-bold">Digital Nomad · FAQ</p>
+<h2 class="font-headline text-3xl sm:text-5xl font-extrabold mt-3">Частые вопросы о ВНЖ в 2026 году</h2>
+<p class="text-on-surface-variant mt-4">Общие ответы не заменяют оценку конкретного кейса и актуальных документов.</p>
+<div class="mt-10 space-y-3">
+<details class="faq-item bg-white rounded-2xl p-5 sm:p-6"><summary class="cursor-pointer font-headline font-bold text-lg">Как получить ВНЖ Digital Nomad в Испании в 2026 году?</summary><p class="text-on-surface-variant mt-4">Подтвердить дистанционную работу или бизнес за пределами Испании, квалификацию, достаточный доход, социальное страхование и остальные требования, затем подать согласованный пакет по подходящему маршруту.</p></details>
+<details class="faq-item bg-white rounded-2xl p-5 sm:p-6"><summary class="cursor-pointer font-headline font-bold text-lg">Можно ли подать документы, находясь в Испании по туристической визе другого государства Шенген?</summary><p class="text-on-surface-variant mt-4">Подача из Испании обычно возможна при законном пребывании. До подачи нужно проверить основание и дату въезда, оставшийся срок и отсутствие нарушений; одна только действующая шенгенская виза не устраняет эти проверки.</p></details>
+<details class="faq-item bg-white rounded-2xl p-5 sm:p-6"><summary class="cursor-pointer font-headline font-bold text-lg">На какой срок выдаётся ВНЖ?</summary><p class="text-on-surface-variant mt-4">При подаче из Испании разрешение обычно выдаётся на срок до трёх лет, но не дольше подтверждённого срока трудовых или профессиональных отношений. Консульская виза и последующий статус имеют другую последовательность.</p></details>
+<details class="faq-item bg-white rounded-2xl p-5 sm:p-6"><summary class="cursor-pointer font-headline font-bold text-lg">Можно ли получить ВНЖ без высшего образования?</summary><p class="text-on-surface-variant mt-4">Да. Закон позволяет подтвердить квалификацию дипломом признанного университета, учреждения профессионального образования или бизнес-школы либо не менее чем тремя годами релевантного профессионального опыта.</p></details>
+<details class="faq-item bg-white rounded-2xl p-5 sm:p-6"><summary class="cursor-pointer font-headline font-bold text-lg">Может ли владелец собственной компании податься на Digital Nomad?</summary><p class="text-on-surface-variant mt-4">Да, но потребуется показать структуру владения, реальную деятельность компании, дистанционный характер работы, отношения заявителя с бизнесом, доход и применимый режим социального страхования.</p></details>
+<details class="faq-item bg-white rounded-2xl p-5 sm:p-6"><summary class="cursor-pointer font-headline font-bold text-lg">Можно ли включить супруга и детей?</summary><p class="text-on-surface-variant mt-4">Да. Супруг или зарегистрированный партнёр, несовершеннолетние дети и в предусмотренных законом случаях другие зависимые члены семьи могут подаваться совместно либо присоединиться позже при подтверждении родства и средств.</p></details>
+<details class="faq-item bg-white rounded-2xl p-5 sm:p-6"><summary class="cursor-pointer font-headline font-bold text-lg">Какие доходы нужны семье?</summary><p class="text-on-surface-variant mt-4">В 2026 году главный заявитель подтверждает €34 188 в год — 200% SMI; первый член семьи €12 820,50 — 75% SMI; каждый следующий €4 273,50 — 25% SMI. Порог пересматривается вместе с SMI.</p></details>
+<details class="faq-item bg-white rounded-2xl p-5 sm:p-6"><summary class="cursor-pointer font-headline font-bold text-lg">Что делать после получения положительного решения?</summary><p class="text-on-surface-variant mt-4">Проверить условия и срок решения, оформить TIE, выполнить применимые регистрационные, налоговые и страховые обязанности, сохранить доказательства продолжающейся деятельности и контролировать срок продления.</p></details>
+<details class="faq-item bg-white rounded-2xl p-5 sm:p-6"><summary class="cursor-pointer font-headline font-bold text-lg">Можно ли работать с испанскими клиентами?</summary><p class="text-on-surface-variant mt-4">Для профессиональной деятельности допускается ограниченная работа с испанскими клиентами при сохранении основной зарубежной деятельности; применимый процент, договорную модель и налоги нужно оценивать индивидуально. Для наёмной работы правила отличаются.</p></details>
 </div>
 </div>
 </section>

@@ -44,6 +44,7 @@ ARCHIVE_TOP_LEVEL = (
     "contact.html",
     "gold.html",
     "nomad.html",
+    "nomad-case.html",
     "process.html",
     "privacy-policy.html",
     "servces.html",

@@ -163,4 +163,22 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/terms-of-service.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/terms-of-service.html"/>
   </url>
+  <url>
+    <loc>https://spainza.com/ru/nomad-case.html</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/nomad-case.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/nomad-case.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/nomad-case.html"/>
+  </url>
+  <url>
+    <loc>https://spainza.com/en/nomad-case.html</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://spainza.com/ru/nomad-case.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://spainza.com/en/nomad-case.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://spainza.com/en/nomad-case.html"/>
+  </url>
 </urlset>

@@ -1,298 +1,124 @@
-﻿<!DOCTYPE html>
-
-<html class="light" lang="ru"><head>
+<!DOCTYPE html>
+<html class="light" lang="ru">
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<link rel="icon" type="image/png" href="/frontend/img/favicons/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="/frontend/img/favicons/favicon.svg" />
-<link rel="shortcut icon" href="/frontend/img/favicons/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="/frontend/img/favicons/apple-touch-icon.png" />
-<meta name="apple-mobile-web-app-title" content="Spainza" />
-<link rel="manifest" href="/frontend/img/favicons/site.webmanifest" />
-<title>Виза цифрового кочевника в Испанию | Spainza</title>
-<meta name="description" content="Помогаем оформить визу цифрового кочевника в Испанию: проверяем требования, готовим документы и сопровождаем подачу."/>
+<title>ВНЖ Digital Nomad в Испании — сопровождение Spainza</title>
+<meta name="description" content="Предварительная оценка и полное сопровождение ВНЖ Digital Nomad в Испании: стратегия, документы, подача в UGE и работа с запросами."/>
 <link rel="canonical" href="https://spainza.com/ru/nomad.html"/>
 <link rel="alternate" hreflang="ru" href="https://spainza.com/ru/nomad.html"/>
 <link rel="alternate" hreflang="en" href="https://spainza.com/en/nomad.html"/>
 <link rel="alternate" hreflang="x-default" href="https://spainza.com/en/nomad.html"/>
-<meta property="og:type" content="article"/>
-<meta property="og:site_name" content="Spainza"/>
-<meta property="og:title" content="Виза цифрового кочевника в Испанию | Spainza"/>
-<meta property="og:description" content="Помогаем оформить визу цифрового кочевника в Испанию: проверяем требования, готовим документы и сопровождаем подачу."/>
-<meta property="og:url" content="https://spainza.com/ru/nomad.html"/>
-<meta property="og:image" content="https://spainza.com/frontend/img/favicons/web-app-manifest-512x512.png"/>
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="Виза цифрового кочевника в Испанию | Spainza"/>
-<meta name="twitter:description" content="Помогаем оформить визу цифрового кочевника в Испанию: проверяем требования, готовим документы и сопровождаем подачу."/>
-<meta name="twitter:image" content="https://spainza.com/frontend/img/favicons/web-app-manifest-512x512.png"/>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://spainza.com/#organization",
-      "name": "Spainza",
-      "url": "https://spainza.com",
-      "logo": "https://spainza.com/frontend/img/favicons/web-app-manifest-512x512.png"
-    },
-    {
-      "@type": "WebPage",
-      "@id": "https://spainza.com/ru/nomad.html#webpage",
-      "url": "https://spainza.com/ru/nomad.html",
-      "name": "Виза цифрового кочевника в Испанию | Spainza",
-      "description": "Помогаем оформить визу цифрового кочевника в Испанию: проверяем требования, готовим документы и сопровождаем подачу.",
-      "inLanguage": "ru",
-      "isPartOf": {
-        "@id": "https://spainza.com/#website"
-      },
-      "publisher": {
-        "@id": "https://spainza.com/#organization"
-      }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Spainza",
-          "item": "https://spainza.com/ru/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Виза цифрового кочевника: Свобода в ритме Испании",
-          "item": "https://spainza.com/ru/nomad.html"
-        }
-      ]
-    },
-    {
-      "@type": "Service",
-      "name": "Виза цифрового кочевника: Свобода в ритме Испании",
-      "provider": {
-        "@id": "https://spainza.com/#organization"
-      },
-      "areaServed": "Spain"
-    }
-  ]
-}
-</script>
+<link rel="icon" href="/frontend/img/favicons/favicon.ico"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-        darkMode: "class",
-        theme: {
-            extend: {
-            "colors": {
-                    "tertiary-fixed": "#ffdbd2",
-                    "surface-dim": "#d9d9e7",
-                    "on-tertiary-fixed-variant": "#891e00",
-                    "on-surface": "#191b25",
-                    "tertiary": "#952200",
-                    "on-error": "#ffffff",
-                    "background": "#fbf8ff",
-                    "surface": "#fbf8ff",
-                    "on-secondary-fixed": "#001452",
-                    "primary-container": "#0052ff",
-                    "inverse-surface": "#2e303a",
-                    "on-error-container": "#93000a",
-                    "outline": "#737688",
-                    "on-primary-fixed": "#001452",
-                    "surface-container": "#ededfb",
-                    "secondary": "#4459a8",
-                    "on-primary-fixed-variant": "#0038b6",
-                    "primary-fixed-dim": "#b7c4ff",
-                    "primary-fixed": "#dde1ff",
-                    "on-primary-container": "#dfe3ff",
-                    "on-background": "#191b25",
-                    "on-secondary-fixed-variant": "#2b418f",
-                    "on-secondary": "#ffffff",
-                    "inverse-on-surface": "#f0effe",
-                    "surface-container-lowest": "#ffffff",
-                    "surface-container-high": "#e7e7f5",
-                    "on-tertiary": "#ffffff",
-                    "tertiary-container": "#bf3003",
-                    "outline-variant": "#c3c5d9",
-                    "on-tertiary-fixed": "#3c0800",
-                    "inverse-primary": "#b7c4ff",
-                    "on-secondary-container": "#253b89",
-                    "surface-container-low": "#f3f2ff",
-                    "primary": "#003ec7",
-                    "tertiary-fixed-dim": "#ffb4a1",
-                    "on-surface-variant": "#434656",
-                    "secondary-container": "#95aafe",
-                    "secondary-fixed-dim": "#b7c4ff",
-                    "surface-tint": "#004ced",
-                    "secondary-fixed": "#dde1ff",
-                    "surface-variant": "#e1e1ef",
-                    "surface-container-highest": "#e1e1ef",
-                    "on-tertiary-container": "#ffddd5",
-                    "error": "#ba1a1a",
-                    "surface-bright": "#fbf8ff",
-                    "on-primary": "#ffffff",
-                    "error-container": "#ffdad6"
-            },
-            "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                    "full": "9999px"
-            },
-            "spacing": {},
-            "fontFamily": {
-                    "headline": ["Manrope"],
-                    "body": ["Inter"],
-                    "label": ["Inter"]
-            }
-            },
-        },
-        }
-    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<script>
+tailwind.config={theme:{extend:{colors:{background:"#fbf8ff",surface:"#fbf8ff","surface-low":"#f3f2ff","surface-high":"#e7e7f5",primary:"#003ec7","primary-container":"#0052ff",secondary:"#4459a8","on-surface":"#191b25","on-variant":"#434656",outline:"#c3c5d9"},fontFamily:{headline:["Manrope"],body:["Inter"]}}}}
+</script>
 <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            vertical-align: middle;
-        }
-        .tonal-transition {
-            background-image: linear-gradient(to bottom, transparent, var(--tw-bg-opacity, 1));
-        }
-        .glass-header {
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        details.mobile-nav > summary {
-            list-style: none;
-        }
-        details.mobile-nav > summary::-webkit-details-marker {
-            display: none;
-        }
-        details.mobile-nav[open] summary .icon-menu {
-            display: none;
-        }
-        details.mobile-nav:not([open]) summary .icon-close {
-            display: none;
-        }
-    </style>
+.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 24}
+.check-row::before{content:"✓";color:#0052ff;font-weight:800;margin-right:.7rem}
+</style>
 </head>
-<body class="bg-background text-on-background font-body selection:bg-primary-container selection:text-white">
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-white">
 <div id="site-header"></div>
-<main class="pt-20 sm:pt-32 pb-16 sm:pb-24">
-<!-- Hero Section -->
-<section class="max-w-7xl mx-auto px-6 lg:px-8 pb-16 md:pb-24 grid md:grid-cols-2 gap-12 items-center">
-<div class="space-y-8">
-<h1 class="font-headline text-5xl md:text-6xl font-extrabold tracking-tight text-on-background leading-tight">
-                    Виза цифрового кочевника: <br/>
-<span class="bg-clip-text text-transparent bg-gradient-to-r from-primary-container to-secondary">Свобода в ритме Испании</span>
-</h1>
-<p class="font-body text-lg text-on-surface-variant max-w-lg leading-relaxed">
-                    Превратите удаленную работу в европейское резидентство. Легальный статус, налоговые льготы и доступ ко всей зоне Шенгена для вас и вашей семьи.
-                </p>
-<div class="flex gap-4">
-<a class="bg-gradient-to-r from-primary-container to-secondary text-on-primary font-body text-base font-semibold py-3 px-6 rounded-xl hover:shadow-[0_0_15px_rgba(0,82,255,0.3)] transition-all inline-block text-center" href="./contact.html">
-                        Начать процесс
-                    </a>
-<button class="bg-surface-variant text-on-surface font-body text-base font-medium py-3 px-6 rounded-xl hover:bg-surface-dim transition-colors">
-                        Подробнее
-                    </button>
-</div>
-</div>
-<div class="relative rounded-[2rem] overflow-hidden shadow-[0px_20px_40px_rgba(117,118,130,0.06)] aspect-[4/3] bg-surface-container">
-<img decoding="async" height="800" width="1200" alt="Remote professional working on a laptop with a beautiful Spanish coastal view" class="w-full h-full object-cover" data-alt="young professional working on laptop outdoors on a sunny terrace overlooking mediterranean sea in spain bright clear light modern aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCa3JxDlGr0WcHqwHckyTLQC1rTceWk5XHIwoodehLTPJ6W_uRrqr-x7UhuApb-vBDHEP5zxx76hCU245L7d5NAoqx69w9jL3yVxGRRT49YhZgNy3BS0SYEQ1O0GOFBwR_5pJEpq77LpiuxJHEILdir0ZJz-YIqFrGvPQ5P5rMa33pfATfVtrVqymwDdgUhbLRrWWJiHT-3PIB7AekjPL93bDO4qOOehRJWaoQ3ptb373dZWes98E4-RJcrbXXZrOwbBOWMqfd3oHw"/>
-</div>
+<main class="pt-24 sm:pt-32 overflow-hidden">
+<section class="max-w-7xl mx-auto px-6 lg:px-8 pb-20 grid lg:grid-cols-[1.08fr_.92fr] gap-12 items-center">
+  <div>
+    <p class="font-semibold tracking-[.18em] text-xs sm:text-sm text-primary mb-5">DIGITAL NOMAD RESIDENCE · SPAIN · 2026</p>
+    <h1 class="font-headline text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.04]">ВНЖ Digital Nomad Испании</h1>
+    <p class="font-headline text-2xl sm:text-3xl font-bold mt-7">Получите решение до 20 рабочих дней</p>
+    <p class="text-lg text-on-variant mt-2">Вместо месяцев неопределённости</p>
+    <div class="flex flex-col sm:flex-row gap-3 mt-8">
+      <a class="rounded-xl bg-primary-container text-white font-bold px-6 py-4 text-center hover:bg-primary transition" href="./contact.html?service=nomad">Предварительная оценка</a>
+      <a class="rounded-xl bg-surface-high font-bold px-6 py-4 text-center hover:bg-outline/40 transition" href="./nomad-case.html">Посмотреть реальные кейсы</a>
+    </div>
+    <p class="text-xs text-on-variant mt-3">* Ответ специалиста в течение 15 минут в рабочее время.</p>
+  </div>
+  <aside class="relative bg-white border border-outline/40 rounded-[2rem] p-7 sm:p-9 shadow-[0_24px_70px_rgba(52,61,110,.12)]">
+    <div class="absolute -top-16 -right-16 w-48 h-48 bg-primary-container/10 rounded-full blur-3xl"></div>
+    <p class="text-xs tracking-[.16em] uppercase font-bold text-primary">Case audit</p>
+    <h2 class="font-headline text-2xl sm:text-3xl font-extrabold mt-3">Ваш кейс проходит 4 уровня проверки</h2>
+    <ol class="mt-7 space-y-5">
+      <li class="flex gap-4"><b class="text-primary">01</b><span>Основание для получения ВНЖ</span></li>
+      <li class="flex gap-4"><b class="text-primary">02</b><span>Трудовая и корпоративная документация</span></li>
+      <li class="flex gap-4"><b class="text-primary">03</b><span>Доход, банк и социальное страхование</span></li>
+      <li class="flex gap-4"><b class="text-primary">04</b><span>Финальная проверка перед подачей в UGE</span></li>
+    </ol>
+    <p class="mt-7 pt-6 border-t border-outline/40 font-semibold">Сопровождение до получения решения и оформления&nbsp;TIE</p>
+  </aside>
 </section>
-<!-- Benefits Grid -->
-<section class="bg-surface-container-low py-20 mt-12">
-<div class="max-w-7xl mx-auto px-6 lg:px-8">
-<h2 class="font-headline text-3xl font-bold text-center mb-16 text-on-background">Преимущества статуса</h2>
-<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-<!-- Card 1 -->
-<div class="bg-surface/60 backdrop-blur-lg p-6 rounded-xl border border-outline-variant/15 hover:shadow-[0px_20px_40px_rgba(117,118,130,0.06)] transition-all flex flex-col items-start gap-4">
-<div class="p-3 bg-primary-fixed rounded-lg text-on-primary-fixed">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance</span>
-</div>
-<h3 class="font-headline text-xl font-bold text-on-background">Оптимизация налогов</h3>
-<p class="font-body text-sm text-on-surface-variant leading-relaxed">Возможность применения специального налогового режима (Закон Бекхэма) со ставкой 24% на доходы до 600 000 евро.</p>
-</div>
-<!-- Card 2 -->
-<div class="bg-surface/60 backdrop-blur-lg p-6 rounded-xl border border-outline-variant/15 hover:shadow-[0px_20px_40px_rgba(117,118,130,0.06)] transition-all flex flex-col items-start gap-4">
-<div class="p-3 bg-secondary-fixed rounded-lg text-on-secondary-fixed">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">public</span>
-</div>
-<h3 class="font-headline text-xl font-bold text-on-background">Доступ в Шенген</h3>
-<p class="font-body text-sm text-on-surface-variant leading-relaxed">Свободное перемещение по всем странам Шенгенского соглашения без дополнительных виз на протяжении всего срока действия ВНЖ.</p>
-</div>
-<!-- Card 3 -->
-<div class="bg-surface/60 backdrop-blur-lg p-6 rounded-xl border border-outline-variant/15 hover:shadow-[0px_20px_40px_rgba(117,118,130,0.06)] transition-all flex flex-col items-start gap-4">
-<div class="p-3 bg-tertiary-fixed rounded-lg text-on-tertiary-fixed">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">family_restroom</span>
-</div>
-<h3 class="font-headline text-xl font-bold text-on-background">Переезд с семьей</h3>
-<p class="font-body text-sm text-on-surface-variant leading-relaxed">Включите в заявку супруга/у и детей. Члены семьи также получают ВНЖ и право на работу в Испании.</p>
-</div>
-<!-- Card 4 -->
-<div class="bg-surface/60 backdrop-blur-lg p-6 rounded-xl border border-outline-variant/15 hover:shadow-[0px_20px_40px_rgba(117,118,130,0.06)] transition-all flex flex-col items-start gap-4">
-<div class="p-3 bg-primary-container/10 rounded-lg text-primary">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified</span>
-</div>
-<h3 class="font-headline text-xl font-bold text-on-background">Путь к ПМЖ</h3>
-<p class="font-body text-sm text-on-surface-variant leading-relaxed">Время проживания по визе цифрового кочевника засчитывается для получения постоянного места жительства и гражданства.</p>
-</div>
-</div>
-</div>
+
+<section class="bg-surface-low py-20">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <article class="bg-white rounded-2xl p-6"><span class="material-symbols-outlined text-primary">person_off</span><h3 class="font-headline font-bold text-xl mt-4">Без личного присутствия</h3><p class="text-sm text-on-variant mt-2">Документы подаём через представителя.</p></article>
+      <article class="bg-white rounded-2xl p-6"><span class="material-symbols-outlined text-primary">family_restroom</span><h3 class="font-headline font-bold text-xl mt-4">Заявитель + семья</h3><p class="text-sm text-on-variant mt-2">Единая стратегия по семейному делу.</p></article>
+      <article class="bg-white rounded-2xl p-6"><span class="material-symbols-outlined text-primary">language</span><h3 class="font-headline font-bold text-xl mt-4">Документы разных стран</h3><p class="text-sm text-on-variant mt-2">Анализ требований к апостилю и переводу.</p></article>
+      <article class="bg-white rounded-2xl p-6"><span class="material-symbols-outlined text-primary">account_tree</span><h3 class="font-headline font-bold text-xl mt-4">Сложные кейсы</h3><p class="text-sm text-on-variant mt-2">Опыт, образование, собственная компания или ИП, социальное страхование.</p></article>
+    </div>
+    <p class="w-full mt-6 text-lg text-on-variant">Программа подходит гражданам третьих стран, которые дистанционно работают на иностранную компанию, ведут собственный бизнес или работают как ИП за пределами Испании.</p>
+  </div>
 </section>
-<!-- Eligibility Section -->
+
 <section class="max-w-7xl mx-auto px-6 lg:px-8 py-20">
-<div class="flex flex-col md:flex-row gap-16 items-start">
-<div class="md:w-1/3">
-<h2 class="font-headline text-3xl font-bold text-on-background mb-4">Критерии <br/>соответствия</h2>
-<p class="font-body text-base text-on-surface-variant">Убедитесь, что вы подходите под базовые требования программы перед началом оформления.</p>
-</div>
-<div class="md:w-2/3 grid gap-6">
-<div class="flex items-start gap-4 bg-surface p-6 rounded-xl border border-outline-variant/20">
-<div class="mt-1 text-primary">
-<span class="material-symbols-outlined">payments</span>
-</div>
-<div>
-<h4 class="font-headline text-lg font-bold text-on-background mb-1">Стабильный доход</h4>
-<p class="font-body text-sm text-on-surface-variant">В 2026 году: €34 188 в год (около €2 849 в месяц) на главного заявителя — 200% SMI;<br/>€12 820,50 в год (около €1 068,38 в месяц) на первого члена семьи — 75% SMI;<br/>€4 273,50 в год (около €356,13 в месяц) на каждого следующего — 25% SMI.<br/>Порог пересматривается при изменении SMI.</p>
-</div>
-</div>
-<div class="flex items-start gap-4 bg-surface p-6 rounded-xl border border-outline-variant/20">
-<div class="mt-1 text-primary">
-<span class="material-symbols-outlined">work_history</span>
-</div>
-<div>
-<h4 class="font-headline text-lg font-bold text-on-background mb-1">Опыт и образование</h4>
-<p class="font-body text-sm text-on-surface-variant">Диплом признанного университета, учреждения профессионального образования или бизнес-школы либо не менее трёх лет подтверждённого профессионального опыта.</p>
-</div>
-</div>
-<div class="flex items-start gap-4 bg-surface p-6 rounded-xl border border-outline-variant/20">
-<div class="mt-1 text-primary">
-<span class="material-symbols-outlined">contract</span>
-</div>
-<div>
-<h4 class="font-headline text-lg font-bold text-on-background mb-1">Удаленный контракт</h4>
-<p class="font-body text-sm text-on-surface-variant">Контракт с компанией вне Испании, действующий не менее 3 месяцев. Возможность работать удаленно должна быть прописана в договоре.</p>
-</div>
-</div>
-</div>
-</div>
+  <div class="max-w-3xl">
+    <h2 class="font-headline text-3xl sm:text-4xl font-extrabold">Что именно делает Spainza</h2>
+    <p class="text-xl font-semibold mt-4">Мы не выдаём универсальный список документов</p>
+    <p class="text-on-variant mt-2">Сначала мы определяем, чем юридически подтверждается именно ваш кейс.</p>
+  </div>
+  <div class="grid md:grid-cols-2 gap-5 mt-10">
+    <article class="bg-white border border-outline/40 rounded-2xl p-7"><h3 class="font-headline font-bold text-xl">Право на программу</h3><p class="text-on-variant mt-2">Проверка формы занятости, работодателя или ИП, профессионального опыта и характера дистанционной работы.</p></article>
+    <article class="bg-white border border-outline/40 rounded-2xl p-7"><h3 class="font-headline font-bold text-xl">Финансовая модель</h3><p class="text-on-variant mt-2">Анализ зарплаты, движения средств, расчётных листов, налоговых документов и достаточности средств.</p></article>
+    <article class="bg-white border border-outline/40 rounded-2xl p-7"><h3 class="font-headline font-bold text-xl">Социальное страхование</h3><p class="text-on-variant mt-2">Определение применимого механизма подтверждения страхового покрытия.</p></article>
+    <article class="bg-white border border-outline/40 rounded-2xl p-7"><h3 class="font-headline font-bold text-xl">Подача и сопровождение</h3><p class="text-on-variant mt-2">Подготовка заявления, подача документов, ответы на дозапросы UGE и контроль процедуры.</p></article>
+  </div>
 </section>
-<!-- Final CTA -->
-<section class="max-w-5xl mx-auto px-6 lg:px-8 py-16 mb-8">
-<div class="bg-gradient-to-br from-surface-container-high to-surface-variant rounded-[2rem] p-12 text-center shadow-[0px_20px_40px_rgba(117,118,130,0.06)]">
-<h2 class="font-headline text-3xl md:text-4xl font-extrabold text-on-background mb-6">Готовы к релокации?</h2>
-<p class="font-body text-lg text-on-surface-variant mb-10 max-w-2xl mx-auto">Получите персональный разбор вашего кейса от наших экспертов. Мы оценим шансы и составим пошаговый план.</p>
-<button class="bg-primary-container text-on-primary font-body text-base font-bold py-4 px-8 rounded-xl hover:bg-primary transition-colors shadow-lg shadow-primary-container/30">
-                    Записаться на аудит
-                </button>
-</div>
+
+<section class="bg-surface-low py-20">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <p class="text-primary font-bold">Кейсы и решения</p>
+    <h2 class="font-headline text-3xl sm:text-4xl font-extrabold mt-2">Не обещания. Реальные результаты.</h2>
+    <article class="mt-10 bg-white rounded-[2rem] p-7 sm:p-10 grid lg:grid-cols-[1fr_auto] gap-8 shadow-sm">
+      <div><p class="text-xs uppercase tracking-wider text-primary font-bold">Наёмный сотрудник иностранной IT-компании</p><h3 class="font-headline text-2xl font-bold mt-3">ВНЖ на 3 года</h3>
+        <ul class="mt-5 space-y-3 text-on-variant"><li class="check-row">Дистанционный трудовой договор</li><li class="check-row">Подтверждение профессионального опыта</li><li class="check-row">Отдельная работа по социальному страхованию</li><li class="check-row">Подача через представителя</li></ul>
+      </div>
+      <a class="self-end rounded-xl bg-primary-container text-white font-bold px-6 py-4 text-center" href="./nomad-case.html">Посмотреть структуру кейса</a>
+    </article>
+  </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12">
+  <div><p class="text-primary font-bold">Экспертиза в деталях</p><h2 class="font-headline text-3xl sm:text-4xl font-extrabold mt-2">Почему дела получают запросы или отказы</h2><p class="text-xl mt-5">Решение зависит не от количества документов</p><p class="text-on-variant mt-3">Мы проверяем не каждый документ отдельно, а весь кейс как единую систему доказательств.</p></div>
+  <ul class="bg-white border border-outline/40 rounded-2xl p-7 space-y-3 text-on-variant">
+    <li class="check-row">Противоречия между договором, справками и банковскими поступлениями</li>
+    <li class="check-row">Неполные идентификационные данные</li>
+    <li class="check-row">Неподтверждённая возможность дистанционной работы из Испании</li>
+    <li class="check-row">Слабое доказательство опыта</li>
+    <li class="check-row">Неправильное оформление социального страхования</li>
+    <li class="check-row">Недостаточная связь между работодателем, должностью и фактической деятельностью</li>
+    <li class="check-row">Документы без учёта требований конкретного кейса</li>
+  </ul>
+</section>
+
+<section class="bg-primary text-white py-20">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8 grid lg:grid-cols-[.75fr_1.25fr] gap-12">
+    <div><p class="uppercase tracking-widest text-sm text-white/70">Стоимость</p><h2 class="font-headline text-3xl font-extrabold mt-3">Полное сопровождение Digital Nomad</h2><p class="font-headline text-5xl font-extrabold mt-6">от €1 600</p></div>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-[#dfe3ff] text-primary rounded-2xl p-7"><h3 class="font-headline text-xl font-bold">В стоимость входит</h3><ul class="mt-5 space-y-3 text-sm text-[#253b89]"><li>Индивидуальная стратегия подачи</li><li>Персональный перечень документов</li><li>Подготовка, проверка и корректировка</li><li>Формирование полного заявления</li><li>Подача через представителя</li><li>Ответы на запросы UGE</li><li>Контроль и получение решения</li></ul></div>
+      <div class="bg-[#ffebe6] text-[#7a210b] rounded-2xl p-7"><h3 class="font-headline text-xl font-bold">Оплачивается отдельно</h3><ul class="mt-5 space-y-3 text-sm text-[#8a3a25]"><li>Переводы на испанский язык</li><li>Государственные пошлины</li><li>Медицинская страховка</li><li>Нотариальные действия</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-5xl mx-auto px-6 lg:px-8 py-20 text-center">
+  <h2 class="font-headline text-3xl sm:text-4xl font-extrabold">Готовы приступить к процессу?</h2>
+  <p class="text-on-variant mt-4">Разберём основание, риски и следующий шаг для вашего кейса.</p>
+  <a class="inline-block mt-8 rounded-xl bg-primary-container text-white font-bold px-8 py-4" href="./contact.html?service=nomad">Получить предварительную оценку</a>
 </section>
 </main>
 <div id="site-footer"></div>
 <script src="../../shared/layout.js"></script>
-</body></html>
+</body>
+</html>

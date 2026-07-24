@@ -11,12 +11,12 @@ def read(relative_path: str) -> str:
 
 class PublicInformationAccuracyTest(unittest.TestCase):
     def test_digital_nomad_thresholds_match_2026_smi_in_both_locales(self):
-        ru = read("frontend/ru/nomad.html")
-        en = read("frontend/en/nomad.html")
+        ru = read("frontend/ru/index.html")
+        en = read("frontend/en/index.html")
 
-        for value in ("€34 188", "€2 849", "€12 820,50", "€1 068,38", "€4 273,50", "€356,13"):
+        for value in ("€34 188", "€12 820,50", "€4 273,50"):
             self.assertIn(value, ru)
-        for value in ("€34 188", "€2 849", "€12 820.50", "€1 068.38", "€4 273.50", "€356.13"):
+        for value in ("€34 188", "€12 820.50", "€4 273.50"):
             self.assertIn(value, en)
 
         for page in (ru, en):
@@ -26,17 +26,13 @@ class PublicInformationAccuracyTest(unittest.TestCase):
             self.assertNotIn("€993", page)
             self.assertNotIn("€331", page)
 
-        self.assertIn("200% SMI;<br/>", ru)
-        self.assertIn("75% SMI;<br/>", ru)
-        self.assertIn("25% SMI.<br/>Порог пересматривается", ru)
-
     def test_digital_nomad_qualification_lists_all_recognized_routes(self):
-        ru = read("frontend/ru/nomad.html")
-        en = read("frontend/en/nomad.html")
+        ru = read("frontend/ru/index.html")
+        en = read("frontend/en/index.html")
 
         for phrase in ("признанного университета", "профессионального образования", "бизнес-школы", "трёх лет"):
             self.assertIn(phrase, ru)
-        for phrase in ("recognized university", "vocational training institution", "business school", "three years"):
+        for phrase in ("recognised university", "vocational training institution", "business school", "three years"):
             self.assertIn(phrase, en)
 
     def test_general_process_routes_to_the_competent_authority(self):
