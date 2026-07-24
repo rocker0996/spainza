@@ -240,7 +240,7 @@
     var currentCandidate = candidates[0];
     var url = new URL(currentCandidate, currentBase).href;
 
-    return fetch(url)
+    return fetch(url, { cache: "no-cache" })
       .then(function (res) {
         if (!res.ok) throw new Error("Failed to load " + url);
         return res.text();

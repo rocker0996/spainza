@@ -172,6 +172,9 @@ class NomadPagesTest(unittest.TestCase):
                     self.assertIn('<div id="site-footer"></div>', page)
 
     def test_shared_footers_do_not_include_relocation_description(self):
+        layout = read("shared/layout.js")
+        self.assertIn('fetch(url, { cache: "no-cache" })', layout)
+
         for relative_path in (
             "shared/footer.html",
             "shared/ru/footer.html",
